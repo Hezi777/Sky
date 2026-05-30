@@ -28,6 +28,14 @@ Read-mostly. Single user (me).
 - `pnpm build` - production build
 - `pnpm verify` - typecheck + `biome check` (run before considering a task done)
 
+## Fetching docs (context7 MCP)
+Before scaffolding, installing, or configuring any library in this stack, use the
+context7 MCP to pull current docs - do not rely on training data alone. Resolve the
+library ID first, then fetch the relevant section. Applies especially to:
+Next.js, Tailwind CSS 4, shadcn/ui, @supabase/ssr, Biome, and Vercel cron.
+Example: `mcp__plugin_context7_context7__resolve-library-id` then
+`mcp__plugin_context7_context7__query-docs`.
+
 ## How to work here
 - Read docs/PRD.md before starting a new feature; read docs/ARCHITECTURE.md before
   touching data flow, tables, or cron.
