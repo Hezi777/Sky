@@ -10,6 +10,10 @@ Read-mostly. Single user (me).
 - Next.js 16.2.x (App Router, Turbopack) + React 19.2 + TypeScript 5.x
 - Supabase (Postgres) via @supabase/ssr 0.10.x for cached data + token storage
 - Tailwind CSS 4.x (CSS-first config via @theme, no tailwind.config.js)
+- shadcn/ui - component library built on Radix UI primitives; use for all UI components.
+  Init with `pnpm dlx shadcn@latest init` (choose Tailwind 4 / CSS variables when prompted).
+  Add components with `pnpm dlx shadcn@latest add <component>`. Never copy-paste component
+  source manually - always use the CLI so versions stay in sync.
 - Biome 2.x for lint + format (runs via a Stop hook, not by hand)
 - Scheduled jobs (Vercel cron) pull from each API into Supabase; the UI reads the cache.
   Do NOT call external APIs on page render. See docs/ARCHITECTURE.md.
