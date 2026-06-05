@@ -7,9 +7,8 @@ import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { GreetingResponse } from "@/lib/types";
 import { MemojiPicker } from "@/components/memoji-picker";
-import { MEMOJIS, DEFAULT_MEMOJI_ID } from "@/lib/memojis";
-
-const STORAGE_KEY = "sky:memoji";
+import { useSettings } from "@/components/settings-provider";
+import { MEMOJIS } from "@/lib/memojis";
 
 type Greeting = { word: string; emoji: string };
 
@@ -31,11 +30,10 @@ export function GreetingCard() {
     { revalidateOnFocus: false }
   );
 
+  const { name, memojiId, ready, setMemojiId } = useSettings();
+
   // null until mounted so server and first client render match (no hydration mismatch).
   const [now, setNow] = useState<Date | null>(null);
-
-  // Memoji selection — null until mounted to avoid SSR mismatch.
-  const [memojiId, setMemojiId] = useState<string | null>(null);
 
   useEffect(() => {
     // Set on mount (not during render) so SSR and first client render match.
@@ -45,32 +43,7 @@ export function GreetingCard() {
     return () => clearInterval(id);
   }, []);
 
-  // Read persisted memoji on mount (localStorage is client-only).
-  useEffect(() => {
-    try {
-      const stored = localStorage.getItem(STORAGE_KEY);
-      const valid = stored && MEMOJIS.some((m) => m.id === stored);
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setMemojiId(valid ? stored : DEFAULT_MEMOJI_ID);
-    } catch {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setMemojiId(DEFAULT_MEMOJI_ID);
-    }
-  }, []);
-
-  function handleMemojiSelect(id: string) {
-    setMemojiId(id);
-    try {
-      localStorage.setItem(STORAGE_KEY, id);
-    } catch {
-      // localStorage unavailable — selection still works in-memory
-    }
-  }
-
-  const currentMemoji =
-    memojiId !== null
-      ? (MEMOJIS.find((m) => m.id === memojiId) ?? MEMOJIS[0])
-      : null;
+  const currentMemoji = MEMOJIS.find((m) => m.id === memojiId) ?? MEMOJIS[0];
 
   const greeting = now ? greetingFor(now.getHours()) : null;
   const dayPercent = now
@@ -126,26 +99,25 @@ export function GreetingCard() {
 
           {/* Avatar */}
           <div className="absolute inset-[7px] rounded-full overflow-hidden">
-            {currentMemoji ? (
+            {ready ? (
               <img
                 src={currentMemoji.url}
-                alt="Your memoji"
+                alt={`${name}'s memoji`}
                 width={66}
                 height={66}
                 className="h-full w-full rounded-full object-cover"
               />
             ) : (
-              // Placeholder shown before mount (matches SSR — no hydration mismatch)
+              // Placeholder shown before hydration (matches SSR — no mismatch)
               <div className="flex h-full w-full items-center justify-center rounded-full bg-gradient-to-br from-primary/85 to-primary text-primary-foreground">
-                <span className="text-2xl font-semibold tracking-tight">H</span>
+                <span className="text-2xl font-semibold tracking-tight">
+                  {name.charAt(0).toUpperCase() || "H"}
+                </span>
               </div>
             )}
-            {/* Picker trigger — overlays the avatar, only rendered client-side */}
-            {memojiId !== null && (
-              <MemojiPicker
-                selectedId={memojiId}
-                onSelect={handleMemojiSelect}
-              />
+            {/* Picker trigger — overlays the avatar, only after hydration */}
+            {ready && (
+              <MemojiPicker selectedId={memojiId} onSelect={setMemojiId} />
             )}
           </div>
 
@@ -160,10 +132,10 @@ export function GreetingCard() {
           <h2 className="text-xl font-semibold tracking-tight text-foreground sm:text-2xl">
             {greeting ? (
               <>
-                {greeting.word}, Hen <span aria-hidden>{greeting.emoji}</span>
+                {greeting.word}, {name} <span aria-hidden>{greeting.emoji}</span>
               </>
             ) : (
-              "Hello, Hen"
+              `Hello, ${name}`
             )}
           </h2>
 

@@ -4,6 +4,7 @@ import { AlertCircle, TrendingDown, TrendingUp } from "lucide-react";
 import { Cell, Legend, Pie, PieChart, ResponsiveContainer, Tooltip } from "recharts";
 import useSWR from "swr";
 
+import { BrandLogo } from "@/components/brand-logo";
 import {
   Card,
   CardContent,
@@ -69,7 +70,10 @@ function IBKRSkeleton() {
   return (
     <Card className="flex h-full flex-col rounded-2xl">
       <CardHeader>
-        <CardTitle>Portfolio</CardTitle>
+        <CardTitle className="flex items-center gap-2">
+          <BrandLogo name="ibkr" className="h-4 w-auto max-w-[96px]" />
+          Portfolio
+        </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
         <Skeleton className="h-8 w-40" />
@@ -98,7 +102,10 @@ export function IBKRWidget() {
     return (
       <Card className="flex h-full flex-col rounded-2xl">
         <CardHeader>
-          <CardTitle>Portfolio</CardTitle>
+          <CardTitle className="flex items-center gap-2">
+          <BrandLogo name="ibkr" className="h-4 w-auto max-w-[96px]" />
+          Portfolio
+        </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
@@ -134,7 +141,10 @@ export function IBKRWidget() {
   return (
     <Card className="flex h-full flex-col rounded-2xl">
       <CardHeader>
-        <CardTitle>Portfolio</CardTitle>
+        <CardTitle className="flex items-center gap-2">
+          <BrandLogo name="ibkr" className="h-4 w-auto max-w-[96px]" />
+          Portfolio
+        </CardTitle>
       </CardHeader>
 
       <CardContent className="flex min-h-0 flex-1 flex-col space-y-5">

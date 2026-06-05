@@ -2,8 +2,8 @@
 
 import useSWR from "swr";
 import { ListChecks } from "lucide-react";
-import { SiTicktick } from "react-icons/si";
 
+import { BrandLogo } from "@/components/brand-logo";
 import { fetcher } from "@/lib/fetcher";
 import type { TickTickTask, TickTickPriority } from "@/lib/types";
 import {
@@ -150,8 +150,7 @@ export function TickTickWidget() {
     <Card className="flex h-full flex-col rounded-2xl">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
-          {/* Brand icon; SiTicktick confirmed present in installed react-icons */}
-          <SiTicktick className="size-4 shrink-0 text-muted-foreground" aria-hidden />
+          <BrandLogo name="ticktick" className="size-4 shrink-0" />
           Today&apos;s Tasks
         </CardTitle>
       </CardHeader>

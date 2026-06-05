@@ -52,13 +52,12 @@ export default function Home() {
         <GithubRepos />
       </div>
 
-      {/* GitHub contribution heatmap — wide strip, full width. */}
-      <div className="sm:col-span-6 xl:col-span-12">
+      {/* Bottom band: contribution heatmap (wide) + quick-add share one row so
+          the heatmap's ~52-week strip isn't stranded in a full-width card. */}
+      <div className="sm:col-span-6 xl:col-span-8">
         <GithubHeatmap />
       </div>
-
-      {/* Quick-add — full-width, short, at the bottom (terminal action). */}
-      <div className="sm:col-span-6 xl:col-span-12">
+      <div className="sm:col-span-6 xl:col-span-4">
         <ResourceQuickAdd />
       </div>
     </div>

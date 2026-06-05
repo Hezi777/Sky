@@ -1,8 +1,8 @@
 "use client";
 
 import useSWR from "swr";
-import { SiGithub } from "react-icons/si";
 
+import { BrandLogo } from "@/components/brand-logo";
 import { fetcher } from "@/lib/fetcher";
 import type { GithubContributionDay, GithubResponse } from "@/lib/types";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -85,7 +85,7 @@ export function GithubHeatmap() {
     <Card className="flex h-full flex-col rounded-2xl">
       <CardHeader className="border-b">
         <CardTitle className="flex items-center gap-2">
-          <SiGithub className="size-4" />
+          <BrandLogo name="github" className="size-4" />
           Contributions
           {data && (
             <span className="ml-auto text-sm font-normal text-muted-foreground">
@@ -99,7 +99,7 @@ export function GithubHeatmap() {
 
         {error && (
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <SiGithub className="size-4 shrink-0" />
+            <BrandLogo name="github" className="size-4 shrink-0" />
             <span>Could not load contributions</span>
           </div>
         )}

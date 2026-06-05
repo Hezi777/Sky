@@ -2,8 +2,8 @@
 
 import useSWR from "swr";
 import { Star } from "lucide-react";
-import { SiGithub } from "react-icons/si";
 
+import { BrandLogo } from "@/components/brand-logo";
 import { fetcher } from "@/lib/fetcher";
 import type { GithubResponse } from "@/lib/types";
 import { Badge } from "@/components/ui/badge";
@@ -39,7 +39,7 @@ export function GithubRepos() {
     <Card className="flex h-full flex-col rounded-2xl">
       <CardHeader className="border-b">
         <CardTitle className="flex items-center gap-2">
-          <SiGithub className="size-4" />
+          <BrandLogo name="github" className="size-4" />
           GitHub
         </CardTitle>
       </CardHeader>
@@ -57,7 +57,7 @@ export function GithubRepos() {
 
         {error && (
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <SiGithub className="size-4 shrink-0" />
+            <BrandLogo name="github" className="size-4 shrink-0" />
             <span>Could not load repos</span>
           </div>
         )}

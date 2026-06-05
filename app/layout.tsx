@@ -4,8 +4,10 @@ import "./globals.css";
 
 import { Header } from "@/components/layout/header";
 import { Sidebar } from "@/components/layout/sidebar";
+import { SettingsProvider } from "@/components/settings-provider";
 import { ThemeProvider } from "@/components/theme-provider";
 import { Toaster } from "@/components/ui/sonner";
+import { TooltipProvider } from "@/components/ui/tooltip";
 
 const geistSans = Geist({
   variable: "--font-sans",
@@ -40,13 +42,17 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          <div className="flex min-h-screen">
-            <Sidebar />
-            <div className="flex min-w-0 flex-1 flex-col">
-              <Header />
-              <main className="flex-1 p-4 sm:p-6">{children}</main>
-            </div>
-          </div>
+          <SettingsProvider>
+            <TooltipProvider>
+              <div className="flex min-h-screen">
+                <Sidebar />
+                <div className="flex min-w-0 flex-1 flex-col">
+                  <Header />
+                  <main className="flex-1 p-4 sm:p-6">{children}</main>
+                </div>
+              </div>
+            </TooltipProvider>
+          </SettingsProvider>
           <Toaster richColors position="top-right" />
         </ThemeProvider>
       </body>

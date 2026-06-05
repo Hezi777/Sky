@@ -1,6 +1,5 @@
-import { Settings } from "lucide-react";
-
 import { Logo } from "@/components/logo";
+import { SettingsDialog } from "@/components/settings-dialog";
 
 // Single-page app: no in-page navigation. Slim rail = logo (top) + settings (bottom).
 export function Sidebar() {
@@ -10,13 +9,7 @@ export function Sidebar() {
         <Logo className="h-5 w-5" />
       </div>
 
-      <button
-        title="Settings"
-        aria-label="Settings"
-        className="flex h-9 w-9 items-center justify-center rounded-lg text-sidebar-foreground transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
-      >
-        <Settings className="h-5 w-5" />
-      </button>
+      <SettingsDialog />
     </aside>
   );
 }
