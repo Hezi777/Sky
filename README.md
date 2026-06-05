@@ -1,4 +1,4 @@
-<h1 align="center"><b>Lesikum</b></h1>
+<h1 align="center"><b>Sky - Sof Kol Yom</b></h1>
 
 <p align="center">A personal read-only dashboard that aggregates Google Calendar, Notion, Spotify, GitHub, TickTick, and Interactive Brokers into one interface.</p>
 
@@ -26,30 +26,30 @@ Lesikum is a single-user personal dashboard built to replace opening six separat
 
 ## Integrations
 
-| Service | Data surfaced | Status |
-|---|---|---|
-| Spotify | Last played track and most recent playlist | In progress |
-| Notion | Resources DB quick-add with AI-generated description (Groq) | In progress |
-| Google Calendar | Today's events in time order | In progress |
-| GitHub | Latest Actions run status and open PR count per active repo | In progress |
-| TickTick | Today's incomplete tasks | In progress |
+| Service                    | Data surfaced                                                  | Status      |
+| -------------------------- | -------------------------------------------------------------- | ----------- |
+| Spotify                    | Last played track and most recent playlist                     | In progress |
+| Notion                     | Resources DB quick-add with AI-generated description (Groq)    | In progress |
+| Google Calendar            | Today's events in time order                                   | In progress |
+| GitHub                     | Latest Actions run status and open PR count per active repo    | In progress |
+| TickTick                   | Today's incomplete tasks                                       | In progress |
 | Fair (Meitav fund 5140785) | Current fund value, total contributed, gain/loss, DCA settings | In progress |
-| Interactive Brokers | Portfolio total value and daily change via Flex Web Service | In progress |
+| Interactive Brokers        | Portfolio total value and daily change via Flex Web Service    | In progress |
 
 All data is fetched by scheduled Vercel cron jobs and written to Supabase. The UI reads from the cache only.
 
 ## Tech Stack
 
-| Layer | Technology |
-|---|---|
-| Framework | Next.js 16.2 (App Router, Turbopack) |
-| Language | TypeScript 5 |
-| UI library | React 19 |
-| Component library | shadcn/ui (Radix UI primitives) |
-| Styling | Tailwind CSS 4 (CSS-first configuration) |
-| Database / cache | Supabase (Postgres + @supabase/ssr 0.10) |
-| Linter / formatter | Biome 2 |
-| Deployment | Vercel (cron jobs for scheduled data fetching) |
+| Layer              | Technology                                     |
+| ------------------ | ---------------------------------------------- |
+| Framework          | Next.js 16.2 (App Router, Turbopack)           |
+| Language           | TypeScript 5                                   |
+| UI library         | React 19                                       |
+| Component library  | shadcn/ui (Radix UI primitives)                |
+| Styling            | Tailwind CSS 4 (CSS-first configuration)       |
+| Database / cache   | Supabase (Postgres + @supabase/ssr 0.10)       |
+| Linter / formatter | Biome 2                                        |
+| Deployment         | Vercel (cron jobs for scheduled data fetching) |
 
 ## Getting Started
 

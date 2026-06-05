@@ -1,61 +1,53 @@
-# CLAUDE.md
+# Sky - Sof Kol Yom (End of Day in Hebrew) - Personal Dashboard
 
-## What this is
-Personal all-in-one dashboard that aggregates my own accounts into one web app:
-Google Calendar, Notion (Resources DB), Interactive Brokers, Fair (Israeli קרן -
-tracked as a real DCA/holdings tracker, see below), Spotify, TickTick, GitHub.
-Read-mostly. Single user (me).
+Personal morning dashboard for Hen. One user, always live-fetched, no multi-user auth.
 
-## Stack (verified current as of May 2026)
-- Next.js 16.2.x (App Router, Turbopack) + React 19.2 + TypeScript 5.x
-- Supabase (Postgres) via @supabase/ssr 0.10.x for cached data + token storage
-- Tailwind CSS 4.x (CSS-first config via @theme, no tailwind.config.js)
-- shadcn/ui - component library built on Radix UI primitives; use for all UI components.
-  Init with `pnpm dlx shadcn@latest init` (choose Tailwind 4 / CSS variables when prompted).
-  Add components with `pnpm dlx shadcn@latest add <component>`. Never copy-paste component
-  source manually - always use the CLI so versions stay in sync.
-- Biome 2.x for lint + format (runs via a Stop hook, not by hand)
-- Scheduled jobs (Vercel cron) pull from each API into Supabase; the UI reads the cache.
-  Do NOT call external APIs on page render. See docs/ARCHITECTURE.md.
+## Stack
 
-## Next.js 16 gotchas (these will bite if ignored)
-- params, searchParams, cookies(), headers(), draftMode() are ASYNC - always await.
-- Node 20.9+ required. TS 5.1+ required.
-- Use @supabase/ssr (auth-helpers packages are deprecated, do not use them).
+Next.js 15 (App Router) · React · TypeScript · Tailwind CSS · shadcn/ui · Recharts · SWR · Groq API
 
-## Commands
-- `pnpm dev` - run locally (Turbopack)
-- `pnpm build` - production build
-- `pnpm verify` - typecheck + `biome check` (run before considering a task done)
+## Structure
 
-## Fetching docs (context7 MCP)
-Before scaffolding, installing, or configuring any library in this stack, use the
-context7 MCP to pull current docs - do not rely on training data alone. Resolve the
-library ID first, then fetch the relevant section. Applies especially to:
-Next.js, Tailwind CSS 4, shadcn/ui, @supabase/ssr, Biome, and Vercel cron.
-Example: `mcp__plugin_context7_context7__resolve-library-id` then
-`mcp__plugin_context7_context7__query-docs`.
+```
+app/
+  page.tsx              # Root dashboard
+  layout.tsx
+  api/
+    spotify/route.ts    # GET /api/spotify
+    github/route.ts     # GET /api/github
+    notion/route.ts     # GET /api/notion
+    calendar/route.ts   # GET /api/calendar
+    ibkr/route.ts       # GET /api/ibkr
+    ticktick/route.ts   # GET /api/ticktick
+    ai/
+      greeting/route.ts # POST - greeting card message
+      resource/route.ts # POST - analyze URL, return Notion properties
+components/
+  widgets/              # One file per widget
+  ui/                   # shadcn components only
+lib/
+  spotify.ts | github.ts | notion.ts | calendar.ts | ibkr.ts | ticktick.ts | groq.ts
+```
 
-## How to work here
-- Read docs/PRD.md before starting a new feature; read docs/ARCHITECTURE.md before
-  touching data flow, tables, or cron.
-- Build ONE integration at a time. Each is self-contained.
-- Per-integration auth quirks live in docs/agent/integrations.md - read it before
-  wiring any API. Notably: Fair has no API (track the underlying fund's public price +
-  manual contributions), IBKR uses Flex Web Service or the CP Gateway, not clean OAuth,
-  and Notion AI descriptions use Groq (not the Anthropic API - no key available).
-- Use Plan Mode for anything touching more than one file. Show the plan first.
-- Track progress in PROGRESS.md as you go.
-- Full build process: docs/WORKFLOW.md (design -> code -> shipped).
+See `docs/PLAN.md` for widget specs. See `docs/INTEGRATIONS.md` for auth setup per service.
 
-## Detailed docs (read when relevant, not always)
-- docs/WORKFLOW.md - end-to-end process: Claude Design -> Claude Code -> finished
-- docs/PRD.md - what each widget should do + acceptance criteria
-- docs/ARCHITECTURE.md - data flow, tables, cron, token storage
-- docs/agent/integrations.md - per-API auth, endpoints, gotchas
-- docs/agent/running-locally.md - env vars, OAuth setup, how to run cron locally
-- design/DESIGN_BRIEF.md - the Claude Design prompts + design tokens
+## Rules
 
-## Non-negotiables
-- Never commit secrets. Tokens live in Supabase / env, never in code.
-- No em dashes in any user-facing copy; use hyphens.
+- All API calls go through `app/api/*` routes. Never call external APIs from client components.
+- Every widget fetches independently with SWR. No global loading state.
+- Each widget has its own skeleton loader while fetching.
+- Use `react-icons/si` for brand icons (SiSpotify, SiGithub, SiNotion, etc.). No manual SVGs.
+- Use shadcn Card as the base for every widget. No custom card wrappers.
+- Tailwind only for styling. No inline styles. No CSS modules.
+- Dark mode via `next-themes`. Class-based (`dark:`). Toggle in top-right header.
+- Env vars: never hardcode keys. Always use `process.env.X`. See `.env.local.example`.
+- TypeScript strict mode. Every API response has a typed interface in `lib/types.ts`.
+- Error state per widget: show icon + message, never crash the whole dashboard.
+
+## Do Not
+
+- Do not create Supabase tables or any database - data is always live-fetched.
+- Do not use the Anthropic API for data fetching - use Groq for AI features only.
+- Do not add authentication - this is a single-user personal app.
+- Do not add navigation - single page dashboard only.
+- Do not use `pages/` router - App Router only.
