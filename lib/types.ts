@@ -121,3 +121,27 @@ export interface ResourceProperties {
   Category: string;
   Status: string;
 }
+
+// --- Fair (Israeli mutual fund DCA tracker) --------------------------------
+
+export interface FairPrice {
+  price: number; // quoted unit price (Maya scale, used as-is)
+  asOf: string; // ISO date the price is valid for
+  currency: string; // "ILS"
+  source: string; // e.g. "Maya / TASE"
+  fundName?: string;
+}
+
+export interface FairContribution {
+  id: string;
+  date: string; // YYYY-MM-DD
+  amount: number; // ₪ invested
+  units: number; // units bought
+}
+
+export interface FairConfig {
+  fundNumber: string;
+  fundName: string;
+  manualPrice?: number; // ₪ per unit; overrides the live price when set
+  contributions: FairContribution[];
+}

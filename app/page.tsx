@@ -1,5 +1,6 @@
 import { ActiveProjects } from "@/components/widgets/active-projects";
 import { CalendarWidget } from "@/components/widgets/calendar-widget";
+import { FairWidget } from "@/components/widgets/fair-widget";
 import { GithubHeatmap } from "@/components/widgets/github-heatmap";
 import { GithubRepos } from "@/components/widgets/github-repos";
 import { GreetingCard } from "@/components/widgets/greeting-card";
@@ -10,9 +11,8 @@ import { SpotifyWidget } from "@/components/widgets/spotify-widget";
 import { TickTickWidget } from "@/components/widgets/ticktick-widget";
 
 // Content-driven bento grid (not a symmetric matrix).
-// Desktop: 12-col grid; tile size encodes importance + content shape.
-// Tablet (sm): 6-col; Mobile: single column ordered by what Hen checks first.
-// auto-rows-[minmax(11rem,auto)] + row-span-* give tall list widgets real height;
+// Desktop: 12-col grid; each band sums to 12 cols. Tablet (sm): 6-col;
+// mobile: single column. auto-rows + row-span give tall lists real height;
 // every widget Card is h-full so same-row tiles align.
 export default function Home() {
   return (
@@ -22,41 +22,38 @@ export default function Home() {
         <GreetingCard />
       </div>
 
-      {/* TODAY cluster (top-left, where the eye lands first): the schedule
-          and the task list, both tall vertical lists. */}
+      {/* "Now" band: schedule, tasks, and what's playing. */}
       <div className="row-span-2 sm:col-span-3 xl:col-span-4">
         <CalendarWidget />
       </div>
       <div className="row-span-2 sm:col-span-3 xl:col-span-4">
         <TickTickWidget />
       </div>
-
-      {/* PORTFOLIO — the heaviest object, anchors the right side as a tall
-          hero metric block. */}
-      <div className="row-span-3 sm:col-span-6 xl:col-span-4">
-        <IBKRWidget />
-      </div>
-
-      {/* Single glanceable focus item + now-playing sit under the today
-          cluster, completing the second band. */}
-      <div className="sm:col-span-3 xl:col-span-4">
-        <NextTask />
-      </div>
-      <div className="row-span-2 sm:col-span-3 xl:col-span-4">
+      <div className="row-span-2 sm:col-span-6 xl:col-span-4">
         <SpotifyWidget />
       </div>
 
-      {/* Projects — medium vertical list, beside Spotify. */}
-      <div className="row-span-2 sm:col-span-3 xl:col-span-4">
-        <ActiveProjects />
+      {/* FINANCE band — Portfolio (IBKR) and Fair fund side by side. */}
+      <div className="row-span-2 sm:col-span-6 xl:col-span-7">
+        <IBKRWidget />
+      </div>
+      <div className="row-span-2 sm:col-span-6 xl:col-span-5">
+        <FairWidget />
       </div>
 
-      {/* GITHUB cluster — repos list (medium) next to the wide heatmap strip
-          which needs horizontal room and little height. */}
-      <div className="row-span-2 sm:col-span-3 xl:col-span-4">
+      {/* Focus + projects + repos band. */}
+      <div className="row-span-2 sm:col-span-2 xl:col-span-4">
+        <NextTask />
+      </div>
+      <div className="row-span-2 sm:col-span-2 xl:col-span-4">
+        <ActiveProjects />
+      </div>
+      <div className="row-span-2 sm:col-span-2 xl:col-span-4">
         <GithubRepos />
       </div>
-      <div className="sm:col-span-6 xl:col-span-8">
+
+      {/* GitHub contribution heatmap — wide strip, full width. */}
+      <div className="sm:col-span-6 xl:col-span-12">
         <GithubHeatmap />
       </div>
 

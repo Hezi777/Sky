@@ -6,6 +6,10 @@ import useSWR from "swr";
 import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { GreetingResponse } from "@/lib/types";
+import { MemojiPicker } from "@/components/memoji-picker";
+import { MEMOJIS, DEFAULT_MEMOJI_ID } from "@/lib/memojis";
+
+const STORAGE_KEY = "sky:memoji";
 
 type Greeting = { word: string; emoji: string };
 
@@ -30,6 +34,9 @@ export function GreetingCard() {
   // null until mounted so server and first client render match (no hydration mismatch).
   const [now, setNow] = useState<Date | null>(null);
 
+  // Memoji selection — null until mounted to avoid SSR mismatch.
+  const [memojiId, setMemojiId] = useState<string | null>(null);
+
   useEffect(() => {
     // Set on mount (not during render) so SSR and first client render match.
     // eslint-disable-next-line react-hooks/set-state-in-effect
@@ -37,6 +44,33 @@ export function GreetingCard() {
     const id = setInterval(() => setNow(new Date()), 60_000);
     return () => clearInterval(id);
   }, []);
+
+  // Read persisted memoji on mount (localStorage is client-only).
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem(STORAGE_KEY);
+      const valid = stored && MEMOJIS.some((m) => m.id === stored);
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setMemojiId(valid ? stored : DEFAULT_MEMOJI_ID);
+    } catch {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setMemojiId(DEFAULT_MEMOJI_ID);
+    }
+  }, []);
+
+  function handleMemojiSelect(id: string) {
+    setMemojiId(id);
+    try {
+      localStorage.setItem(STORAGE_KEY, id);
+    } catch {
+      // localStorage unavailable — selection still works in-memory
+    }
+  }
+
+  const currentMemoji =
+    memojiId !== null
+      ? (MEMOJIS.find((m) => m.id === memojiId) ?? MEMOJIS[0])
+      : null;
 
   const greeting = now ? greetingFor(now.getHours()) : null;
   const dayPercent = now
@@ -91,8 +125,28 @@ export function GreetingCard() {
           </svg>
 
           {/* Avatar */}
-          <div className="absolute inset-[7px] flex items-center justify-center rounded-full bg-gradient-to-br from-primary/85 to-primary text-primary-foreground">
-            <span className="text-2xl font-semibold tracking-tight">H</span>
+          <div className="absolute inset-[7px] rounded-full overflow-hidden">
+            {currentMemoji ? (
+              <img
+                src={currentMemoji.url}
+                alt="Your memoji"
+                width={66}
+                height={66}
+                className="h-full w-full rounded-full object-cover"
+              />
+            ) : (
+              // Placeholder shown before mount (matches SSR — no hydration mismatch)
+              <div className="flex h-full w-full items-center justify-center rounded-full bg-gradient-to-br from-primary/85 to-primary text-primary-foreground">
+                <span className="text-2xl font-semibold tracking-tight">H</span>
+              </div>
+            )}
+            {/* Picker trigger — overlays the avatar, only rendered client-side */}
+            {memojiId !== null && (
+              <MemojiPicker
+                selectedId={memojiId}
+                onSelect={handleMemojiSelect}
+              />
+            )}
           </div>
 
           {/* Percent badge */}

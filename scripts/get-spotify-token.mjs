@@ -1,7 +1,13 @@
 /**
  * get-spotify-token.mjs
  *
- * Runs a one-time Spotify Authorization Code + PKCE flow to obtain a refresh token.
+ * Runs a one-time Spotify Authorization Code flow (confidential client, using
+ * the client secret) to obtain a NON-ROTATING refresh token.
+ *
+ * NOTE: We deliberately do NOT use PKCE here. PKCE-issued refresh tokens rotate
+ * on every refresh (each use returns a new token and revokes the old one), which
+ * breaks a stateless server that can't persist the rotated value. The
+ * confidential flow (client_id + client_secret) returns a stable refresh token.
  *
  * Redirect URI to register in the Spotify dashboard:
  *   http://127.0.0.1:8888/callback
@@ -54,27 +60,23 @@ function base64urlEncode(buf) {
   return buf.toString('base64').replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
 }
 
-function generateCodeVerifier() {
-  return base64urlEncode(crypto.randomBytes(64));
+function basicAuthHeader(clientId, clientSecret) {
+  return 'Basic ' + Buffer.from(`${clientId}:${clientSecret}`).toString('base64');
 }
 
-function generateCodeChallenge(verifier) {
-  const hash = crypto.createHash('sha256').update(verifier).digest();
-  return base64urlEncode(hash);
-}
-
-async function exchangeCode(code, codeVerifier, clientId) {
+async function exchangeCode(code, clientId, clientSecret) {
   const body = new URLSearchParams({
     grant_type: 'authorization_code',
     code,
     redirect_uri: REDIRECT_URI,
-    client_id: clientId,
-    code_verifier: codeVerifier,
   });
 
   const res = await fetch(TOKEN_URL, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    headers: {
+      'Content-Type': 'application/x-www-form-urlencoded',
+      Authorization: basicAuthHeader(clientId, clientSecret),
+    },
     body: body.toString(),
   });
 
@@ -91,13 +93,16 @@ const envPath = path.resolve(__dirname, '../.env.local');
 const env = parseEnvFile(envPath);
 
 const clientId = env['SPOTIFY_CLIENT_ID'];
+const clientSecret = env['SPOTIFY_CLIENT_SECRET'];
 if (!clientId) {
   console.error('\nERROR: SPOTIFY_CLIENT_ID is missing from .env.local\n');
   process.exit(1);
 }
+if (!clientSecret) {
+  console.error('\nERROR: SPOTIFY_CLIENT_SECRET is missing from .env.local\n');
+  process.exit(1);
+}
 
-const codeVerifier = generateCodeVerifier();
-const codeChallenge = generateCodeChallenge(codeVerifier);
 const state = base64urlEncode(crypto.randomBytes(16));
 
 const authorizeParams = new URLSearchParams({
@@ -106,14 +111,12 @@ const authorizeParams = new URLSearchParams({
   scope: SCOPES,
   redirect_uri: REDIRECT_URI,
   state,
-  code_challenge_method: 'S256',
-  code_challenge: codeChallenge,
 });
 
 const authorizeUrl = `${AUTHORIZE_URL}?${authorizeParams}`;
 
 console.log('\n========================================');
-console.log(' Spotify Refresh Token Setup (PKCE)');
+console.log(' Spotify Refresh Token Setup');
 console.log('========================================');
 console.log('\nBEFORE running this script, make sure you have registered this redirect URI');
 console.log('in your Spotify app dashboard (https://developer.spotify.com/dashboard):');
@@ -157,7 +160,7 @@ const server = http.createServer(async (req, res) => {
   }
 
   try {
-    const tokens = await exchangeCode(code, codeVerifier, clientId);
+    const tokens = await exchangeCode(code, clientId, clientSecret);
 
     res.writeHead(200, { 'Content-Type': 'text/html' });
     res.end('<h2>Success! Check your terminal for the refresh token.</h2><p>You can close this tab.</p>');
@@ -165,7 +168,7 @@ const server = http.createServer(async (req, res) => {
     console.log('\n========================================');
     console.log(' SUCCESS');
     console.log('========================================');
-    console.log('\nRefresh token obtained. Add this line to your .env.local:\n');
+    console.log('\nRefresh token obtained (stable, non-rotating). Add this line to your .env.local:\n');
     console.log(`SPOTIFY_REFRESH_TOKEN=${tokens.refresh_token}`);
     console.log('\nAccess token expires in:', tokens.expires_in, 'seconds');
     console.log('Scopes granted:', tokens.scope);

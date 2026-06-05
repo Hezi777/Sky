@@ -10,6 +10,16 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { fetcher } from "@/lib/fetcher";
 import type { SpotifyResponse, SpotifyTrack } from "@/lib/types";
 
+// Convert a web URL (https://open.spotify.com/track/ID) to a spotify: app URI
+// so links open the desktop/mobile app instead of the website. Falls back to
+// the original URL if the shape is unexpected.
+function toSpotifyAppUri(webUrl: string): string {
+  const m = webUrl.match(
+    /open\.spotify\.com\/(track|album|artist|playlist|episode|show)\/([A-Za-z0-9]+)/,
+  );
+  return m ? `spotify:${m[1]}:${m[2]}` : webUrl;
+}
+
 // CSS-only animated equalizer bars shown while a track is playing.
 function EqualizerBars() {
   return (
@@ -73,9 +83,7 @@ function SpotifyWidgetSkeleton() {
 function RecentTrackRow({ track }: { track: SpotifyTrack }) {
   return (
     <a
-      href={track.url}
-      target="_blank"
-      rel="noreferrer"
+      href={toSpotifyAppUri(track.url)}
       className="flex items-center gap-2 rounded-lg p-1 transition-colors hover:bg-muted/60"
     >
       {track.albumArt ? (
@@ -149,9 +157,7 @@ export function SpotifyWidget() {
         {/* Now playing */}
         {nowPlaying ? (
           <a
-            href={nowPlaying.url}
-            target="_blank"
-            rel="noreferrer"
+            href={toSpotifyAppUri(nowPlaying.url)}
             className="flex items-start gap-3 rounded-xl p-1 transition-colors hover:bg-muted/60"
           >
             {nowPlaying.albumArt ? (

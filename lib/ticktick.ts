@@ -4,40 +4,18 @@ import type { TickTickTask, TickTickPriority } from "@/lib/types";
 // Auth
 // ---------------------------------------------------------------------------
 
+// TickTick's OAuth does NOT issue refresh tokens — its authorization_code grant
+// returns a single long-lived access token (~6 months). So we store that access
+// token directly (TICKTICK_ACCESS_TOKEN) and use it as the Bearer credential.
+// Re-run scripts/get-ticktick-token.mjs to mint a fresh one when it expires.
 async function getAccessToken(): Promise<string> {
-  const clientId = process.env.TICKTICK_CLIENT_ID;
-  const clientSecret = process.env.TICKTICK_CLIENT_SECRET;
-  const refreshToken = process.env.TICKTICK_REFRESH_TOKEN;
-
-  if (!clientId || !clientSecret || !refreshToken) {
-    throw new Error("Missing TickTick credentials in env");
+  const token = process.env.TICKTICK_ACCESS_TOKEN;
+  if (!token || token === "undefined") {
+    throw new Error(
+      "Missing TICKTICK_ACCESS_TOKEN — run `node scripts/get-ticktick-token.mjs`",
+    );
   }
-
-  const credentials = Buffer.from(`${clientId}:${clientSecret}`).toString("base64");
-
-  const res = await fetch("https://ticktick.com/oauth/token", {
-    method: "POST",
-    headers: {
-      Authorization: `Basic ${credentials}`,
-      "Content-Type": "application/x-www-form-urlencoded",
-    },
-    body: new URLSearchParams({
-      grant_type: "refresh_token",
-      refresh_token: refreshToken,
-      scope: "tasks:read",
-    }).toString(),
-  });
-
-  if (!res.ok) {
-    const text = await res.text().catch(() => res.statusText);
-    throw new Error(`TickTick token refresh failed (${res.status}): ${text}`);
-  }
-
-  const data = (await res.json()) as { access_token?: string };
-  if (!data.access_token) {
-    throw new Error("TickTick token response missing access_token");
-  }
-  return data.access_token;
+  return token;
 }
 
 // ---------------------------------------------------------------------------

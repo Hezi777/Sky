@@ -8,13 +8,15 @@ import type { GithubContributionDay, GithubResponse } from "@/lib/types";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 
-// GitHub's standard light-mode contribution scale
-const LEVEL_COLORS: Record<0 | 1 | 2 | 3 | 4, string> = {
-  0: "#ebedf0",
-  1: "#9be9a8",
-  2: "#40c463",
-  3: "#30a14e",
-  4: "#216e39",
+// GitHub's contribution scale, theme-aware: light scale by default, GitHub's
+// dark scale (incl. a dark empty cell) under `.dark`. Full class strings so
+// Tailwind's JIT picks them up.
+const LEVEL_CLASSES: Record<0 | 1 | 2 | 3 | 4, string> = {
+  0: "fill-[#ebedf0] dark:fill-[#161b22]",
+  1: "fill-[#9be9a8] dark:fill-[#0e4429]",
+  2: "fill-[#40c463] dark:fill-[#006d32]",
+  3: "fill-[#30a14e] dark:fill-[#26a641]",
+  4: "fill-[#216e39] dark:fill-[#39d353]",
 };
 
 const CELL = 11; // px per cell
@@ -60,7 +62,7 @@ function HeatmapSvg({ contributions }: { contributions: GithubContributionDay[] 
               height={CELL}
               rx={2}
               ry={2}
-              fill={LEVEL_COLORS[day.level]}
+              className={LEVEL_CLASSES[day.level]}
             >
               <title>
                 {day.count} contribution{day.count !== 1 ? "s" : ""} on {day.date}

@@ -1,7 +1,8 @@
 /**
  * get-ticktick-token.mjs
  *
- * Runs a one-time TickTick OAuth 2.0 Authorization Code flow to obtain a refresh token.
+ * Runs a one-time TickTick OAuth 2.0 Authorization Code flow to obtain a
+ * long-lived access token (TickTick does not issue refresh tokens).
  *
  * Redirect URI to register in the TickTick developer dashboard:
  *   http://127.0.0.1:8890/callback
@@ -153,14 +154,15 @@ const server = http.createServer(async (req, res) => {
     const tokens = await exchangeCode(code, clientId, clientSecret);
 
     res.writeHead(200, { 'Content-Type': 'text/html' });
-    res.end('<h2>Success! Check your terminal for the refresh token.</h2><p>You can close this tab.</p>');
+    res.end('<h2>Success! Check your terminal for the access token.</h2><p>You can close this tab.</p>');
 
     console.log('\n========================================');
     console.log(' SUCCESS');
     console.log('========================================');
-    console.log('\nRefresh token obtained. Add this line to your .env.local:\n');
-    console.log(`TICKTICK_REFRESH_TOKEN=${tokens.refresh_token}`);
-    console.log('\nAccess token expires in:', tokens.expires_in, 'seconds');
+    // TickTick returns a long-lived access token and NO refresh token.
+    console.log('\nAccess token obtained. Add this line to your .env.local:\n');
+    console.log(`TICKTICK_ACCESS_TOKEN=${tokens.access_token}`);
+    console.log('\nToken expires in:', tokens.expires_in, 'seconds (~6 months). Re-run this script to renew.');
     console.log();
   } catch (err) {
     res.writeHead(500, { 'Content-Type': 'text/html' });
