@@ -1,116 +1,121 @@
+<p align="center">
+  <img src="./public/logo.svg" width="96" height="96" alt="Sky logo" />
+</p>
+
 <h1 align="center"><b>Sky - Sof Kol Yom</b></h1>
 
-<p align="center">A personal read-only dashboard that aggregates Google Calendar, Notion, Spotify, GitHub, TickTick, and Interactive Brokers into one interface.</p>
+<p align="center">A single-user personal dashboard that pulls Google Calendar, Notion, Spotify, GitHub, TickTick, and your Interactive Brokers portfolio into one live view.</p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/Next.js-black?style=for-the-badge&logo=next.js&logoColor=white" alt="Next.js" />
+  <img src="https://img.shields.io/badge/Next.js_16-black?style=for-the-badge&logo=next.js&logoColor=white" alt="Next.js" />
+  <img src="https://img.shields.io/badge/React_19-149ECA?style=for-the-badge&logo=react&logoColor=white" alt="React" />
   <img src="https://img.shields.io/badge/TypeScript-3178C6?style=for-the-badge&logo=typescript&logoColor=white" alt="TypeScript" />
-  <img src="https://img.shields.io/badge/Supabase-3FCF8E?style=for-the-badge&logo=supabase&logoColor=white" alt="Supabase" />
-  <img src="https://img.shields.io/badge/Tailwind_CSS-06B6D4?style=for-the-badge&logo=tailwindcss&logoColor=white" alt="Tailwind CSS" />
+  <img src="https://img.shields.io/badge/Tailwind_v4-06B6D4?style=for-the-badge&logo=tailwindcss&logoColor=white" alt="Tailwind CSS" />
+  <img src="https://img.shields.io/badge/Groq-F55036?style=for-the-badge&logo=groq&logoColor=white" alt="Groq" />
   <img src="https://img.shields.io/badge/private-repo-lightgrey?style=for-the-badge" alt="Private" />
 </p>
 
 <p align="center">
   <a href="#about">About</a> |
-  <a href="#integrations">Integrations</a> |
+  <a href="#dashboard">Dashboard</a> |
   <a href="#tech-stack">Tech Stack</a> |
   <a href="#getting-started">Getting Started</a> |
-  <a href="#contributing">Contributing</a>
+  <a href="#connecting-services">Connecting Services</a>
 </p>
 
 ---
 
 ## About
 
-Lesikum is a single-user personal dashboard built to replace opening six separate apps just to get a read on the day. It pulls data from external services on a schedule, caches the results in Supabase, and serves a fast, read-only UI - the page never calls an external API at render time. The project is currently in active development: the application shell is built and the database is wired, but the individual service integrations are not yet complete.
+Sky is a personal dashboard that replaces opening six apps every morning to check on the day. It is single-user (no auth, no multi-tenancy) and always live-fetched: there is no database and no cache. Every widget calls its own Next.js API route, which talks to the upstream service on request. Secrets stay in `.env.local` and never reach the client; all external calls go through `app/api/*` route handlers.
 
-## Integrations
+Each widget fetches independently with SWR, shows its own skeleton while loading, and falls back to a local error state if its service is not connected, so one missing connector does not break the rest of the page.
 
-| Service                    | Data surfaced                                                  | Status      |
-| -------------------------- | -------------------------------------------------------------- | ----------- |
-| Spotify                    | Last played track and most recent playlist                     | In progress |
-| Notion                     | Resources DB quick-add with AI-generated description (Groq)    | In progress |
-| Google Calendar            | Today's events in time order                                   | In progress |
-| GitHub                     | Latest Actions run status and open PR count per active repo    | In progress |
-| TickTick                   | Today's incomplete tasks                                       | In progress |
-| Fair (Meitav fund 5140785) | Current fund value, total contributed, gain/loss, DCA settings | In progress |
-| Interactive Brokers        | Portfolio total value and daily change via Flex Web Service    | In progress |
+## Dashboard
 
-All data is fetched by scheduled Vercel cron jobs and written to Supabase. The UI reads from the cache only.
+The page is a bento grid where each widget is sized by importance and content shape. It has a time-based greeting, a live clock, and a dark mode.
+
+| Widget                | Data surfaced                                                       | Status        |
+| --------------------- | ------------------------------------------------------------------ | ------------- |
+| Greeting (Groq AI)    | One-line AI summary of the day                                     | Live          |
+| GitHub                | Recent repos and contribution heatmap                             | Live          |
+| Notion - Projects     | Active projects from the Portfolio Tracker DB                     | Live          |
+| Notion - Next Task    | The most urgent in-progress project                              | Live          |
+| Resource Quick-Add    | Paste a URL, Groq classifies it, saved to the Notion Resources DB | Live          |
+| Spotify               | Now playing and recently played                                   | Needs OAuth   |
+| Google Calendar       | Next 5 events                                                     | Needs OAuth   |
+| TickTick              | Today's incomplete tasks                                          | Needs OAuth   |
+| Interactive Brokers   | Portfolio value, allocation donut, positions (via SnapTrade)      | Needs setup   |
+
+See [`PROGRESS.md`](./PROGRESS.md) for the build checklist and [`PLAN.md`](./PLAN.md) for widget specs.
 
 ## Tech Stack
 
-| Layer              | Technology                                     |
-| ------------------ | ---------------------------------------------- |
-| Framework          | Next.js 16.2 (App Router, Turbopack)           |
-| Language           | TypeScript 5                                   |
-| UI library         | React 19                                       |
-| Component library  | shadcn/ui (Radix UI primitives)                |
-| Styling            | Tailwind CSS 4 (CSS-first configuration)       |
-| Database / cache   | Supabase (Postgres + @supabase/ssr 0.10)       |
-| Linter / formatter | Biome 2                                        |
-| Deployment         | Vercel (cron jobs for scheduled data fetching) |
+| Layer             | Technology                                          |
+| ----------------- | --------------------------------------------------- |
+| Framework         | Next.js 16 (App Router, Turbopack)                  |
+| Language          | TypeScript 5 (strict)                               |
+| UI library        | React 19                                            |
+| Components        | shadcn/ui (Radix primitives), lucide + react-icons  |
+| Styling           | Tailwind CSS v4 (CSS-first `@theme` tokens)         |
+| Data fetching     | SWR (per-widget, client-side)                       |
+| Charts            | Recharts                                            |
+| AI                | Groq (`llama-3.1-8b-instant`, `llama-3.3-70b`)      |
+| Linter            | ESLint 9 (`eslint-config-next`)                     |
+| Brokerage data    | SnapTrade (hosted IBKR aggregator)                  |
+| Deployment        | Vercel                                              |
+
+No database. No background jobs. Data is fetched on demand by the API routes.
 
 ## Getting Started
 
 ### Prerequisites
 
-- Node.js 20.9 or later
-- pnpm
-- A Supabase project with the schema from `supabase/migrations/0001_init.sql` applied
-- API credentials for each service you want to enable (see `docs/agent/integrations.md`)
+- Node.js 20+
+- API credentials for whichever services you want to enable (see [Connecting Services](#connecting-services))
 
-### 1. Clone
+### 1. Install
 
 ```bash
-git clone <repo-url>
-cd Lesikum
+npm install
 ```
 
-### 2. Install dependencies
+### 2. Configure environment
 
 ```bash
-pnpm install
+cp .env.local.example .env.local
 ```
 
-### 3. Configure environment variables
+Fill in the credentials for the services you want. `.env.local` is gitignored. GitHub, Notion, and Groq only need their token or key; the OAuth services need a one-time flow (below).
 
-Copy the example and fill in your values:
+### 3. Run
 
 ```bash
-cp .env.example .env.local
+npm run dev      # dev server at http://localhost:3000
+npm run build    # production build
+npm run lint     # eslint
 ```
 
-Required variables:
+The shell renders right away. Each widget loads its own data, and any service you have not connected shows its error state without affecting the others.
 
-```
-NEXT_PUBLIC_SUPABASE_URL=
-NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=
-SUPABASE_SECRET_KEY=
-```
+## Connecting Services
 
-Each integration adds its own variables (OAuth client IDs, secrets, API tokens). See `docs/agent/integrations.md` and `docs/agent/running-locally.md` for the full list and OAuth setup instructions.
+Full details are in [`INTEGRATIONS.md`](./INTEGRATIONS.md). Quick reference:
 
-### 4. Run locally
+- **GitHub**: set `GITHUB_PAT` and `GITHUB_USERNAME`. Works immediately.
+- **Notion**: create an integration, share the Portfolio Tracker and Resources databases with it (DB, then ... menu, then Connections), then set `NOTION_TOKEN` and the two DB IDs.
+- **Groq**: set `GROQ_API_KEY` (free tier at console.groq.com).
+- **Spotify, Google Calendar, TickTick**: run the one-time OAuth helper from the project root to get a refresh token:
 
-```bash
-pnpm dev
-```
+  ```bash
+  node scripts/get-spotify-token.mjs
+  node scripts/get-google-token.mjs
+  node scripts/get-ticktick-token.mjs
+  ```
 
-Open [http://localhost:3000](http://localhost:3000). The dashboard shell renders immediately; widgets show skeleton content until integrations are wired and cron jobs have run at least once.
-
-### 5. Verify before committing
-
-```bash
-pnpm verify
-```
-
-This runs `tsc` and `biome check`. Both must pass clean.
-
-## Contributing
-
-This is a personal project. Pull requests are not expected and the repo is private. If you have found it and want to adapt it for your own use, the code is yours to learn from.
+  Each one prints the redirect URI to register and the line to paste into `.env.local`. See [`scripts/README.md`](./scripts/README.md).
+- **Interactive Brokers**: connect through SnapTrade, no local gateway needed. Sign up at dashboard.snaptrade.com, set the `SNAPTRADE_*` vars, and run `scripts/snaptrade-setup.ts`. The older local Client Portal Gateway path is kept in `lib/ibkr-gateway.ts` as a fallback.
 
 ## License
 
-Unlicensed - private personal project.
+Unlicensed, private personal project.

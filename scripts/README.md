@@ -4,7 +4,7 @@ One-time scripts to obtain refresh tokens for Spotify, Google Calendar, and Tick
 Each script reads `CLIENT_ID`/`CLIENT_SECRET` from `.env.local`, starts a local callback
 server, and prints the exact line to paste into `.env.local`.
 
-No extra dependencies — runs with plain `node` (Node 18+).
+No extra dependencies - runs with plain `node` (Node 18+).
 
 ---
 
