@@ -45,7 +45,7 @@ The page is a bento grid where each widget is sized by importance and content sh
 | Spotify               | Now playing and recently played                                   | Needs OAuth   |
 | Google Calendar       | Next 5 events                                                     | Needs OAuth   |
 | TickTick              | Today's incomplete tasks                                          | Needs OAuth   |
-| Interactive Brokers   | Portfolio value, allocation donut, positions (via SnapTrade)      | Needs setup   |
+| Interactive Brokers   | Portfolio value, allocation donut, positions via local IBKR Gateway | Needs login   |
 
 See [`PROGRESS.md`](./PROGRESS.md) for the build checklist and [`PLAN.md`](./PLAN.md) for widget specs.
 
@@ -56,13 +56,13 @@ See [`PROGRESS.md`](./PROGRESS.md) for the build checklist and [`PLAN.md`](./PLA
 | Framework         | Next.js 16 (App Router, Turbopack)                  |
 | Language          | TypeScript 5 (strict)                               |
 | UI library        | React 19                                            |
-| Components        | shadcn/ui (Radix primitives), lucide + react-icons  |
+| Components        | shadcn/ui Nova (Base UI primitives), lucide + react-icons |
 | Styling           | Tailwind CSS v4 (CSS-first `@theme` tokens)         |
 | Data fetching     | SWR (per-widget, client-side)                       |
 | Charts            | Recharts                                            |
 | AI                | Groq (`llama-3.1-8b-instant`, `llama-3.3-70b`)      |
 | Linter            | ESLint 9 (`eslint-config-next`)                     |
-| Brokerage data    | SnapTrade (hosted IBKR aggregator)                  |
+| Brokerage data    | Official IBKR Client Portal Gateway                 |
 | Deployment        | Vercel                                              |
 
 No database. No background jobs. Data is fetched on demand by the API routes.
@@ -114,7 +114,7 @@ Full details are in [`INTEGRATIONS.md`](./INTEGRATIONS.md). Quick reference:
   ```
 
   Each one prints the redirect URI to register and the line to paste into `.env.local`. See [`scripts/README.md`](./scripts/README.md).
-- **Interactive Brokers**: connect through SnapTrade, no local gateway needed. Sign up at dashboard.snaptrade.com, set the `SNAPTRADE_*` vars, and run `scripts/snaptrade-setup.ts`. The older local Client Portal Gateway path is kept in `lib/ibkr-gateway.ts` as a fallback.
+- **Interactive Brokers**: run `npm run ibkr:setup` once, then `npm run ibkr:start`. Log in at `https://localhost:5001`; the dashboard reads the official local gateway and pings `/tickle` while open. For a terminal keepalive, run `npm run ibkr:keepalive` after logging in.
 
 ## License
 

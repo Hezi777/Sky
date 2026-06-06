@@ -12,12 +12,13 @@ import {
 import { useEffect, useMemo, useState } from "react";
 import useSWR from "swr";
 
+import { AnimatedNumber } from "@/components/animated-number";
+import { BrandLogo } from "@/components/brand-logo";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
-  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
@@ -91,9 +92,16 @@ function PnlValue({
   return (
     <span className={`inline-flex items-center gap-1 font-medium ${cls}`}>
       <Icon className="h-4 w-4" />
-      {positive ? "+" : ""}
-      {fmtIls(amount)} ({positive ? "+" : ""}
-      {percent.toFixed(2)}%)
+      <AnimatedNumber
+        value={amount}
+        format={(value) => `${positive ? "+" : ""}${fmtIls(value)}`}
+      />
+      {" ("}
+      <AnimatedNumber
+        value={percent}
+        format={(value) => `${positive ? "+" : ""}${value.toFixed(2)}%`}
+      />
+      {")"}
     </span>
   );
 }
@@ -102,7 +110,10 @@ function FairSkeleton() {
   return (
     <Card className="flex h-full flex-col rounded-2xl">
       <CardHeader>
-        <CardTitle>Fair</CardTitle>
+        <CardTitle className="flex items-center gap-2">
+          <BrandLogo name="fair" className="size-5 rounded" />
+          Fair
+        </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
         <Skeleton className="h-8 w-40" />
@@ -179,6 +190,7 @@ export function FairWidget() {
     <Card className="flex h-full flex-col rounded-2xl">
       <CardHeader className="flex-row items-center justify-between space-y-0">
         <CardTitle className="flex items-center gap-2">
+          <BrandLogo name="fair" className="size-5 rounded" />
           Fair
           <span className="text-sm font-normal text-muted-foreground">
             {config.fundName} · {config.fundNumber}
@@ -224,27 +236,47 @@ export function FairWidget() {
           />
         ) : (
           <>
-            {/* Headline value */}
-            <div className="space-y-1">
-              {isLoading && priceMode === "none" ? (
-                <Skeleton className="h-9 w-40" />
-              ) : (
-                <p className="text-3xl font-semibold tabular-nums">
-                  {totals.value !== null ? fmtIls(totals.value) : "—"}
-                </p>
-              )}
-              <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm">
-                <span className="text-muted-foreground">
-                  Invested {fmtIls(totals.invested)}
-                </span>
-                {totals.gain !== null && totals.gainPct !== null ? (
-                  <PnlValue amount={totals.gain} percent={totals.gainPct} />
-                ) : null}
+            {hasContribs ? (
+              <div className="space-y-1">
+                {isLoading && priceMode === "none" ? (
+                  <Skeleton className="h-9 w-40" />
+                ) : (
+                  <p className="text-3xl font-semibold tabular-nums">
+                    {totals.value !== null ? (
+                      <AnimatedNumber value={totals.value} format={fmtIls} />
+                    ) : (
+                      "—"
+                    )}
+                  </p>
+                )}
+                <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm">
+                  <span className="text-muted-foreground">
+                    Invested{" "}
+                    <AnimatedNumber value={totals.invested} format={fmtIls} />
+                  </span>
+                  {totals.gain !== null && totals.gainPct !== null ? (
+                    <PnlValue amount={totals.gain} percent={totals.gainPct} />
+                  ) : null}
+                </div>
               </div>
-            </div>
+            ) : (
+              <div className="rounded-2xl border border-dashed border-border bg-muted/25 p-4">
+                <p className="text-base font-semibold">Start tracking Fair</p>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  Add your first contribution. Values are stored locally in this browser.
+                </p>
+                <Button className="mt-4" size="sm" onClick={() => setAdding(true)}>
+                  <Plus className="h-4 w-4" /> Add contribution
+                </Button>
+              </div>
+            )}
 
             {/* Price line */}
-            <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+            <div
+              className={`flex flex-wrap items-center gap-2 text-xs text-muted-foreground ${
+                hasContribs ? "" : "mt-auto"
+              }`}
+            >
               {priceMode === "none" ? (
                 <span className="inline-flex items-center gap-1 text-red-500">
                   <AlertCircle className="h-3.5 w-3.5" />
@@ -253,7 +285,11 @@ export function FairWidget() {
               ) : (
                 <>
                   <span className="tabular-nums text-foreground">
-                    {fmtIls(effectivePrice ?? 0)} / unit
+                    <AnimatedNumber
+                      value={effectivePrice ?? 0}
+                      format={fmtIls}
+                    />{" "}
+                    / unit
                   </span>
                   <Badge
                     variant={priceMode === "manual" ? "secondary" : "outline"}
@@ -265,7 +301,11 @@ export function FairWidget() {
                       {livePrice.source} · as of {livePrice.asOf}
                     </span>
                   ) : null}
-                  <span>· {fmtNum(totals.units)} units</span>
+                  <span>
+                    ·{" "}
+                    <AnimatedNumber value={totals.units} format={fmtNum} />{" "}
+                    units
+                  </span>
                 </>
               )}
             </div>
@@ -324,26 +364,10 @@ export function FairWidget() {
                   </TableBody>
                 </Table>
               </div>
-            ) : (
-              <div className="flex flex-1 flex-col items-center justify-center gap-2 py-6 text-center">
-                <p className="text-sm text-muted-foreground">
-                  Add your first contribution
-                </p>
-                <Button size="sm" onClick={() => setAdding(true)}>
-                  <Plus className="h-4 w-4" /> Add contribution
-                </Button>
-              </div>
-            )}
+            ) : null}
           </>
         )}
       </CardContent>
-
-      <CardFooter>
-        <p className="text-xs text-muted-foreground">
-          DCA tracker · price via Maya/TASE, manual fallback · stored in your
-          browser
-        </p>
-      </CardFooter>
     </Card>
   );
 }

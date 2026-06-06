@@ -9,7 +9,7 @@ export function Sidebar() {
         <Logo className="h-5 w-5" />
       </div>
 
-      <SettingsDialog />
+      <SettingsDialog triggerClassName="text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground" />
     </aside>
   );
 }

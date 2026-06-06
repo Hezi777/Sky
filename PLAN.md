@@ -107,7 +107,7 @@ Two-part widget.
 
 Long-term investor view. No day-trading metrics.
 
-- Source: IBKR Client Portal Web API (runs locally on `https://localhost:5000`)
+- Source: IBKR Client Portal Web API (runs locally on `https://localhost:5001`)
 - Auth: IBKR Gateway must be running locally. Token auto-manages via cookie session.
 - Endpoints:
   - `GET /v1/api/portfolio/accounts` → get accountId
@@ -118,7 +118,7 @@ Long-term investor view. No day-trading metrics.
   - Center: Donut chart (Recharts) showing allocation by ticker — SPY/QQQ/NVDA/IWM with % and $ labels
   - Bottom: Position list — ticker, shares, avg cost, current price, P&L %
 - Color coding: green if P&L positive, red if negative
-- Note in widget footer: "Requires IBKR Gateway running on localhost:5000"
+- Note in widget footer: "Official IBKR Client Portal Gateway via https://localhost:5001."
 
 ### 7. Notion — Active Projects
 
@@ -202,7 +202,7 @@ NOTION_RESOURCES_DB_ID=31f86eb0-7b69-80e2-9ec4-000b45acce82
 NOTION_PROJECTS_DB_ID=05903059-6ee7-4f28-b97e-808030c47b00
 
 # IBKR (local gateway)
-IBKR_GATEWAY_URL=https://localhost:5000
+IBKR_GATEWAY_URL=https://localhost:5001
 
 # AI
 GROQ_API_KEY=

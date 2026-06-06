@@ -30,7 +30,7 @@ export async function getUpcomingEvents(): Promise<CalendarEvent[]> {
     "https://www.googleapis.com/calendar/v3/calendars/primary/events"
   );
   url.searchParams.set("timeMin", new Date().toISOString());
-  url.searchParams.set("maxResults", "5");
+  url.searchParams.set("maxResults", "8");
   url.searchParams.set("orderBy", "startTime");
   url.searchParams.set("singleEvents", "true");
 
@@ -47,6 +47,7 @@ export async function getUpcomingEvents(): Promise<CalendarEvent[]> {
     items: Array<{
       id: string;
       summary?: string;
+      htmlLink?: string;
       start: { dateTime?: string; date?: string };
       end: { dateTime?: string; date?: string };
       location?: string;
@@ -64,6 +65,7 @@ export async function getUpcomingEvents(): Promise<CalendarEvent[]> {
       allDay,
       location: item.location ?? null,
       colorId: item.colorId ?? null,
+      url: item.htmlLink ?? null,
     };
   });
 }

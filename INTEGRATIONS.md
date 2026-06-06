@@ -149,17 +149,16 @@ Priority mapping: `0 = None`, `1 = Low`, `3 = Medium`, `5 = High`
 
 **Type:** Local gateway session (most complex setup)
 
-1. Download IBKR Client Portal Gateway: https://www.interactivebrokers.com/en/trading/ib-api.php
-2. Extract and run: `cd clientportal.gw && bin/run.sh root/conf.yaml` (Mac/Linux)
-   - Windows: `bin\run.bat root\conf.yaml`
-3. Open https://localhost:5000 in browser → log in with IBKR credentials
-4. Gateway handles session auth. Your Next.js API routes call `https://localhost:5000/v1/api/*`
-5. Add to `.env.local`: `IBKR_GATEWAY_URL=https://localhost:5000`
+1. Run `npm run ibkr:setup` once. This downloads the official IBKR Client Portal Gateway into `tools/ibkr/`.
+2. Run `npm run ibkr:start`.
+3. Open `https://localhost:5001` in your browser and log in with IBKR credentials.
+4. Gateway handles session auth. Your Next.js API routes call `https://localhost:5001/v1/api/*`.
+5. Add to `.env.local`: `IBKR_GATEWAY_URL=https://localhost:5001`
+6. Keep the dashboard open, or run `npm run ibkr:keepalive`, to call `/tickle` about once per minute.
 
-**Important:** The gateway cert is self-signed. In development, either:
+**Important:** The gateway cert is self-signed. The server connector handles that locally for this official gateway URL.
 
-- Set `NODE_TLS_REJECT_UNAUTHORIZED=0` in dev (not production)
-- Or add the gateway cert to your system trust store
+IBKR still requires browser login and 2FA. Keepalive cannot bypass the daily session reset, regional midnight reset, or server maintenance.
 
 Key endpoints:
 

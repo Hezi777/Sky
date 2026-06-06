@@ -72,6 +72,7 @@ export interface CalendarEvent {
   allDay: boolean;
   location: string | null;
   colorId: string | null;
+  url: string | null;
 }
 
 // --- TickTick --------------------------------------------------------------
@@ -80,6 +81,7 @@ export type TickTickPriority = "none" | "low" | "medium" | "high";
 
 export interface TickTickTask {
   id: string;
+  projectId: string;
   title: string;
   priority: TickTickPriority;
   dueDate: string | null; // ISO, null if all-day/no time
@@ -100,7 +102,8 @@ export interface IbkrPosition {
 
 export interface IbkrSummary {
   totalValue: number;
-  dayPnl: number;
+  dayPnl: number | null;
+  unrealizedPnl: number;
   unrealizedPnlPercent: number;
 }
 

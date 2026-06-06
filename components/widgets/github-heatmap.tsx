@@ -1,113 +1,125 @@
 "use client";
 
+import { Star } from "lucide-react";
 import useSWR from "swr";
 
 import { BrandLogo } from "@/components/brand-logo";
-import { fetcher } from "@/lib/fetcher";
-import type { GithubContributionDay, GithubResponse } from "@/lib/types";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { GitHubCalendar } from "@/components/ui/git-hub-calendar";
 import { Skeleton } from "@/components/ui/skeleton";
+import { fetcher } from "@/lib/fetcher";
+import type { GithubRepo, GithubResponse } from "@/lib/types";
 
-// GitHub's contribution scale, theme-aware: light scale by default, GitHub's
-// dark scale (incl. a dark empty cell) under `.dark`. Full class strings so
-// Tailwind's JIT picks them up.
-const LEVEL_CLASSES: Record<0 | 1 | 2 | 3 | 4, string> = {
-  0: "fill-[#ebedf0] dark:fill-[#161b22]",
-  1: "fill-[#9be9a8] dark:fill-[#0e4429]",
-  2: "fill-[#40c463] dark:fill-[#006d32]",
-  3: "fill-[#30a14e] dark:fill-[#26a641]",
-  4: "fill-[#216e39] dark:fill-[#39d353]",
-};
+const GITHUB_COLORS = [
+  "var(--github-0)",
+  "var(--github-1)",
+  "var(--github-2)",
+  "var(--github-3)",
+  "var(--github-4)",
+];
 
-const CELL = 11; // px per cell
-const GAP = 2;  // px gap between cells
-const STEP = CELL + GAP;
+function relativeTime(isoDate: string): string {
+  const diffMs = Date.now() - new Date(isoDate).getTime();
+  const diffSec = Math.floor(diffMs / 1000);
+  if (diffSec < 60) return "just now";
+  const diffMin = Math.floor(diffSec / 60);
+  if (diffMin < 60) return `${diffMin}m ago`;
+  const diffHr = Math.floor(diffMin / 60);
+  if (diffHr < 24) return `${diffHr}h ago`;
+  const diffDay = Math.floor(diffHr / 24);
+  if (diffDay < 30) return `${diffDay}d ago`;
+  const diffMo = Math.floor(diffDay / 30);
+  if (diffMo < 12) return `${diffMo}mo ago`;
+  return `${Math.floor(diffMo / 12)}y ago`;
+}
 
-function HeatmapSvg({ contributions }: { contributions: GithubContributionDay[] }) {
-  // Pad so the array starts on a Sunday (day index 0).
-  const firstDate = contributions[0]?.date;
-  const startDow = firstDate ? new Date(firstDate + "T00:00:00").getDay() : 0;
-  const padded: (GithubContributionDay | null)[] = [
-    ...Array.from({ length: startDow }, () => null),
-    ...contributions,
-  ];
-
-  // Split into columns of 7 (one column per week).
-  const cols: (GithubContributionDay | null)[][] = [];
-  for (let i = 0; i < padded.length; i += 7) {
-    cols.push(padded.slice(i, i + 7));
-  }
-
-  const svgWidth = cols.length * STEP;
-  const svgHeight = 7 * STEP - GAP;
-
+function RepoRow({ repo }: { repo: GithubRepo }) {
   return (
-    <svg
-      width={svgWidth}
-      height={svgHeight}
-      aria-label="Contribution heatmap"
-      className="overflow-visible"
+    <a
+      href={repo.url}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="group flex min-h-0 flex-1 flex-col justify-center rounded-xl border border-border/70 bg-muted/20 px-3 py-2 transition-colors hover:bg-muted/55"
     >
-      {cols.map((col, ci) =>
-        col.map((day, ri) => {
-          if (!day) return null;
-          const x = ci * STEP;
-          const y = ri * STEP;
-          return (
-            <rect
-              key={day.date}
-              x={x}
-              y={y}
-              width={CELL}
-              height={CELL}
-              rx={2}
-              ry={2}
-              className={LEVEL_CLASSES[day.level]}
-            >
-              <title>
-                {day.count} contribution{day.count !== 1 ? "s" : ""} on {day.date}
-              </title>
-            </rect>
-          );
-        })
-      )}
-    </svg>
+      <div className="flex items-center gap-2">
+        <p className="min-w-0 flex-1 truncate text-sm font-medium text-foreground group-hover:text-primary">
+          {repo.name}
+        </p>
+        <span className="inline-flex items-center gap-1 text-xs text-muted-foreground">
+          <Star className="size-3" />
+          {repo.stars}
+        </span>
+      </div>
+      <div className="mt-1 flex items-center justify-between gap-2 text-xs text-muted-foreground/75">
+        <span className="truncate">{repo.language ?? "Code"}</span>
+        <span className="shrink-0">pushed {relativeTime(repo.pushedAt)}</span>
+      </div>
+    </a>
   );
 }
 
 export function GithubHeatmap() {
-  const { data, error, isLoading } = useSWR<GithubResponse>(
-    "/api/github",
-    fetcher
-  );
+  const { data, error, isLoading } = useSWR<GithubResponse>("/api/github", fetcher);
 
   return (
     <Card className="flex h-full flex-col rounded-2xl">
-      <CardHeader className="border-b">
+      <CardHeader className="border-b border-border/70 pb-3">
         <CardTitle className="flex items-center gap-2">
           <BrandLogo name="github" className="size-4" />
-          Contributions
+          GitHub Activity
           {data && (
             <span className="ml-auto text-sm font-normal text-muted-foreground">
-              {data.totalContributions.toLocaleString()} this year
+              {data.totalContributions.toLocaleString()} contributions
             </span>
           )}
         </CardTitle>
       </CardHeader>
-      <CardContent className="pt-3">
-        {isLoading && <Skeleton className="h-[106px] w-full" />}
+
+      <CardContent className="grid items-stretch gap-5 pt-4 xl:grid-cols-[minmax(0,1fr)_17rem]">
+        {isLoading && (
+          <>
+            <Skeleton className="h-[150px] w-full" />
+            <div className="space-y-2">
+              <Skeleton className="h-20 w-full" />
+              <Skeleton className="h-20 w-full" />
+            </div>
+          </>
+        )}
 
         {error && (
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+          <div className="flex items-center gap-2 text-sm text-muted-foreground xl:col-span-2">
             <BrandLogo name="github" className="size-4 shrink-0" />
-            <span>Could not load contributions</span>
+            <span>Could not load GitHub activity</span>
           </div>
         )}
 
         {data && (
-          <div className="overflow-x-auto">
-            <HeatmapSvg contributions={data.contributions} />
-          </div>
+          <>
+            <div className="min-w-0 rounded-2xl bg-muted/10 px-2 py-3 xl:min-h-[11.25rem]">
+              <GitHubCalendar
+                data={data.contributions}
+                colors={GITHUB_COLORS}
+                density="spacious"
+              />
+            </div>
+            <div className="flex min-h-0 flex-col gap-2">
+              <div className="flex items-center justify-between gap-2">
+                <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                  Recent repos
+                </p>
+                {data.repos.length > 3 && (
+                  <span className="text-xs text-muted-foreground/70">
+                    latest 3
+                  </span>
+                )}
+              </div>
+              <div className="flex min-h-0 flex-1 flex-col gap-2">
+                {data.repos.slice(0, 3).map((repo) => (
+                  <RepoRow key={repo.name} repo={repo} />
+                ))}
+              </div>
+            </div>
+          </>
         )}
       </CardContent>
     </Card>

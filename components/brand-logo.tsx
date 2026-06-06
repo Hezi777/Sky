@@ -4,9 +4,10 @@ import { cn } from "@/lib/utils";
 // (e.g. GitHub) to white in dark mode; colored logos render as-is.
 const LOGOS: Record<string, { src: string; darkInvert?: boolean }> = {
   github: { src: "/github.svg", darkInvert: true },
-  googleCalendar: { src: "/google-calendar-2026.svg" },
-  ticktick: { src: "/icons8-tick-tick.svg" },
-  ibkr: { src: "/Interactive_Brokers_idQBJVha2q_0.svg" },
+  googleCalendar: { src: "/google-calendar.svg" },
+  ticktick: { src: "/ticktick.svg" },
+  ibkr: { src: "/ibkr.svg" },
+  fair: { src: "/fair.svg" },
 };
 
 export function BrandLogo({

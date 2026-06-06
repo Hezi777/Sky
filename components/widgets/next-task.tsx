@@ -91,8 +91,8 @@ export function NextTask() {
       <CardHeader className="relative flex flex-row items-center gap-2 pb-3">
         <SiNotion className="h-4 w-4 shrink-0 text-muted-foreground" />
         <CardTitle className="text-sm font-semibold">Next Task</CardTitle>
-        <span className="ml-auto inline-flex items-center gap-1 text-[10px] font-medium tracking-wide text-muted-foreground uppercase">
-          <Sparkles className="size-3" /> Focus
+        <span className="ml-auto text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
+          Focus
         </span>
       </CardHeader>
 

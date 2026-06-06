@@ -27,8 +27,6 @@ export function MemojiPicker({ selectedId, onSelect }: MemojiPickerProps) {
     return () => document.removeEventListener("mousedown", handleClick);
   }, [open]);
 
-  const current = MEMOJIS.find((m) => m.id === selectedId) ?? MEMOJIS[0];
-
   return (
     <div ref={containerRef} className="relative">
       {/* Trigger — the avatar itself (rendered by parent; this button sits on top) */}

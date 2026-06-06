@@ -12,6 +12,9 @@ export async function generateGreeting(input: {
   tasks: string[];
 }): Promise<string> {
   const { events, tasks } = input;
+  const hour = new Date().getHours();
+  const period =
+    hour < 12 ? "morning" : hour < 18 ? "afternoon" : "evening";
 
   let context = "";
   if (events.length > 0) context += `Today's events: ${events.join(", ")}. `;
@@ -19,7 +22,7 @@ export async function generateGreeting(input: {
 
   const userMessage =
     context.trim() ||
-    "No events or tasks today. Give a warm generic morning greeting.";
+    `It is ${period}. No events or tasks were provided. Give a warm generic ${period} greeting.`;
 
   const completion = await groq.chat.completions.create({
     model: GREETING_MODEL,
@@ -27,7 +30,7 @@ export async function generateGreeting(input: {
       {
         role: "system",
         content:
-          "You are a friendly personal assistant. Return ONLY a single short sentence (under 20 words) summarizing or greeting the user about their day. No preamble, no quotes.",
+          "You are a friendly personal assistant. Return ONLY one short sentence under 18 words. Match the provided time of day. No preamble, no quotes.",
       },
       { role: "user", content: userMessage },
     ],

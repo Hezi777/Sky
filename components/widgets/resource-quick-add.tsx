@@ -48,7 +48,11 @@ export function ResourceQuickAdd() {
           Save Resource
         </CardTitle>
       </CardHeader>
-      <CardContent>
+      <CardContent className="flex flex-1 flex-col justify-between gap-4">
+        <p className="text-sm leading-6 text-muted-foreground">
+          Drop a useful link here and Sky will classify it into your Notion
+          resources.
+        </p>
         <form onSubmit={handleSubmit} className="flex gap-2">
           <Input
             type="url"

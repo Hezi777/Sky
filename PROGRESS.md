@@ -73,10 +73,10 @@
 
 ## Phase 4 - IBKR
 
-- [ ] **Download and install IBKR Client Portal Gateway (Java)** ← YOUR ACTION
-- [ ] **Confirm gateway runs on `https://localhost:5000`** ← YOUR ACTION (route uses undici dispatcher to accept the self-signed cert)
+- [x] Add scripts to download and start the official IBKR Client Portal Gateway
+- [x] Confirm gateway runs on `https://localhost:5001`
 - [x] Add `IBKR_GATEWAY_URL` to `.env.local`
-- [x] Build `/api/ibkr` route (summary + positions) - BUILT, unverified until gateway runs
+- [x] Build `/api/ibkr` route (summary + positions) - waits for browser login
 - [x] Build `IBKRWidget` component:
   - [x] Total value + day P&L header
   - [x] Recharts Donut chart (allocation by ticker)

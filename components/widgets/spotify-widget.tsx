@@ -53,7 +53,7 @@ function SpotifyWidgetSkeleton() {
           Spotify
         </CardTitle>
       </CardHeader>
-      <CardContent className="space-y-4">
+      <CardContent className="flex flex-1 flex-col space-y-4">
         {/* Now playing skeleton */}
         <div className="flex items-center gap-3">
           <Skeleton className="size-14 rounded-xl flex-shrink-0" />
@@ -153,7 +153,7 @@ export function SpotifyWidget() {
         </CardTitle>
       </CardHeader>
 
-      <CardContent className="space-y-4">
+      <CardContent className="flex flex-1 flex-col space-y-4">
         {/* Now playing */}
         {nowPlaying ? (
           <a
@@ -197,11 +197,11 @@ export function SpotifyWidget() {
 
         {/* Recent tracks */}
         {recent.length > 0 && (
-          <div className="space-y-0.5 border-t border-border pt-3">
+          <div className="mt-auto space-y-0.5 border-t border-border pt-3">
             <p className="mb-1.5 text-xs font-medium text-muted-foreground uppercase tracking-wide">
               Recently played
             </p>
-            {recent.map((track, i) => (
+            {recent.slice(0, 3).map((track, i) => (
               <RecentTrackRow key={`${track.url}-${i}`} track={track} />
             ))}
           </div>

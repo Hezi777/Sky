@@ -1,14 +1,14 @@
 import { NextResponse } from "next/server";
 
-import { getIbkrData } from "@/lib/ibkr";
+import { keepIbkrSessionAlive } from "@/lib/ibkr";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-export async function GET() {
+export async function POST() {
   try {
-    const data = await getIbkrData();
-    return NextResponse.json(data);
+    const status = await keepIbkrSessionAlive();
+    return NextResponse.json(status);
   } catch (err) {
     const error = err instanceof Error ? err.message : "Unknown error";
     const status = error.includes("needs login") ? 401 : 500;

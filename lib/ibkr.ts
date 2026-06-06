@@ -1,43 +1,148 @@
 /**
- * IBKR portfolio connector — powered by SnapTrade.
+ * IBKR Client Portal Gateway connector.
  *
- * SnapTrade is a hosted brokerage-data aggregator that supports IBKR via
- * IBKR Flex Query. It eliminates the need to run the IBKR Client Portal
- * Gateway (a local Java process) and re-authenticate manually.
- *
- * Fallback (local gateway): see lib/ibkr-gateway.ts.
- *
- * Required env vars (see .env.local.example):
- *   SNAPTRADE_CLIENT_ID      – from dashboard.snaptrade.com
- *   SNAPTRADE_CONSUMER_KEY   – from dashboard.snaptrade.com
- *   SNAPTRADE_USER_ID        – stable identifier for this user (any string, e.g. "hen")
- *   SNAPTRADE_USER_SECRET    – returned when you first register the user; store it permanently
- *   SNAPTRADE_ACCOUNT_ID     – SnapTrade account UUID for the IBKR account (from listAccounts)
- *
- * One-time setup: run `npx ts-node scripts/snaptrade-setup.ts` (or follow AGENTS.md)
- * to register the user and get the connection portal URL for linking your IBKR account.
+ * Requires the official IBKR Client Portal Gateway (a local Java app) running
+ * at https://localhost:5001 and authenticated in your browser.
  */
 
-import { Snaptrade } from "snaptrade-typescript-sdk";
+import { request, Agent } from "node:https";
 
 import type { IbkrPosition, IbkrResponse, IbkrSummary } from "@/lib/types";
 
-function getClient(): Snaptrade {
-  const clientId = process.env.SNAPTRADE_CLIENT_ID;
-  const consumerKey = process.env.SNAPTRADE_CONSUMER_KEY;
-  if (!clientId || !consumerKey) {
-    throw new Error(
-      "SNAPTRADE_CLIENT_ID and SNAPTRADE_CONSUMER_KEY must be set. " +
-        "See .env.local.example and AGENTS.md for setup instructions.",
-    );
+const BASE = process.env.IBKR_GATEWAY_URL ?? "https://localhost:5001";
+const IBKR_HEADERS = {
+  Accept: "application/json",
+  "User-Agent":
+    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+};
+
+const httpsAgent = new Agent({ rejectUnauthorized: false });
+
+class IbkrAuthError extends Error {
+  constructor() {
+    super(`IBKR gateway needs login. Open ${BASE} and sign in.`);
   }
-  return new Snaptrade({ clientId, consumerKey });
 }
 
-function requireEnv(name: string): string {
-  const v = process.env[name];
-  if (!v) throw new Error(`${name} env var is not set. Run scripts/snaptrade-setup.ts first.`);
-  return v;
+type IbkrMethod = "GET" | "POST";
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+async function ibkrFetch(path: string, method: IbkrMethod = "GET"): Promise<any> {
+  const url = new URL(path, BASE);
+  const headers =
+    method === "POST"
+      ? { ...IBKR_HEADERS, "Content-Length": "0" }
+      : IBKR_HEADERS;
+
+  return new Promise((resolve, reject) => {
+    const req = request(url, { agent: httpsAgent, headers, method }, (res) => {
+      let body = "";
+      res.setEncoding("utf8");
+      res.on("data", (chunk) => {
+        body += chunk;
+      });
+      res.on("end", () => {
+        if (res.statusCode === 401 || res.statusCode === 403) {
+          reject(new IbkrAuthError());
+          return;
+        }
+        if (!res.statusCode || res.statusCode < 200 || res.statusCode >= 300) {
+          reject(new Error(`IBKR ${path} -> ${res.statusCode ?? "unknown"}`));
+          return;
+        }
+        try {
+          resolve(body ? JSON.parse(body) : null);
+        } catch {
+          reject(new Error(`IBKR ${path} returned invalid JSON`));
+        }
+      });
+    });
+
+    req.setTimeout(10_000, () => {
+      req.destroy(new Error("IBKR gateway request timed out"));
+    });
+    req.on("error", reject);
+    req.end();
+  });
+}
+
+export async function keepIbkrSessionAlive(): Promise<{
+  authenticated: boolean;
+  connected: boolean;
+}> {
+  const status = await ibkrFetch("/v1/api/iserver/auth/status");
+  const authenticated = status?.authenticated === true;
+  const connected = status?.connected === true;
+
+  if (authenticated) {
+    await ibkrFetch("/v1/api/tickle", "POST");
+    return { authenticated: true, connected };
+  }
+
+  if (connected) {
+    await ibkrFetch("/v1/api/iserver/auth/ssodh/init", "POST");
+    const next = await ibkrFetch("/v1/api/iserver/auth/status");
+    if (next?.authenticated === true) {
+      await ibkrFetch("/v1/api/tickle", "POST");
+      return { authenticated: true, connected: next?.connected === true };
+    }
+  }
+
+  throw new IbkrAuthError();
+}
+
+async function resolveAccountId(): Promise<string> {
+  if (process.env.IBKR_ACCOUNT_ID) return process.env.IBKR_ACCOUNT_ID;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const accounts: any[] = await ibkrFetch("/v1/api/portfolio/accounts");
+  const id = accounts?.[0]?.id ?? accounts?.[0]?.accountId;
+  if (!id) throw new Error("IBKR: no account id found");
+  return String(id);
+}
+
+function amountFromField(field: unknown): number | null {
+  if (typeof field === "number" && Number.isFinite(field)) return field;
+  if (typeof field === "string") {
+    const n = Number.parseFloat(field.replace(/,/g, ""));
+    return Number.isFinite(n) ? n : null;
+  }
+  if (field && typeof field === "object") {
+    const record = field as Record<string, unknown>;
+    return (
+      amountFromField(record.amount) ??
+      amountFromField(record.value) ??
+      amountFromField(record.raw)
+    );
+  }
+  return null;
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function amount(raw: any, keys: string[]): number | null {
+  for (const key of keys) {
+    const value = amountFromField(raw[key]);
+    if (value !== null) return value;
+  }
+  return null;
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function parseSummary(raw: any, positions: IbkrPosition[]): IbkrSummary {
+  const marketValue = positions.reduce((sum, p) => sum + p.marketValue, 0);
+  const costBasis = positions.reduce((sum, p) => sum + p.avgCost * p.shares, 0);
+  const derivedUnrealizedPnl = marketValue - costBasis;
+
+  const totalValue =
+    amount(raw, ["netliquidation", "NetLiquidation", "net_liquidation"]) ??
+    marketValue;
+  const dayPnl = amount(raw, ["dayplnl", "DayPnL", "day_pnl", "dpl"]);
+  const unrealizedPnl =
+    amount(raw, ["unrealizedpnl", "UnrealizedPnL", "unrealized_pnl", "upl"]) ??
+    derivedUnrealizedPnl;
+  const unrealizedPnlPercent =
+    costBasis !== 0 ? (unrealizedPnl / costBasis) * 100 : 0;
+
+  return { totalValue, dayPnl, unrealizedPnl, unrealizedPnlPercent };
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -47,85 +152,27 @@ function parsePositions(raw: any[]): IbkrPosition[] {
     .filter(Boolean)
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     .map((p: any): IbkrPosition => {
-      // SnapTrade positions: p.symbol.symbol.symbol is the ticker string
       const ticker: string =
-        p.symbol?.symbol?.symbol ??
-        p.symbol?.symbol?.raw_symbol ??
-        p.symbol?.symbol?.id ??
-        "—";
-      const shares: number = p.units ?? p.fractional_units ?? 0;
-      const avgCost: number = p.average_purchase_price ?? 0;
-      const currentPrice: number = p.price ?? 0;
-      // market value: units * price (SnapTrade doesn't return market_value directly)
-      const marketValue: number = shares * currentPrice;
+        p.contractDesc ?? p.ticker ?? p.symbol ?? p.conid?.toString() ?? "—";
+      const shares: number = p.position ?? p.shares ?? 0;
+      const avgCost: number = p.avgCost ?? p.averageCost ?? p.avg_cost ?? 0;
+      const currentPrice: number = p.mktPrice ?? p.marketPrice ?? p.last_price ?? 0;
+      const marketValue: number = p.mktValue ?? p.marketValue ?? p.market_value ?? 0;
       const pnlPercent: number =
         avgCost !== 0 ? ((currentPrice - avgCost) / avgCost) * 100 : 0;
       return { ticker, shares, avgCost, currentPrice, marketValue, pnlPercent };
     });
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function parseSummary(balances: any[], totalValue: number): IbkrSummary {
-  // SnapTrade doesn't expose intraday P&L — return 0 for dayPnl.
-  // unrealizedPnlPercent is derived from positions in the caller.
-  const cash = Array.isArray(balances)
-    ? balances.reduce((sum, b) => sum + (b.cash ?? 0), 0)
-    : 0;
-  void cash; // informational only; not in IbkrSummary
-  return {
-    totalValue,
-    dayPnl: 0, // SnapTrade / Flex Query does not surface intraday P&L
-    unrealizedPnlPercent: 0, // filled in below after positions are parsed
-  };
-}
-
 export async function getIbkrData(): Promise<IbkrResponse> {
-  const snaptrade = getClient();
-  const userId = requireEnv("SNAPTRADE_USER_ID");
-  const userSecret = requireEnv("SNAPTRADE_USER_SECRET");
-  const accountId = requireEnv("SNAPTRADE_ACCOUNT_ID");
-
-  // Fetch holdings (positions + balances) in parallel
-  const [positionsRes, balancesRes] = await Promise.all([
-    snaptrade.accountInformation.getUserAccountPositions({
-      userId,
-      userSecret,
-      accountId,
-    }),
-    snaptrade.accountInformation.getUserAccountBalance({
-      userId,
-      userSecret,
-      accountId,
-    }),
+  const accountId = await resolveAccountId();
+  const [summaryRaw, positionsRaw] = await Promise.all([
+    ibkrFetch(`/v1/api/portfolio/${accountId}/summary`),
+    ibkrFetch(`/v1/api/portfolio/${accountId}/positions/0`),
   ]);
-
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const rawPositions: any[] = (positionsRes as any).data ?? [];
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const rawBalances: any[] = (balancesRes as any).data ?? [];
-
-  const positions = parsePositions(rawPositions);
-
-  // Total value: sum of all balance.cash entries, or fall back to summing market values
-  const totalFromBalances = Array.isArray(rawBalances)
-    ? rawBalances.reduce(
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        (sum: number, b: any) => sum + (b.cash ?? 0) + (b.buying_power ?? 0),
-        0,
-      )
-    : 0;
-  const totalFromPositions = positions.reduce((s, p) => s + p.marketValue, 0);
-  // Prefer balance-based total (includes cash), fall back to positions sum
-  const totalValue = totalFromBalances > 0 ? totalFromBalances : totalFromPositions;
-
-  const summary = parseSummary(rawBalances, totalValue);
-
-  // Derive unrealized P&L % from aggregate positions
-  const totalCostBasis = positions.reduce((s, p) => s + p.avgCost * p.shares, 0);
-  if (totalCostBasis > 0) {
-    const totalPnl = totalFromPositions - totalCostBasis;
-    summary.unrealizedPnlPercent = (totalPnl / totalCostBasis) * 100;
-  }
-
-  return { summary, positions };
+  const positions = parsePositions(positionsRaw);
+  return {
+    summary: parseSummary(summaryRaw, positions),
+    positions,
+  };
 }
