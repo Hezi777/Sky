@@ -100,11 +100,11 @@ export function GreetingCard() {
       : circumference * (1 - dayPercent / 100);
 
   return (
-    <Card className="flex h-full flex-col rounded-3xl bg-card/85">
+    <Card className="flex h-full flex-col rounded-3xl bg-card/85 animate-fade-in-up">
       <div className="flex flex-col items-center gap-4 px-5 py-4 text-center sm:flex-row sm:px-6 sm:text-left">
         {/* Avatar + progress ring */}
         <div
-          className="relative shrink-0"
+          className="relative shrink-0 transition-transform duration-200 hover:scale-105"
           style={{ width: size, height: size }}
         >
           <svg
@@ -174,7 +174,7 @@ export function GreetingCard() {
             )}
             </h2>
             <span className="rounded-full border border-border bg-muted/40 px-2.5 py-1 text-xs font-medium text-muted-foreground">
-              {dayPercent === null ? "Day loading" : `${dayPercent}% through today`}
+              {dayPercent === null ? "—" : `${dayPercent}% through today`}
             </span>
           </div>
 

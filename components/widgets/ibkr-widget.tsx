@@ -20,13 +20,20 @@ import {
 import { fetcher } from "@/lib/fetcher";
 import type { IbkrResponse } from "@/lib/types";
 
-const CHART_COLORS = [
-  "var(--chart-1, #5e6ad2)",
-  "var(--chart-2, #4cc4a8)",
-  "var(--chart-4, #f0b429)",
-  "var(--chart-3, #a87ff0)",
-  "var(--chart-5, #f76d7e)",
+const ALLOCATION_COLORS = [
+  "#2F80ED", // blue
+  "#F2994A", // orange
+  "#9B51E0", // violet
+  "#00A6A6", // teal
+  "#F2C94C", // yellow
 ];
+const OTHER_ALLOCATION_COLOR = "#64748B";
+
+function allocationColor(name: string, index: number) {
+  return name === "Other"
+    ? OTHER_ALLOCATION_COLOR
+    : ALLOCATION_COLORS[index % ALLOCATION_COLORS.length];
+}
 
 function fmt(n: number, decimals = 2) {
   return n.toLocaleString(undefined, {
@@ -76,7 +83,7 @@ function Metric({
       <span className="text-xs text-muted-foreground">{label}</span>
       <p
         className={`mt-0.5 inline-flex items-center gap-1 text-sm font-medium ${
-          positive ? "text-emerald-500" : "text-red-500"
+          positive ? "text-emerald-600 dark:text-emerald-400" : "text-red-600 dark:text-red-400"
         }`}
       >
         <Icon className="h-3.5 w-3.5" />
@@ -108,9 +115,11 @@ function IBKRSkeleton() {
 }
 
 export function IBKRWidget() {
-  const { data, error, isLoading } = useSWR<IbkrResponse>("/api/ibkr", fetcher);
+  const { data, error, isLoading } = useSWR<IbkrResponse>("/api/ibkr", fetcher, { refreshInterval: 30_000 });
 
   useEffect(() => {
+    if (data?.source !== "gateway") return;
+
     let cancelled = false;
 
     async function ping() {
@@ -124,7 +133,7 @@ export function IBKRWidget() {
       cancelled = true;
       window.clearInterval(id);
     };
-  }, []);
+  }, [data?.source]);
 
   if (isLoading) return <IBKRSkeleton />;
 
@@ -168,10 +177,13 @@ export function IBKRWidget() {
         <CardTitle className="flex items-center gap-2">
           <BrandLogo name="ibkr" className="h-5 w-auto" />
           IBKR Portfolio
+          <span className="ml-auto rounded-full border border-border bg-muted/30 px-2 py-0.5 text-xs font-normal text-muted-foreground">
+            {data.source === "flex" ? "Flex snapshot" : "Live gateway"}
+          </span>
         </CardTitle>
       </CardHeader>
 
-      <CardContent className="flex min-h-0 min-w-0 flex-1 flex-col gap-5">
+      <CardContent className="flex min-h-0 min-w-0 flex-1 flex-col gap-5 animate-fade-in-up">
         <div className="space-y-2">
           <p className="text-3xl font-semibold tracking-tight tabular-nums sm:text-4xl">
             <AnimatedNumber value={summary.totalValue} format={(value) => fmtUsd(value)} />
@@ -196,10 +208,10 @@ export function IBKRWidget() {
                   paddingAngle={3}
                   dataKey="value"
                   stroke="var(--card)"
-                  strokeWidth={3}
+                  strokeWidth={4}
                 >
-                  {donutData.map((_, i) => (
-                    <Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} />
+                  {donutData.map((item, i) => (
+                    <Cell key={item.name} fill={allocationColor(item.name, i)} />
                   ))}
                 </Pie>
                 <Tooltip formatter={(value) => [fmtUsd(Number(value)), "Value"]} />
@@ -211,10 +223,10 @@ export function IBKRWidget() {
                 Allocation
               </p>
               {donutData.map((item, i) => (
-                <div key={item.name} className="flex items-center gap-2 text-sm">
+                <div key={item.name} className="group/alloc flex items-center gap-2 rounded-lg px-1.5 py-1 text-sm transition-colors duration-150 hover:bg-muted/50 -mx-1.5">
                   <span
-                    className="h-2.5 w-2.5 shrink-0 rounded-full"
-                    style={{ backgroundColor: CHART_COLORS[i % CHART_COLORS.length] }}
+                    className="h-2.5 w-2.5 shrink-0 rounded-full transition-transform duration-150 group-hover/alloc:scale-125"
+                    style={{ backgroundColor: allocationColor(item.name, i) }}
                   />
                   <span className="min-w-0 flex-1 truncate font-medium">{item.name}</span>
                   <span className="text-muted-foreground tabular-nums">
@@ -243,14 +255,14 @@ export function IBKRWidget() {
               </TableHeader>
               <TableBody>
                 {positions.map((pos) => (
-                  <TableRow key={pos.ticker}>
+                  <TableRow key={pos.ticker} className="transition-colors duration-150 hover:bg-muted/40">
                     <TableCell className="font-medium">{pos.ticker}</TableCell>
                     <TableCell className="text-right tabular-nums">{fmt(pos.shares, 2)}</TableCell>
                     <TableCell className="text-right tabular-nums">{fmtUsd(pos.avgCost, 2)}</TableCell>
                     <TableCell className="text-right tabular-nums">{fmtUsd(pos.currentPrice, 2)}</TableCell>
                     <TableCell
                       className={`text-right tabular-nums font-medium ${
-                        pos.pnlPercent >= 0 ? "text-emerald-500" : "text-red-500"
+                        pos.pnlPercent >= 0 ? "text-emerald-600 dark:text-emerald-400" : "text-red-600 dark:text-red-400"
                       }`}
                     >
                       {pos.pnlPercent >= 0 ? "+" : ""}

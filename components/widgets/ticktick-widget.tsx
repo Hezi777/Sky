@@ -119,16 +119,15 @@ function TaskRow({
     >
       <button
         type="button"
-        role="checkbox"
-        aria-checked={false}
+        aria-label={`Complete: ${task.title}`}
         onClick={() => onComplete(task)}
         className={`h-4 w-4 shrink-0 rounded-[4px] border-2 bg-card transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50 ${PRIORITY_CHECKBOX[task.priority]}`}
       />
 
       <div className="flex min-w-0 flex-1 items-center gap-2">
         <span
-          dir="auto"
-          className="min-w-0 flex-1 truncate text-sm font-medium leading-snug"
+          dir="ltr"
+          className="min-w-0 flex-1 truncate text-left text-sm font-medium leading-snug [unicode-bidi:plaintext]"
         >
           {task.title}
         </span>
@@ -164,7 +163,7 @@ export function TickTickWidget() {
   const { data, error, isLoading, mutate } = useSWR<TickTickTask[]>(
     "/api/ticktick",
     fetcher<TickTickTask[]>,
-    { refreshInterval: 60_000 },
+    { refreshInterval: 15_000 },
   );
 
   const [hidden, setHidden] = useState<Set<string>>(new Set());

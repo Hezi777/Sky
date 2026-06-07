@@ -34,7 +34,7 @@ export default function RootLayout({
             <TooltipProvider>
               <div className="min-h-screen">
                 <Header />
-                <main className="px-4 pb-4 pt-20 sm:px-6 sm:pb-5 sm:pt-20">
+                <main className="px-4 pb-4 pt-[72px] sm:px-6 sm:pb-5 sm:pt-[72px]">
                   {children}
                 </main>
               </div>

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Link, Plus } from "lucide-react";
+import { Link, Loader2, Plus } from "lucide-react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
@@ -62,8 +62,12 @@ export function ResourceQuickAdd() {
             disabled={loading}
             className="flex-1"
           />
-          <Button type="submit" disabled={loading || !url.trim()} size="default">
-            <Plus className="size-4" />
+          <Button type="submit" disabled={loading || !url.trim()} size="default" className="transition-all duration-200">
+            {loading ? (
+              <Loader2 className="size-4 animate-spin" />
+            ) : (
+              <Plus className="size-4 transition-transform duration-200 group-hover:rotate-90" />
+            )}
             <span className="sr-only">Add</span>
           </Button>
         </form>

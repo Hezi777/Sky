@@ -11,8 +11,8 @@ import { TickTickWidget } from "@/components/widgets/ticktick-widget";
 
 function SectionLabel({ title }: { title: string }) {
   return (
-    <div className="sm:col-span-6 xl:col-span-12">
-      <p className="px-1 text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+    <div className="sm:col-span-6 xl:col-span-12 mt-2">
+      <p className="border-l-2 border-primary/35 pl-2.5 text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
         {title}
       </p>
     </div>

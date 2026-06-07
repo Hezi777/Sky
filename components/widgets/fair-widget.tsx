@@ -88,7 +88,7 @@ function PnlValue({
 }) {
   const positive = amount >= 0;
   const Icon = positive ? TrendingUp : TrendingDown;
-  const cls = positive ? "text-emerald-500" : "text-red-500";
+  const cls = positive ? "text-emerald-600 dark:text-emerald-400" : "text-red-600 dark:text-red-400";
   return (
     <span className={`inline-flex items-center gap-1 font-medium ${cls}`}>
       <Icon className="h-4 w-4" />
@@ -155,7 +155,7 @@ export function FairWidget() {
   const { data, error, isLoading } = useSWR<FairPrice>(
     fundNumber ? `/api/fair?fund=${fundNumber}` : null,
     fetcher,
-    { revalidateOnFocus: false },
+    { revalidateOnFocus: false, refreshInterval: 30_000 },
   );
 
   const livePrice = data && !error ? data : null;
@@ -189,13 +189,15 @@ export function FairWidget() {
   return (
     <Card className="flex h-full flex-col rounded-2xl">
       <CardHeader className="flex-row items-center justify-between space-y-0">
-        <CardTitle className="flex items-center gap-2">
-          <BrandLogo name="fair" className="size-5 rounded" />
-          Fair
-          <span className="text-sm font-normal text-muted-foreground">
+        <div>
+          <CardTitle className="flex items-center gap-2">
+            <BrandLogo name="fair" className="size-5 rounded" />
+            Fair
+          </CardTitle>
+          <p className="mt-0.5 pl-7 text-xs text-muted-foreground">
             {config.fundName} · {config.fundNumber}
-          </span>
-        </CardTitle>
+          </p>
+        </div>
         <div className="flex items-center gap-1">
           <Button
             variant="ghost"
@@ -235,7 +237,7 @@ export function FairWidget() {
             onDone={() => setAdding(false)}
           />
         ) : (
-          <>
+          <div className="animate-fade-in contents">
             {hasContribs ? (
               <div className="space-y-1">
                 {isLoading && priceMode === "none" ? (
@@ -327,7 +329,7 @@ export function FairWidget() {
                       .slice()
                       .sort((a, b) => (a.date < b.date ? 1 : -1))
                       .map((c) => (
-                        <TableRow key={c.id}>
+                        <TableRow key={c.id} className="transition-colors duration-150 hover:bg-muted/40">
                           <TableCell className="font-medium">
                             {c.date}
                           </TableCell>
@@ -365,7 +367,7 @@ export function FairWidget() {
                 </Table>
               </div>
             ) : null}
-          </>
+          </div>
         )}
       </CardContent>
     </Card>

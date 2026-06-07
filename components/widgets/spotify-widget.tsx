@@ -84,7 +84,7 @@ function RecentTrackRow({ track }: { track: SpotifyTrack }) {
   return (
     <a
       href={toSpotifyAppUri(track.url)}
-      className="flex items-center gap-2 rounded-lg p-1 transition-colors hover:bg-muted/60"
+      className="group/track flex items-center gap-2 rounded-lg p-1 transition-all duration-200 hover:bg-muted/60 hover:-translate-y-px"
     >
       {track.albumArt ? (
         <Image
@@ -92,7 +92,7 @@ function RecentTrackRow({ track }: { track: SpotifyTrack }) {
           alt={track.title}
           width={32}
           height={32}
-          className="size-8 rounded flex-shrink-0 object-cover"
+          className="size-8 rounded flex-shrink-0 object-cover transition-transform duration-200 group-hover/track:scale-105 group-hover/track:shadow-sm"
           unoptimized
         />
       ) : (
@@ -110,7 +110,7 @@ export function SpotifyWidget() {
   const { data, error, isLoading } = useSWR<SpotifyResponse>(
     "/api/spotify",
     fetcher<SpotifyResponse>,
-    { refreshInterval: 30_000 }
+    { refreshInterval: 10_000 }
   );
 
   if (isLoading) return <SpotifyWidgetSkeleton />;
@@ -158,7 +158,7 @@ export function SpotifyWidget() {
         {nowPlaying ? (
           <a
             href={toSpotifyAppUri(nowPlaying.url)}
-            className="flex items-start gap-3 rounded-xl p-1 transition-colors hover:bg-muted/60"
+            className="group/np flex items-start gap-3 rounded-xl p-1 transition-all duration-200 hover:bg-muted/60 animate-fade-in"
           >
             {nowPlaying.albumArt ? (
               <Image
@@ -166,7 +166,7 @@ export function SpotifyWidget() {
                 alt={nowPlaying.title}
                 width={56}
                 height={56}
-                className="size-14 rounded-xl flex-shrink-0 object-cover"
+                className="size-14 rounded-xl flex-shrink-0 object-cover transition-transform duration-200 group-hover/np:scale-105 group-hover/np:shadow-md"
                 unoptimized
               />
             ) : (

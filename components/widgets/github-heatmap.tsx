@@ -39,14 +39,14 @@ function RepoRow({ repo }: { repo: GithubRepo }) {
       href={repo.url}
       target="_blank"
       rel="noopener noreferrer"
-      className="group flex min-h-0 flex-1 flex-col justify-center rounded-xl border border-border/70 bg-muted/20 px-3 py-2 transition-colors hover:bg-muted/55"
+      className="group flex min-h-0 flex-1 flex-col justify-center rounded-xl border border-border/70 bg-muted/20 px-3 py-2 transition-all duration-200 hover:bg-muted/55 hover:-translate-y-px hover:shadow-sm hover:border-border"
     >
       <div className="flex items-center gap-2">
-        <p className="min-w-0 flex-1 truncate text-sm font-medium text-foreground group-hover:text-primary">
+        <p className="min-w-0 flex-1 truncate text-sm font-medium text-foreground transition-colors duration-150 group-hover:text-primary">
           {repo.name}
         </p>
-        <span className="inline-flex items-center gap-1 text-xs text-muted-foreground">
-          <Star className="size-3" />
+        <span className="inline-flex items-center gap-1 text-xs text-muted-foreground transition-colors duration-150 group-hover:text-foreground/70">
+          <Star className="size-3 transition-transform duration-150 group-hover:scale-110" />
           {repo.stars}
         </span>
       </div>
@@ -59,7 +59,7 @@ function RepoRow({ repo }: { repo: GithubRepo }) {
 }
 
 export function GithubHeatmap() {
-  const { data, error, isLoading } = useSWR<GithubResponse>("/api/github", fetcher);
+  const { data, error, isLoading } = useSWR<GithubResponse>("/api/github", fetcher, { refreshInterval: 300_000 });
 
   return (
     <Card className="flex h-full flex-col rounded-2xl">

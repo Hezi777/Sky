@@ -7,6 +7,7 @@
 
 import { request, Agent } from "node:https";
 
+import { getIbkrFlexData, hasIbkrFlexConfig } from "@/lib/ibkr-flex";
 import type { IbkrPosition, IbkrResponse, IbkrSummary } from "@/lib/types";
 
 const BASE = process.env.IBKR_GATEWAY_URL ?? "https://localhost:5001";
@@ -17,6 +18,8 @@ const IBKR_HEADERS = {
 };
 
 const httpsAgent = new Agent({ rejectUnauthorized: false });
+
+type IbkrDataSource = "auto" | "gateway" | "flex";
 
 class IbkrAuthError extends Error {
   constructor() {
@@ -69,7 +72,12 @@ async function ibkrFetch(path: string, method: IbkrMethod = "GET"): Promise<any>
 export async function keepIbkrSessionAlive(): Promise<{
   authenticated: boolean;
   connected: boolean;
+  skipped?: boolean;
 }> {
+  if ((process.env.IBKR_DATA_SOURCE as IbkrDataSource | undefined) === "flex") {
+    return { authenticated: false, connected: false, skipped: true };
+  }
+
   const status = await ibkrFetch("/v1/api/iserver/auth/status");
   const authenticated = status?.authenticated === true;
   const connected = status?.connected === true;
@@ -164,7 +172,7 @@ function parsePositions(raw: any[]): IbkrPosition[] {
     });
 }
 
-export async function getIbkrData(): Promise<IbkrResponse> {
+async function getIbkrGatewayData(): Promise<IbkrResponse> {
   const accountId = await resolveAccountId();
   const [summaryRaw, positionsRaw] = await Promise.all([
     ibkrFetch(`/v1/api/portfolio/${accountId}/summary`),
@@ -172,7 +180,25 @@ export async function getIbkrData(): Promise<IbkrResponse> {
   ]);
   const positions = parsePositions(positionsRaw);
   return {
+    source: "gateway",
+    asOf: new Date().toISOString(),
     summary: parseSummary(summaryRaw, positions),
     positions,
   };
+}
+
+function dataSource(): IbkrDataSource {
+  const value = process.env.IBKR_DATA_SOURCE;
+  if (value === "gateway" || value === "flex" || value === "auto") return value;
+  return "auto";
+}
+
+export async function getIbkrData(): Promise<IbkrResponse> {
+  const source = dataSource();
+
+  if (source === "flex") return getIbkrFlexData();
+  if (source === "gateway") return getIbkrGatewayData();
+
+  if (hasIbkrFlexConfig()) return getIbkrFlexData();
+  return getIbkrGatewayData();
 }

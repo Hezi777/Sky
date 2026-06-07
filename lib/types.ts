@@ -108,6 +108,8 @@ export interface IbkrSummary {
 }
 
 export interface IbkrResponse {
+  source: "gateway" | "flex";
+  asOf: string | null;
   summary: IbkrSummary;
   positions: IbkrPosition[];
 }

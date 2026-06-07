@@ -4,10 +4,10 @@
 
 <h1 align="center"><b>Sky - Sof Kol Yom</b></h1>
 
-<p align="center">A single-user personal dashboard that pulls Google Calendar, Notion, Spotify, GitHub, TickTick, and your Interactive Brokers portfolio into one live view.</p>
+<p align="center">A single-user personal dashboard that pulls Google Calendar, Notion, Spotify, GitHub, TickTick, Interactive Brokers, and Israeli mutual funds (Fair / Maya) into one live view.</p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/Next.js_16-black?style=for-the-badge&logo=next.js&logoColor=white" alt="Next.js" />
+  <img src="https://img.shields.io/badge/Next.js-black?style=for-the-badge&logo=next.js&logoColor=white" alt="Next.js" />
   <img src="https://img.shields.io/badge/React_19-149ECA?style=for-the-badge&logo=react&logoColor=white" alt="React" />
   <img src="https://img.shields.io/badge/TypeScript-3178C6?style=for-the-badge&logo=typescript&logoColor=white" alt="TypeScript" />
   <img src="https://img.shields.io/badge/Tailwind_v4-06B6D4?style=for-the-badge&logo=tailwindcss&logoColor=white" alt="Tailwind CSS" />
@@ -45,7 +45,8 @@ The page is a bento grid where each widget is sized by importance and content sh
 | Spotify               | Now playing and recently played                                   | Needs OAuth   |
 | Google Calendar       | Next 5 events                                                     | Needs OAuth   |
 | TickTick              | Today's incomplete tasks                                          | Needs OAuth   |
-| Interactive Brokers   | Portfolio value, allocation donut, positions via local IBKR Gateway | Needs login   |
+| Interactive Brokers   | Portfolio value, allocation donut, positions via official Flex snapshots or local IBKR Gateway | Needs setup   |
+| Fair (Maya / TASE)    | Israeli mutual fund unit price, personal contributions, and P&L tracker                        | Live (no auth) |
 
 See [`PROGRESS.md`](./PROGRESS.md) for the build checklist and [`PLAN.md`](./PLAN.md) for widget specs.
 
@@ -53,7 +54,7 @@ See [`PROGRESS.md`](./PROGRESS.md) for the build checklist and [`PLAN.md`](./PLA
 
 | Layer             | Technology                                          |
 | ----------------- | --------------------------------------------------- |
-| Framework         | Next.js 16 (App Router, Turbopack)                  |
+| Framework         | Next.js (App Router, Turbopack)                     |
 | Language          | TypeScript 5 (strict)                               |
 | UI library        | React 19                                            |
 | Components        | shadcn/ui Nova (Base UI primitives), lucide + react-icons |
@@ -62,7 +63,7 @@ See [`PROGRESS.md`](./PROGRESS.md) for the build checklist and [`PLAN.md`](./PLA
 | Charts            | Recharts                                            |
 | AI                | Groq (`llama-3.1-8b-instant`, `llama-3.3-70b`)      |
 | Linter            | ESLint 9 (`eslint-config-next`)                     |
-| Brokerage data    | Official IBKR Client Portal Gateway                 |
+| Brokerage data    | Official IBKR Flex Web Service + optional Client Portal Gateway |
 | Deployment        | Vercel                                              |
 
 No database. No background jobs. Data is fetched on demand by the API routes.
@@ -114,7 +115,7 @@ Full details are in [`INTEGRATIONS.md`](./INTEGRATIONS.md). Quick reference:
   ```
 
   Each one prints the redirect URI to register and the line to paste into `.env.local`. See [`scripts/README.md`](./scripts/README.md).
-- **Interactive Brokers**: run `npm run ibkr:setup` once, then `npm run ibkr:start`. Log in at `https://localhost:5001`; the dashboard reads the official local gateway and pings `/tickle` while open. For a terminal keepalive, run `npm run ibkr:keepalive` after logging in.
+- **Interactive Brokers**: for persistent read-only portfolio snapshots, enable IBKR Flex Web Service, create an Activity Flex Query with Open Positions and Net Asset Value, then set `IBKR_DATA_SOURCE=flex`, `IBKR_FLEX_TOKEN`, and `IBKR_FLEX_QUERY_ID`. For live gateway data, run `npm run ibkr:setup`, `npm run ibkr:start`, then log in at `https://localhost:5001`.
 
 ## License
 

@@ -10,7 +10,7 @@ import { cn } from "@/lib/utils";
 
 function LiquidGlassFilter() {
   return (
-    <svg aria-hidden="true" className="absolute h-0 w-0">
+    <svg aria-hidden="true" focusable="false" className="absolute h-0 w-0">
       <filter
         id="sky-liquid-glass"
         x="0%"
@@ -158,8 +158,8 @@ export function Header() {
                 : "border-white/12 bg-white/10 dark:border-white/5 dark:bg-slate-950/18",
             )}
           >
-            <SettingsDialog triggerClassName="h-7 w-7 rounded-lg" />
-            <ThemeToggle className="h-7 w-7 rounded-lg" />
+            <SettingsDialog triggerClassName="h-7 w-7 rounded-lg transition-transform duration-150 hover:scale-110 active:scale-95" />
+            <ThemeToggle className="h-7 w-7 rounded-lg transition-transform duration-150 hover:scale-110 active:scale-95" />
           </div>
         </div>
       </div>

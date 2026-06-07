@@ -72,7 +72,8 @@ function splitStack(stack: string): string[] {
 export function NextTask() {
   const { data, error, isLoading } = useSWR<NotionNextTask | null>(
     "/api/notion/nexttask",
-    fetcher
+    fetcher,
+    { refreshInterval: 60_000 }
   );
 
   const style = data ? stageStyle(data.stage) : null;
@@ -91,7 +92,7 @@ export function NextTask() {
       <CardHeader className="relative flex flex-row items-center gap-2 pb-3">
         <SiNotion className="h-4 w-4 shrink-0 text-muted-foreground" />
         <CardTitle className="text-sm font-semibold">Next Task</CardTitle>
-        <span className="ml-auto text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
+        <span className="ml-auto text-xs font-medium uppercase tracking-wide text-muted-foreground">
           Focus
         </span>
       </CardHeader>
@@ -128,18 +129,18 @@ export function NextTask() {
         )}
 
         {data && style && (
-          <div className="flex flex-1 flex-col">
+          <div className="flex flex-1 flex-col animate-fade-in-up">
             {/* Hero: the next action */}
             <div className="flex items-start gap-2.5">
               <span
-                className={`mt-2 size-2 shrink-0 rounded-full ${style.accent}`}
+                className={`mt-2 size-2 shrink-0 rounded-full ${style.accent} ${data.stage.toLowerCase().includes("progress") ? "animate-pulse" : ""}`}
               />
               {data.nextAction ? (
-                <p className="text-xl leading-tight font-semibold tracking-tight text-balance text-foreground">
+                <p className="text-xl leading-tight font-bold tracking-tight text-balance text-foreground">
                   {data.nextAction}
                 </p>
               ) : (
-                <p className="text-xl leading-tight font-semibold tracking-tight text-muted-foreground">
+                <p className="text-xl leading-tight font-bold tracking-tight text-muted-foreground">
                   No next action set
                 </p>
               )}
@@ -148,7 +149,7 @@ export function NextTask() {
             {/* Project identity */}
             <div className="mt-4 flex items-center gap-2.5">
               <Avatar size="sm">
-                <AvatarFallback className="bg-primary/10 text-[10px] font-semibold text-primary">
+                <AvatarFallback className="bg-primary/10 text-xs font-semibold text-primary">
                   {initials(data.name)}
                 </AvatarFallback>
               </Avatar>
@@ -160,12 +161,12 @@ export function NextTask() {
             {/* Badges */}
             <div className="mt-3 flex flex-wrap items-center gap-1.5">
               {data.stage && (
-                <Badge className={`text-[10px] ${style.badge}`}>
+                <Badge className={`text-xs ${style.badge}`}>
                   {data.stage}
                 </Badge>
               )}
               {data.type && (
-                <Badge variant="outline" className="text-[10px]">
+                <Badge variant="outline" className="text-xs">
                   {data.type}
                 </Badge>
               )}
@@ -177,7 +178,7 @@ export function NextTask() {
                 {stack.map((s) => (
                   <span
                     key={s}
-                    className="rounded-md bg-muted px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground"
+                    className="rounded-md bg-muted px-1.5 py-0.5 text-xs font-medium text-muted-foreground"
                   >
                     {s}
                   </span>

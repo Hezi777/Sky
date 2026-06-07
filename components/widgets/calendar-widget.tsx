@@ -173,7 +173,7 @@ function EventRow({ event, now, first }: { event: CalendarEvent; now: Date; firs
           <EventLink
             event={event}
             className={[
-              "group grid grid-cols-[3.9rem_1fr] gap-3 rounded-xl px-2.5 py-2.5 text-left transition-colors hover:bg-muted/45 sm:grid-cols-[4.2rem_1fr_auto]",
+              "group grid grid-cols-[3.9rem_1fr] gap-3 rounded-xl px-2.5 py-2.5 text-left transition-all duration-200 hover:bg-muted/45 hover:-translate-y-px sm:grid-cols-[4.2rem_1fr_auto]",
               first ? "bg-muted/25" : "",
               muted ? "opacity-65" : "",
             ].join(" ")}
@@ -197,7 +197,7 @@ function EventRow({ event, now, first }: { event: CalendarEvent; now: Date; firs
 
         <div className="relative min-w-0 border-l pl-3" style={{ borderColor: accent }}>
           <span
-            className="absolute -left-[5px] top-1.5 h-2.5 w-2.5 rounded-full border-2 border-card"
+            className="absolute -left-[5px] top-1.5 h-2.5 w-2.5 rounded-full border-2 border-card transition-transform duration-200 group-hover:scale-125"
             style={{ backgroundColor: accent }}
             aria-hidden="true"
           />
@@ -206,7 +206,7 @@ function EventRow({ event, now, first }: { event: CalendarEvent; now: Date; firs
               {event.title}
             </p>
             {state === "now" && (
-              <span className="shrink-0 rounded-full bg-emerald-500/15 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-emerald-600 dark:text-emerald-400">
+              <span className="shrink-0 animate-pulse rounded-full bg-emerald-500/15 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-emerald-600 dark:text-emerald-400">
                 Now
               </span>
             )}
@@ -281,7 +281,8 @@ function DayEvents({
 export function CalendarWidget() {
   const { data, error, isLoading } = useSWR<CalendarEvent[]>(
     "/api/calendar",
-    fetcher
+    fetcher,
+    { refreshInterval: 60_000 }
   );
 
   // Pin "now" after mount so relative labels never mismatch SSR.
@@ -341,7 +342,7 @@ export function CalendarWidget() {
 
         {ready && data.length > 0 && (
           <ScrollArea className="h-full">
-            <div className="space-y-4 px-4 pb-4">
+            <div className="space-y-4 px-4 pb-4 animate-fade-in-up">
               {groups.map((group) => (
                 <DayEvents key={group.key} group={group} now={now} />
               ))}

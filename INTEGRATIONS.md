@@ -145,15 +145,44 @@ Priority mapping: `0 = None`, `1 = Low`, `3 = Medium`, `5 = High`
 
 ---
 
-## IBKR Client Portal API
+## IBKR
 
-**Type:** Local gateway session (most complex setup)
+The dashboard supports two official IBKR paths:
+
+1. **Flex Web Service** - persistent read-only snapshots. Best default for a personal dashboard because it survives browser, dev-server, and local gateway restarts.
+2. **Client Portal Gateway** - live local session. Useful when logged in, but IBKR intentionally requires browser login/2FA and session renewal.
+
+### Persistent setup: Flex Web Service
+
+**Type:** Official HTTPS reporting API with token + query ID
+
+1. In IBKR Client Portal, open **Performance & Reports > Flex Queries > Flex Web Service Configuration**.
+2. Enable Flex Web Service and generate a token. Choose a long expiry, up to 1 year.
+3. Create an **Activity Flex Query** with XML output.
+4. Include at least:
+   - Open Positions
+   - Net Asset Value
+5. Copy the Flex Query ID.
+6. Add to `.env.local`:
+
+```bash
+IBKR_DATA_SOURCE=flex
+IBKR_FLEX_TOKEN=your_token
+IBKR_FLEX_QUERY_ID=your_query_id
+IBKR_FLEX_CACHE_MS=900000
+```
+
+Flex data is a reporting snapshot, not a live trading session. The widget marks it as `Flex snapshot`, and `Day P&L` is unavailable unless the report/query includes enough live-like data to derive it.
+
+### Live setup: Client Portal Gateway
+
+**Type:** Local gateway session
 
 1. Run `npm run ibkr:setup` once. This downloads the official IBKR Client Portal Gateway into `tools/ibkr/`.
 2. Run `npm run ibkr:start`.
 3. Open `https://localhost:5001` in your browser and log in with IBKR credentials.
 4. Gateway handles session auth. Your Next.js API routes call `https://localhost:5001/v1/api/*`.
-5. Add to `.env.local`: `IBKR_GATEWAY_URL=https://localhost:5001`
+5. Add to `.env.local`: `IBKR_DATA_SOURCE=gateway` and `IBKR_GATEWAY_URL=https://localhost:5001`.
 6. Keep the dashboard open, or run `npm run ibkr:keepalive`, to call `/tickle` about once per minute.
 
 **Important:** The gateway cert is self-signed. The server connector handles that locally for this official gateway URL.
