@@ -18,6 +18,7 @@
 <p align="center">
   <a href="#about">About</a> |
   <a href="#dashboard">Dashboard</a> |
+  <a href="#screenshots">Screenshots</a> |
   <a href="#tech-stack">Tech Stack</a> |
   <a href="#getting-started">Getting Started</a> |
   <a href="#connecting-services">Connecting Services</a>
@@ -49,6 +50,20 @@ The page is a bento grid where each widget is sized by importance and content sh
 | Fair (Maya / TASE)    | Israeli mutual fund unit price, personal contributions, and P&L tracker                        | Live (no auth) |
 
 See [`PROGRESS.md`](./PROGRESS.md) for the build checklist and [`PLAN.md`](./PLAN.md) for widget specs.
+
+## Screenshots
+
+| Light | Dark |
+|---|---|
+| ![Dashboard light](docs/screenshots/dashboard-light.png) | ![Dashboard dark](docs/screenshots/dashboard-dark.png) |
+
+| Full dashboard (light) |
+|---|
+| ![Full dashboard light](docs/screenshots/dashboard-full-light.png) |
+
+| Full dashboard (dark) |
+|---|
+| ![Full dashboard dark](docs/screenshots/dashboard-full-dark.png) |
 
 ## Tech Stack
 
