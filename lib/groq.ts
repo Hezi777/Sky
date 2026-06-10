@@ -2,7 +2,11 @@ import Groq from "groq-sdk";
 
 import type { ResourceProperties } from "@/lib/types";
 
-const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
+let groqClient: Groq | null = null;
+function getGroq(): Groq {
+  if (!groqClient) groqClient = new Groq({ apiKey: process.env.GROQ_API_KEY });
+  return groqClient;
+}
 
 const GREETING_MODEL = "llama-3.1-8b-instant";
 const RESOURCE_MODEL = "llama-3.3-70b-versatile";
@@ -24,7 +28,7 @@ export async function generateGreeting(input: {
     context.trim() ||
     `It is ${period}. No events or tasks were provided. Give a warm generic ${period} greeting.`;
 
-  const completion = await groq.chat.completions.create({
+  const completion = await getGroq().chat.completions.create({
     model: GREETING_MODEL,
     messages: [
       {
@@ -44,13 +48,13 @@ export async function analyzeResource(
   url: string,
   pageText: string
 ): Promise<ResourceProperties> {
-  const completion = await groq.chat.completions.create({
+  const completion = await getGroq().chat.completions.create({
     model: RESOURCE_MODEL,
     messages: [
       {
         role: "system",
         content:
-          'You analyze URLs and return structured metadata as JSON. Always return valid JSON with these exact keys: Name (string), Description (string, max 120 chars), Category (exactly one of: "Claude Code", "UI Components", "Design Inspo", "AI Tools", "Dev Infrastructure", "SaaS/Biz", "Learning", "BI/Data", "Tools", "GitHub"), Status (always "Saved").',
+          'You analyze URLs and return structured metadata as JSON. Always return valid JSON with these exact keys: Name (string), Description (string, max 80 chars - one short plain-language phrase describing what it does and why it\'s useful, no marketing fluff, no trailing period), Category (exactly one of: "Claude Code", "UI Components", "Design Inspo", "AI Tools", "Dev Infrastructure", "SaaS/Biz", "Learning", "BI/Data", "Tools", "GitHub"), Status (always "Saved").',
       },
       {
         role: "user",
@@ -72,7 +76,7 @@ export async function analyzeResource(
 
   return {
     Name: parsed.Name ?? new URL(url).hostname,
-    Description: (parsed.Description ?? "").slice(0, 120),
+    Description: (parsed.Description ?? "").slice(0, 80),
     Category: parsed.Category ?? "Tools",
     Status: "Saved",
   };

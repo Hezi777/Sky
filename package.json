@@ -2,6 +2,8 @@
   "name": "sky",
   "version": "0.1.0",
   "private": true,
+  "main": "electron-dist/main.js",
+  "productName": "Sky",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
@@ -10,7 +12,10 @@
     "ibkr:setup": "bash scripts/ibkr/setup-gateway.sh",
     "ibkr:start": "bash scripts/ibkr/start-gateway.sh",
     "ibkr:status": "node scripts/ibkr/status.mjs",
-    "ibkr:keepalive": "node scripts/ibkr/keepalive.mjs"
+    "ibkr:keepalive": "node scripts/ibkr/keepalive.mjs",
+    "electron:compile": "tsc -p electron/tsconfig.json",
+    "electron:dev": "npm run electron:compile && concurrently -k \"next dev\" \"wait-on http://127.0.0.1:3000 && SKY_DEV_URL=http://127.0.0.1:3000 electron .\"",
+    "electron:build": "next build && npm run electron:compile && electron-builder --publish never"
   },
   "dependencies": {
     "@base-ui/react": "^1.5.0",
@@ -41,10 +46,14 @@
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "concurrently": "^10.0.3",
+    "electron": "^39.8.10",
+    "electron-builder": "^26.15.2",
     "eslint": "^9",
     "eslint-config-next": "16.2.7",
     "playwright": "^1.60.0",
     "tailwindcss": "^4",
-    "typescript": "^5"
+    "typescript": "^5",
+    "wait-on": "^9.0.10"
   }
 }

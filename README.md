@@ -132,6 +132,10 @@ Full details are in [`INTEGRATIONS.md`](./INTEGRATIONS.md). Quick reference:
   Each one prints the redirect URI to register and the line to paste into `.env.local`. See [`scripts/README.md`](./scripts/README.md).
 - **Interactive Brokers**: for persistent read-only portfolio snapshots, enable IBKR Flex Web Service, create an Activity Flex Query with Open Positions and Net Asset Value, then set `IBKR_DATA_SOURCE=flex`, `IBKR_FLEX_TOKEN`, and `IBKR_FLEX_QUERY_ID`. For live gateway data, run `npm run ibkr:setup`, `npm run ibkr:start`, then log in at `https://localhost:5001`.
 
+## Desktop app
+
+Sky is also packaged as a desktop app (Electron) for macOS and Windows. Build locally with `npm run electron:build` (output in `release/`), or grab a build from CI via `workflow_dispatch` or a `v*` tag release. See [`docs/desktop.md`](./docs/desktop.md) for setup, config location, logs, and install notes (Gatekeeper / SmartScreen).
+
 ## License
 
 Unlicensed, private personal project.

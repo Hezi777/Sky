@@ -1,0 +1,37 @@
+appId: com.hen.sky
+productName: Sky
+directories:
+  buildResources: electron/build
+  output: release
+files:
+  - electron-dist/**
+  - "!node_modules/**"
+asar: true
+npmRebuild: false
+extraResources:
+  - from: .next/standalone
+    to: standalone
+    filter: ["**/*", "!**/.env*"]
+  - from: .next/standalone/node_modules
+    to: standalone/node_modules
+    filter: ["**/*", "!**/.env*"]
+  - from: .next/static
+    to: standalone/.next/static
+  - from: public
+    to: standalone/public
+    filter: ["**/*", "!Mac Icon.icon/**"]
+  - from: .env.local.example
+    to: env.example
+mac:
+  category: public.app-category.productivity
+  icon: "public/Mac Icon.icon"
+  target:
+    - { target: dmg, arch: [arm64] }
+    - { target: zip, arch: [arm64] }
+win:
+  icon: electron/build/icon.ico
+  target:
+    - { target: nsis, arch: [x64] }
+nsis:
+  oneClick: true
+  deleteAppDataOnUninstall: false
