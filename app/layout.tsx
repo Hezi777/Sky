@@ -1,10 +1,7 @@
 import type { Metadata } from "next";
-import "react-grid-layout/css/styles.css";
-import "react-resizable/css/styles.css";
 import "./globals.css";
 
 import { Header } from "@/components/layout/header";
-import { LayoutProvider } from "@/components/layout-provider";
 import { SettingsProvider } from "@/components/settings-provider";
 import { ThemeProvider } from "@/components/theme-provider";
 import { Toaster } from "@/components/ui/sonner";
@@ -34,16 +31,14 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           <SettingsProvider>
-            <LayoutProvider>
-              <TooltipProvider>
-                <div className="min-h-screen">
-                  <Header />
-                  <main className="px-4 pb-4 pt-[72px] sm:px-6 sm:pb-5 sm:pt-[72px]">
-                    {children}
-                  </main>
-                </div>
-              </TooltipProvider>
-            </LayoutProvider>
+            <TooltipProvider>
+              <div className="min-h-screen">
+                <Header />
+                <main className="px-4 pb-4 pt-[72px] sm:px-6 sm:pb-5 sm:pt-[72px]">
+                  {children}
+                </main>
+              </div>
+            </TooltipProvider>
           </SettingsProvider>
           <Toaster richColors position="top-right" />
         </ThemeProvider>

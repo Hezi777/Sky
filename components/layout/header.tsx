@@ -6,7 +6,6 @@ import { motion } from "framer-motion";
 import { Logo } from "@/components/logo";
 import { SettingsDialog } from "@/components/settings-dialog";
 import { ThemeToggle } from "@/components/theme-toggle";
-import { WidgetGallery } from "@/components/widget-gallery";
 import { cn } from "@/lib/utils";
 
 function LiquidGlassFilter() {
@@ -159,7 +158,6 @@ export function Header() {
                 : "border-white/12 bg-white/10 dark:border-white/5 dark:bg-slate-950/18",
             )}
           >
-            <WidgetGallery triggerClassName="h-7 w-7 rounded-lg transition-transform duration-150 hover:scale-110 active:scale-95" />
             <SettingsDialog triggerClassName="h-7 w-7 rounded-lg transition-transform duration-150 hover:scale-110 active:scale-95" />
             <ThemeToggle className="h-7 w-7 rounded-lg transition-transform duration-150 hover:scale-110 active:scale-95" />
           </div>
