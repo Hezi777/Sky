@@ -6,7 +6,7 @@ import type { ResourceProperties } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
 
-const NOTION_RESOURCES_DB_ID = "31f86eb0-7b69-80e2-9ec4-000b45acce82";
+const NOTION_RESOURCES_DB_ID = process.env.NOTION_RESOURCES_DB_ID ?? "";
 
 function extractPageText(html: string): string {
   // Pull og:title, og:description, <title> from raw HTML
