@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { AlertCircle, TrendingDown, TrendingUp } from "lucide-react";
 import { Cell, Pie, PieChart, Tooltip } from "recharts";
 import useSWR from "swr";
@@ -53,30 +53,32 @@ function fmtUsd(n: number, decimals = 0) {
 
 function Metric({
   label,
-  value,
-  suffix = "",
-  money = false,
+  dollarValue,
+  percentValue,
+  showPercent,
 }: {
   label: string;
-  value: number | null;
-  suffix?: string;
-  money?: boolean;
+  dollarValue: number | null;
+  percentValue: number | null;
+  showPercent: boolean;
 }) {
+  const value = showPercent ? percentValue : dollarValue;
+
   if (value === null) {
     return (
       <div className="min-w-28">
         <span className="text-xs text-muted-foreground">{label}</span>
-        <p className="mt-0.5 text-sm font-medium text-muted-foreground">Unavailable</p>
+        <p className="mt-0.5 text-sm font-medium text-muted-foreground">—</p>
       </div>
     );
   }
 
   const positive = value >= 0;
   const Icon = positive ? TrendingUp : TrendingDown;
-  const formatValue = (latest: number) =>
-    money
-      ? `${positive ? "+" : ""}${fmtUsd(latest, 2)}`
-      : `${positive ? "+" : ""}${fmt(latest)}${suffix}`;
+  const formatValue = (v: number) =>
+    showPercent
+      ? `${positive ? "+" : ""}${fmt(v)}%`
+      : `${positive ? "+" : ""}${fmtUsd(v, 2)}`;
 
   return (
     <div className="min-w-28">
@@ -90,6 +92,37 @@ function Metric({
         <AnimatedNumber value={value} format={formatValue} />
       </p>
     </div>
+  );
+}
+
+function PnlToggle({
+  showPercent,
+  onToggle,
+}: {
+  showPercent: boolean;
+  onToggle: () => void;
+}) {
+  return (
+    <button
+      onClick={onToggle}
+      className="flex items-center rounded-full border border-border bg-muted/40 p-0.5 text-xs font-medium transition-colors hover:bg-muted"
+      aria-label="Toggle between dollar and percent view"
+    >
+      <span
+        className={`rounded-full px-2 py-0.5 transition-all duration-200 ${
+          !showPercent ? "bg-background text-foreground shadow-sm" : "text-muted-foreground"
+        }`}
+      >
+        $
+      </span>
+      <span
+        className={`rounded-full px-2 py-0.5 transition-all duration-200 ${
+          showPercent ? "bg-background text-foreground shadow-sm" : "text-muted-foreground"
+        }`}
+      >
+        %
+      </span>
+    </button>
   );
 }
 
@@ -116,6 +149,7 @@ function IBKRSkeleton() {
 
 export function IBKRWidget() {
   const { data, error, isLoading } = useSWR<IbkrResponse>("/api/ibkr", fetcher, { refreshInterval: 30_000 });
+  const [showPercent, setShowPercent] = useState(true);
 
   useEffect(() => {
     if (data?.source !== "gateway") return;
@@ -160,6 +194,11 @@ export function IBKRWidget() {
   if (!data) return <IBKRSkeleton />;
 
   const { summary, positions } = data;
+  const dayPnlPercent =
+    summary.dayPnl !== null && summary.totalValue !== 0
+      ? (summary.dayPnl / (summary.totalValue - summary.dayPnl)) * 100
+      : null;
+
   const sorted = [...positions].sort((a, b) => b.marketValue - a.marketValue);
   const top = sorted.slice(0, 5);
   const rest = sorted.slice(5);
@@ -188,10 +227,20 @@ export function IBKRWidget() {
           <p className="text-3xl font-semibold tracking-tight tabular-nums sm:text-4xl">
             <AnimatedNumber value={summary.totalValue} format={(value) => fmtUsd(value)} />
           </p>
-          <div className="flex flex-wrap gap-4">
-            <Metric label="Unrealized" value={summary.unrealizedPnl} money />
-            <Metric label="Return" value={summary.unrealizedPnlPercent} suffix="%" />
-            <Metric label="Day P&L" value={summary.dayPnl} money />
+          <div className="flex flex-wrap items-center gap-4">
+            <Metric
+              label="Unrealized P&L"
+              dollarValue={summary.unrealizedPnl}
+              percentValue={summary.unrealizedPnlPercent}
+              showPercent={showPercent}
+            />
+            <Metric
+              label="Day P&L"
+              dollarValue={summary.dayPnl}
+              percentValue={dayPnlPercent}
+              showPercent={showPercent}
+            />
+            <PnlToggle showPercent={showPercent} onToggle={() => setShowPercent((p) => !p)} />
           </div>
         </div>
 
@@ -254,22 +303,27 @@ export function IBKRWidget() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {positions.map((pos) => (
-                  <TableRow key={pos.ticker} className="transition-colors duration-150 hover:bg-muted/40">
-                    <TableCell className="font-medium">{pos.ticker}</TableCell>
-                    <TableCell className="text-right tabular-nums">{fmt(pos.shares, 2)}</TableCell>
-                    <TableCell className="text-right tabular-nums">{fmtUsd(pos.avgCost, 2)}</TableCell>
-                    <TableCell className="text-right tabular-nums">{fmtUsd(pos.currentPrice, 2)}</TableCell>
-                    <TableCell
-                      className={`text-right tabular-nums font-medium ${
-                        pos.pnlPercent >= 0 ? "text-emerald-600 dark:text-emerald-400" : "text-red-600 dark:text-red-400"
-                      }`}
-                    >
-                      {pos.pnlPercent >= 0 ? "+" : ""}
-                      {fmt(pos.pnlPercent)}%
-                    </TableCell>
-                  </TableRow>
-                ))}
+                {positions.map((pos) => {
+                  const posPnlDollar = (pos.currentPrice - pos.avgCost) * pos.shares;
+                  const pnlPositive = pos.pnlPercent >= 0;
+                  return (
+                    <TableRow key={pos.ticker} className="transition-colors duration-150 hover:bg-muted/40">
+                      <TableCell className="font-medium">{pos.ticker}</TableCell>
+                      <TableCell className="text-right tabular-nums">{fmt(pos.shares, 2)}</TableCell>
+                      <TableCell className="text-right tabular-nums">{fmtUsd(pos.avgCost, 2)}</TableCell>
+                      <TableCell className="text-right tabular-nums">{fmtUsd(pos.currentPrice, 2)}</TableCell>
+                      <TableCell
+                        className={`text-right tabular-nums font-medium ${
+                          pnlPositive ? "text-emerald-600 dark:text-emerald-400" : "text-red-600 dark:text-red-400"
+                        }`}
+                      >
+                        {showPercent
+                          ? `${pnlPositive ? "+" : ""}${fmt(pos.pnlPercent)}%`
+                          : `${pnlPositive ? "+" : ""}${fmtUsd(posPnlDollar, 2)}`}
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
               </TableBody>
             </Table>
           </div>
