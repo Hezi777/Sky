@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="./public/logo.svg" width="96" height="96" alt="Sky logo" />
+  <img src="./public/assets/cloud/cloud-hero.png" width="120" height="120" alt="Sky cloud character" />
 </p>
 
 <h1 align="center"><b>Sky - Sof Kol Yom</b></h1>
@@ -49,7 +49,7 @@ The page is a bento grid where each widget is sized by importance and content sh
 | Interactive Brokers   | Portfolio value, allocation donut, positions via official Flex snapshots or local IBKR Gateway | Needs setup   |
 | Fair (Maya / TASE)    | Israeli mutual fund unit price, personal contributions, and P&L tracker                        | Live (no auth) |
 
-See [`PROGRESS.md`](./PROGRESS.md) for the build checklist and [`PLAN.md`](./PLAN.md) for widget specs.
+See [`INTEGRATIONS.md`](./INTEGRATIONS.md) for auth setup per service.
 
 ## Screenshots
 
