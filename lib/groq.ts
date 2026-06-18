@@ -11,22 +11,34 @@ function getGroq(): Groq {
 const GREETING_MODEL = "llama-3.1-8b-instant";
 const RESOURCE_MODEL = "llama-3.3-70b-versatile";
 
-export async function generateGreeting(input: {
+export interface GreetingInput {
   events: string[];
   tasks: string[];
-}): Promise<string> {
-  const { events, tasks } = input;
+  commits?: number;
+  portfolioChange?: number;
+  nowPlaying?: string;
+  mood?: string;
+}
+
+export async function generateGreeting(input: GreetingInput): Promise<string> {
+  const { events, tasks, commits, portfolioChange, nowPlaying, mood } = input;
   const hour = new Date().getHours();
   const period =
     hour < 12 ? "morning" : hour < 18 ? "afternoon" : "evening";
 
-  let context = "";
-  if (events.length > 0) context += `Today's events: ${events.join(", ")}. `;
-  if (tasks.length > 0) context += `Tasks due: ${tasks.join(", ")}.`;
+  const parts: string[] = [];
+  parts.push(`Time: ${period}.`);
+  if (mood) parts.push(`Mood: ${mood}.`);
+  if (events.length > 0) parts.push(`Today's events: ${events.join(", ")}.`);
+  if (tasks.length > 0) parts.push(`Tasks due: ${tasks.join(", ")}.`);
+  if (commits !== undefined && commits > 0) parts.push(`GitHub commits today: ${commits}.`);
+  if (portfolioChange !== undefined) parts.push(`Portfolio change: ${portfolioChange > 0 ? "+" : ""}${portfolioChange.toFixed(1)}%.`);
+  if (nowPlaying) parts.push(`Listening to: ${nowPlaying}.`);
 
-  const userMessage =
-    context.trim() ||
-    `It is ${period}. No events or tasks were provided. Give a warm generic ${period} greeting.`;
+  const hasContext = events.length > 0 || tasks.length > 0 || commits || portfolioChange !== undefined || nowPlaying;
+  const userMessage = hasContext
+    ? parts.join(" ")
+    : `It is ${period}. Give a warm generic ${period} greeting.`;
 
   const completion = await getGroq().chat.completions.create({
     model: GREETING_MODEL,
@@ -34,11 +46,11 @@ export async function generateGreeting(input: {
       {
         role: "system",
         content:
-          "You are a friendly personal assistant. Return ONLY one short sentence under 18 words. Match the provided time of day. No preamble, no quotes.",
+          "You are Sky, a friendly personal dashboard assistant. Given the user's current context (events, tasks, commits, portfolio, music), return a short 1-2 sentence summary of their day so far or what's ahead. Be concise, warm, and specific to the data provided. Under 25 words. No preamble, no quotes.",
       },
       { role: "user", content: userMessage },
     ],
-    max_tokens: 60,
+    max_tokens: 80,
   });
 
   return completion.choices[0]?.message?.content?.trim() ?? "Have a great day!";
