@@ -17,13 +17,13 @@ export type CloudState =
   | "calm";
 
 export const CLOUD_ASSET_MAP: Record<CloudState, string> = {
-  hero: "/assets/cloud/cloud-hero-cleaned.png",
-  sleeping: "/assets/cloud/cloud-sleeping-cleaned.png",
-  stretching: "/assets/cloud/cloud-stretching-cleaned.png",
-  happy: "/assets/cloud/cloud-happy-cleaned.png",
-  confident: "/assets/cloud/cloud-confident-cleaned.png",
-  droopy: "/assets/cloud/cloud-droopy-cleaned.png",
-  calm: "/assets/cloud/cloud-calm-cleaned.png",
+  hero: "/assets/cloud/cloud-hero.png",
+  sleeping: "/assets/cloud/cloud-sleeping.png",
+  stretching: "/assets/cloud/cloud-stretching.png",
+  happy: "/assets/cloud/cloud-happy.png",
+  confident: "/assets/cloud/cloud-confident.png",
+  droopy: "/assets/cloud/cloud-droopy.png",
+  calm: "/assets/cloud/cloud-calm.png",
 };
 
 /** Determine cloud mood from dashboard data. First matching rule wins. */
