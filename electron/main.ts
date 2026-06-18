@@ -11,9 +11,17 @@ let appOrigin: string | null = null;
 function createWindow(url: string): void {
   appOrigin = new URL(url).origin;
 
+  const isMac = process.platform === "darwin";
+
   mainWindow = new BrowserWindow({
     width: 1440,
     height: 900,
+    backgroundColor: "#050505",
+    ...(isMac && {
+      titleBarStyle: "hiddenInset",
+      vibrancy: "sidebar",
+      transparent: true,
+    }),
     webPreferences: {
       contextIsolation: true,
       nodeIntegration: false,

@@ -2,7 +2,7 @@ appId: com.hen.sky
 productName: Sky
 directories:
   buildResources: electron/build
-  output: release
+  output: "release/${version}"
 files:
   - electron-dist/**
   - "!node_modules/**"
@@ -26,7 +26,7 @@ mac:
   category: public.app-category.productivity
   icon: "public/Mac Icon.icon"
   target:
-    - { target: dmg, arch: [arm64] }
+    - { target: dir, arch: [arm64] }
     - { target: zip, arch: [arm64] }
 win:
   icon: electron/build/icon.ico
