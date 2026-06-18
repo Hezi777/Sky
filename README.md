@@ -116,7 +116,7 @@ The shell renders right away. Each widget loads its own data, and any service yo
 
 ## Connecting Services
 
-Full details are in [`INTEGRATIONS.md`](./INTEGRATIONS.md). Quick reference:
+Full details are in [`docs/integrations.md`](./docs/integrations.md). Quick reference:
 
 - **GitHub**: set `GITHUB_PAT` and `GITHUB_USERNAME`. Works immediately.
 - **Notion**: create an integration, share the Portfolio Tracker and Resources databases with it (DB, then ... menu, then Connections), then set `NOTION_TOKEN` and the two DB IDs.
