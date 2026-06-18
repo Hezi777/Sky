@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import useSWR from "swr";
-import { Calendar, MapPin, Clock, ExternalLink } from "lucide-react";
+import { Calendar, MapPin, Clock, ExternalLink, RotateCcw } from "lucide-react";
 
 import { BrandLogo } from "@/components/brand-logo";
 
@@ -279,7 +279,7 @@ function DayEvents({
 }
 
 export function CalendarWidget() {
-  const { data, error, isLoading } = useSWR<CalendarEvent[]>(
+  const { data, error, isLoading, mutate } = useSWR<CalendarEvent[]>(
     "/api/calendar",
     fetcher,
     { refreshInterval: 60_000 }
@@ -328,9 +328,17 @@ export function CalendarWidget() {
         )}
 
         {error && (
-          <div className="flex items-center gap-2 px-6 pb-4 text-sm text-destructive">
+          <div className="flex items-center gap-2 px-6 pb-4 text-sm text-amber-500 dark:text-amber-400">
             <Calendar className="size-4 shrink-0" />
             <span>Could not load calendar</span>
+            <button
+              type="button"
+              onClick={() => mutate()}
+              className="ml-auto flex items-center gap-1 rounded-lg border border-border px-2 py-1 text-xs text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+            >
+              <RotateCcw className="size-3" />
+              Retry
+            </button>
           </div>
         )}
 

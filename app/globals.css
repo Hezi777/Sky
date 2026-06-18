@@ -55,23 +55,23 @@
   --bg-glow-primary: #2563eb;
   --bg-glow-secondary: #1d4ed8;
   --bg-glow-depth: #0f172a;
-  --background: #f8fafc;
-  --foreground: #0f172a;
+  --background: #f0f0f3;
+  --foreground: #1a1a1e;
   --card: #ffffff;
-  --card-foreground: #0f172a;
+  --card-foreground: #1a1a1e;
   --popover: #ffffff;
-  --popover-foreground: #0f172a;
+  --popover-foreground: #1a1a1e;
   --primary: #2563eb;
   --primary-foreground: #ffffff;
-  --secondary: #f1f5f9;
-  --secondary-foreground: #0f172a;
-  --muted: #f1f5f9;
-  --muted-foreground: #64748b;
-  --accent: #eff6ff;
+  --secondary: #e8e8ec;
+  --secondary-foreground: #1a1a1e;
+  --muted: #e8e8ec;
+  --muted-foreground: #6b6b76;
+  --accent: #e8e8ec;
   --accent-foreground: #2563eb;
   --destructive: #dc2626;
-  --border: #e2e8f0;
-  --input: #e2e8f0;
+  --border: #d8d8de;
+  --input: #d8d8de;
   --ring: #2563eb;
   --chart-1: #2563eb;
   --chart-2: #14b8a6;
@@ -95,27 +95,27 @@
 }
 
 .dark {
-  /* Linear/Notion-grade dark with Sky's blue/navy atmosphere. */
+  /* True neutral dark — zero hue, pure grayscale surfaces. */
   --bg-glow-primary: #2563eb;
   --bg-glow-secondary: #0f3a8a;
-  --bg-glow-depth: #020617;
-  --background: #080b12;
+  --bg-glow-depth: #030303;
+  --background: #050505;
   --foreground: #ededed;
-  --card: #12151d;
+  --card: #111113;
   --card-foreground: #ededed;
-  --popover: #12151d;
+  --popover: #111113;
   --popover-foreground: #ededed;
   --primary: #3b82f6;
   --primary-foreground: #ffffff;
-  --secondary: #171b24;
+  --secondary: #1a1a1c;
   --secondary-foreground: #ededed;
-  --muted: #171b24;
-  --muted-foreground: #8a8f98;
-  --accent: #172033;
+  --muted: #1a1a1c;
+  --muted-foreground: #9a9aa0;
+  --accent: #1a1a1c;
   --accent-foreground: #ededed;
   --destructive: #e5484d;
-  --border: rgba(255, 255, 255, 0.08);
-  --input: rgba(255, 255, 255, 0.10);
+  --border: #26262a;
+  --input: #26262a;
   --ring: #3b82f6;
   --chart-1: #3b82f6;
   --chart-2: #60a5fa;
@@ -127,13 +127,13 @@
   --github-2: #006d32;
   --github-3: #26a641;
   --github-4: #39d353;
-  --sidebar: #0a0a0b;
-  --sidebar-foreground: #8a8f98;
+  --sidebar: #080808;
+  --sidebar-foreground: #9a9aa0;
   --sidebar-primary: #3b82f6;
   --sidebar-primary-foreground: #ffffff;
-  --sidebar-accent: #1c1c1f;
+  --sidebar-accent: #1a1a1c;
   --sidebar-accent-foreground: #ededed;
-  --sidebar-border: rgba(255, 255, 255, 0.07);
+  --sidebar-border: #26262a;
   --sidebar-ring: #3b82f6;
 }
 
@@ -163,20 +163,18 @@
   }
 }
 
+/* ── Hide scrollbars ─────────────────────────────────────────── */
+::-webkit-scrollbar { display: none; }
+* { scrollbar-width: none; }
+
 @layer base {
   * {
     @apply border-border outline-ring/50;
   }
   body {
     @apply bg-background text-foreground;
-    background:
-      radial-gradient(ellipse 74rem 42rem at 18% -12%, color-mix(in srgb, var(--bg-glow-primary) 16%, transparent), transparent 62%),
-      radial-gradient(ellipse 58rem 34rem at 88% 2%, color-mix(in srgb, var(--bg-glow-secondary) 13%, transparent), transparent 66%),
-      radial-gradient(ellipse 50rem 30rem at 50% 108%, color-mix(in srgb, var(--bg-glow-depth) 10%, transparent), transparent 70%),
-      linear-gradient(180deg, color-mix(in srgb, var(--background) 82%, var(--card) 18%) 0%, var(--background) 48rem);
-    background-attachment: fixed;
-    background-repeat: no-repeat;
-    background-size: 100vw 100vh;
+    font-family: -apple-system, "SF Pro Text", "SF Pro Display", var(--font-apple-sans), sans-serif;
+    -webkit-font-smoothing: antialiased;
   }
   html {
     @apply font-sans;

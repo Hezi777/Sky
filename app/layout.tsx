@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 
-import { Header } from "@/components/layout/header";
+import { BottomBar } from "@/components/bottom-bar";
 import { SettingsProvider } from "@/components/settings-provider";
 import { ThemeProvider } from "@/components/theme-provider";
 import { Toaster } from "@/components/ui/sonner";
@@ -21,9 +21,9 @@ export default function RootLayout({
     <html
       lang="en"
       suppressHydrationWarning
-      className="h-full antialiased"
+      className="h-full overflow-y-auto antialiased"
     >
-      <body className="min-h-full">
+      <body className="min-h-full overflow-y-auto">
         <ThemeProvider
           attribute="class"
           defaultTheme="system"
@@ -33,10 +33,14 @@ export default function RootLayout({
           <SettingsProvider>
             <TooltipProvider>
               <div className="min-h-screen">
-                <Header />
-                <main className="px-4 pb-4 pt-[72px] sm:px-6 sm:pb-5 sm:pt-[72px]">
+                <div
+                  className="fixed inset-x-0 top-0 z-40 h-8"
+                  style={{ WebkitAppRegion: "drag" } as React.CSSProperties}
+                />
+                <main className="px-4 pb-8 sm:px-6">
                   {children}
                 </main>
+                <BottomBar />
               </div>
             </TooltipProvider>
           </SettingsProvider>

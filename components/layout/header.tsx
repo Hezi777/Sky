@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 
-import { Logo } from "@/components/logo";
+import { CloudAvatar } from "@/components/cloud-avatar";
 import { SettingsDialog } from "@/components/settings-dialog";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { cn } from "@/lib/utils";
@@ -84,11 +84,12 @@ export function Header() {
       }}
       transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
       className="pointer-events-none fixed inset-x-0 top-0 z-50 px-4 pt-3 sm:px-6"
+      style={{ WebkitAppRegion: "drag" } as React.CSSProperties}
     >
       <LiquidGlassFilter />
       <div
         className={cn(
-          "pointer-events-auto relative mx-auto flex h-12 max-w-7xl items-center justify-between gap-3 overflow-hidden rounded-2xl border px-2.5 transition-[border-color,box-shadow,transform] duration-700 sm:px-3",
+          "pointer-events-auto relative flex h-12 items-center justify-between gap-3 overflow-hidden rounded-2xl border px-2.5 transition-[border-color,box-shadow,transform] duration-700 sm:px-3",
           scrolled
             ? "border-white/30 shadow-[0_10px_24px_rgba(0,0,0,0.16),0_0_32px_rgba(0,0,0,0.08)] dark:border-white/14 dark:shadow-[0_18px_48px_rgba(0,0,0,0.38)]"
             : "border-white/18 shadow-[0_6px_18px_rgba(0,0,0,0.08)] dark:border-white/10 dark:shadow-[0_12px_36px_rgba(2,6,23,0.24)]",
@@ -109,8 +110,8 @@ export function Header() {
           className={cn(
             "absolute inset-0 z-10 [border-radius:inherit]",
             scrolled
-              ? "bg-white/32 dark:bg-[#07111f]/78"
-              : "bg-white/18 dark:bg-[#07111f]/62",
+              ? "bg-white/32 dark:bg-[#131315]/78"
+              : "bg-white/18 dark:bg-[#131315]/62",
           )}
         />
         <div
@@ -122,14 +123,7 @@ export function Header() {
           aria-hidden="true"
         />
         <div className="relative z-30 flex min-w-0 items-center gap-2.5">
-          <div
-            className={cn(
-              "flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-sidebar shadow-sm transition-transform duration-500",
-              !scrolled && "scale-95 opacity-95",
-            )}
-          >
-            <Logo className="h-4.5 w-4.5" />
-          </div>
+          <CloudAvatar state="hero" size="sm" className="shrink-0" />
           <div className="min-w-0">
             <p className="text-sm font-semibold leading-none tracking-tight">
               Sky
@@ -137,7 +131,7 @@ export function Header() {
           </div>
         </div>
 
-        <div className="relative z-30 flex min-w-0 items-center gap-2">
+        <div className="relative z-30 flex min-w-0 items-center gap-2" style={{ WebkitAppRegion: "no-drag" } as React.CSSProperties}>
           <div
             className={cn(
               "hidden h-8 rounded-xl border px-2.5 text-xs text-muted-foreground transition-colors duration-500 sm:flex sm:items-center sm:gap-2",

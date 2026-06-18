@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import useSWR from "swr";
+import { Cell, Pie, PieChart } from "recharts";
 import { Clock3, ListChecks, ListTodo, RotateCcw, Tag } from "lucide-react";
 import { toast } from "sonner";
 
@@ -138,6 +139,45 @@ function TaskRow({
 }
 
 // ---------------------------------------------------------------------------
+// Progress ring
+// ---------------------------------------------------------------------------
+
+function TaskProgressRing({ completed, total }: { completed: number; total: number }) {
+  if (total === 0) return null;
+  const ratio = completed / total;
+  const color = ratio >= 0.7 ? "#22c55e" : ratio >= 0.4 ? "#f59e0b" : "#ef4444";
+  const data = [
+    { value: completed },
+    { value: Math.max(0, total - completed) },
+  ];
+
+  return (
+    <div className="relative flex items-center justify-center" style={{ width: 36, height: 36 }}>
+      <PieChart width={36} height={36}>
+        <Pie
+          data={data}
+          cx="50%"
+          cy="50%"
+          innerRadius={12}
+          outerRadius={16}
+          startAngle={90}
+          endAngle={-270}
+          dataKey="value"
+          stroke="none"
+          cornerRadius={8}
+        >
+          <Cell fill={color} />
+          <Cell fill="var(--muted)" />
+        </Pie>
+      </PieChart>
+      <span className="absolute text-[9px] font-bold tabular-nums text-foreground">
+        {completed}/{total}
+      </span>
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
 // Widget
 // ---------------------------------------------------------------------------
 
@@ -224,6 +264,12 @@ export function TickTickWidget() {
         <CardTitle className="flex items-center gap-2">
           <BrandLogo name="ticktick" className="size-4 shrink-0" />
           Today&apos;s Tasks
+          <span className="ml-auto">
+            <TaskProgressRing
+              completed={hidden.size}
+              total={(data ?? []).length}
+            />
+          </span>
         </CardTitle>
       </CardHeader>
 
