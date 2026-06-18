@@ -1,13 +1,13 @@
 import { cn } from "@/lib/utils";
 
-// Brand logos served from /public. `darkInvert` flips monochrome-black marks
+// Brand logos served from /public/assets/integrations. `darkInvert` flips monochrome-black marks
 // (e.g. GitHub) to white in dark mode; colored logos render as-is.
 const LOGOS: Record<string, { src: string; darkInvert?: boolean }> = {
-  github: { src: "/github.svg", darkInvert: true },
-  googleCalendar: { src: "/google-calendar.svg" },
-  ticktick: { src: "/ticktick.svg" },
-  ibkr: { src: "/ibkr.svg" },
-  fair: { src: "/fair.svg" },
+  github: { src: "/assets/integrations/github.svg", darkInvert: true },
+  googleCalendar: { src: "/assets/integrations/google-calendar.svg" },
+  ticktick: { src: "/assets/integrations/ticktick.svg" },
+  ibkr: { src: "/assets/integrations/ibkr.svg" },
+  fair: { src: "/assets/integrations/fair.svg" },
 };
 
 export function BrandLogo({
