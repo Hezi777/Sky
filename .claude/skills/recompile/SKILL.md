@@ -56,7 +56,7 @@ Output goes to `release/<new-version>/`.
 
 - **actool / Xcode error**: `xcode-select` not pointing to Xcode. See Step 1.
 - **TypeScript errors**: fix the code and retry.
-- **DMG background not filling**: `electron/build/background.png` must be exactly 720x402, `background@2x.png` must be exactly 1440x804. Dimensions must match `dmg.window` in `electron-builder.yml`.
+- **DMG background not filling**: `assets/dmg/background.png` must be exactly 720x402, `background@2x.png` must be exactly 1440x804. Dimensions must match `dmg.window` in `electron-builder.yml`.
 
 ## Step 5: Report
 

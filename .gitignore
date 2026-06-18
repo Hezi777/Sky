@@ -47,3 +47,6 @@ next-env.d.ts
 
 # local broker gateway binaries
 /tools/ibkr/
+
+# source design assets (raw character art, icon sources)
+/assets/source/

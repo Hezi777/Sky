@@ -25,14 +25,14 @@ fi
 
 # Rebuild the multi-resolution Retina background TIFF from the source PNGs.
 tiffutil -cathidpicheck \
-  electron/build/background.png \
-  electron/build/background@2x.png \
-  -out electron/build/background.tiff >/dev/null 2>&1
+  assets/dmg/background.png \
+  assets/dmg/background@2x.png \
+  -out assets/dmg/background.tiff >/dev/null 2>&1
 
 rm -f "$DMG_PATH"
 
 export SKY_APP_PATH="$APP_PATH"
-export SKY_BACKGROUND="$(pwd)/electron/build/background.tiff"
+export SKY_BACKGROUND="$(pwd)/assets/dmg/background.tiff"
 "$DMGBUILD" -s "$SETTINGS" "Sky ${VERSION}" "$DMG_PATH"
 
 echo ""

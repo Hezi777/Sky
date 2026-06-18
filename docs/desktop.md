@@ -32,7 +32,7 @@ DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer npm run electron:build
 On machines without Xcode 26+, fall back to the prebuilt `.icns`:
 
 ```bash
-npx electron-builder --mac --config.mac.icon=electron/build/icon.icns
+npx electron-builder --mac --config.mac.icon=assets/icons/icon.icns
 ```
 
 After reinstalling the app, the Dock may show a stale cached icon — run `killall Dock` to refresh it.

@@ -32,7 +32,8 @@ npm run electron:build   # production Electron build → release/<version>/
 
 - Mac icon: `.icon` bundle at `public/Mac Icon.icon/` — do NOT replace with `.icns` (Liquid Glass theming).
 - Requires full Xcode for `.icon` compilation.
-- DMG background dimensions must match `dmg.window` in `electron-builder.yml`.
+- DMG backgrounds live in `assets/dmg/`. Dimensions must match `dmg.window` in `electron-builder.yml`.
+- Icons (`.icns`, `.ico`) live in `assets/icons/`.
 
 ## Do Not
 

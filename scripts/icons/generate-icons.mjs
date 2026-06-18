@@ -1,5 +1,5 @@
 /**
- * Generates electron/build/icon.icns and electron/build/icon.ico from the
+ * Generates assets/icons/icon.icns and assets/icons/icon.ico from the
  * source assets in public/.
  *
  * - icon.icns is rendered from public/Mac Icon.icon (Icon Composer bundle):
@@ -22,7 +22,7 @@ import os from "os";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(__dirname, "..", "..");
-const BUILD_DIR = path.join(ROOT, "electron", "build");
+const BUILD_DIR = path.join(ROOT, "assets", "icons");
 mkdirSync(BUILD_DIR, { recursive: true });
 
 const LOGO_SVG = readFileSync(path.join(ROOT, "public", "logo.svg"), "utf8");
