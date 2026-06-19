@@ -6,6 +6,29 @@ enum CloudState: String, CaseIterable {
     case hero, sleeping, stretching, happy, confident, droopy, calm
 
     var assetName: String { "cloud-\(rawValue)" }
+    var skyAssetName: String { "sky-\(rawValue)" }
+}
+
+// Mood greeting (ports lib/cloud-greeting.ts).
+struct CloudGreeting {
+    let primary: String
+    let secondary: String
+}
+
+extension Cloud {
+    static func greeting(for state: CloudState, name: String) -> CloudGreeting {
+        let table: [CloudState: (String, String)] = [
+            .sleeping:   ("Good night, \(name)",     "Time to rest. Sky will be here in the morning."),
+            .stretching: ("Good morning, \(name)",   "Fresh start. Let's see what today brings."),
+            .happy:      ("You're on fire, \(name)", "Great momentum today. Keep it going."),
+            .confident:  ("Looking good, \(name)",   "Portfolio's green today."),
+            .droopy:     ("Hey \(name)",             "Quiet day. That's okay too."),
+            .calm:       ("Winding down, \(name)",   "Good day. Time to wrap up."),
+            .hero:       ("Hey \(name)",             "Welcome to Sky."),
+        ]
+        let (p, s) = table[state] ?? ("Hey \(name)", "Welcome to Sky.")
+        return CloudGreeting(primary: p, secondary: s)
+    }
 }
 
 struct CloudInput {

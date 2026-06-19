@@ -1,28 +1,41 @@
 import SwiftUI
 
-// The dashboard: a hero greeting zone (cloud character) followed by an adaptive
-// grid of the visible widgets, in the user's chosen order.
+// The dashboard: a sky photo at the top that fades to black, a large centered
+// hero (cloud + greeting + AI line) over it, then the widget grid. Mirrors the
+// web Dashboard (SkyAmbient + HeroZone + grid).
 
 struct DashboardView: View {
     @Environment(DashboardConfig.self) private var config
+    @State private var now = Date()
+
+    private var cloudState: CloudState {
+        Cloud.state(for: CloudInput(hour: Calendar.current.component(.hour, from: now)))
+    }
 
     private let columns = [GridItem(.adaptive(minimum: 300, maximum: 460), spacing: Theme.gap)]
 
     var body: some View {
         ScrollView {
-            VStack(spacing: Theme.gap) {
-                HeroZone()
+            ZStack(alignment: .top) {
+                SkyAmbient(state: cloudState)
 
-                LazyVGrid(columns: columns, alignment: .leading, spacing: Theme.gap) {
-                    ForEach(config.visibleWidgets) { kind in
-                        widget(for: kind)
+                VStack(spacing: Theme.gap) {
+                    HeroZone(state: cloudState)
+
+                    LazyVGrid(columns: columns, alignment: .leading, spacing: Theme.gap) {
+                        ForEach(config.visibleWidgets) { kind in
+                            widget(for: kind)
+                        }
                     }
+                    .padding(.horizontal, Theme.gap)
+                    .padding(.bottom, Theme.gap * 2)
                 }
+                .frame(maxWidth: 1120)
+                .frame(maxWidth: .infinity)
             }
-            .padding(Theme.gap)
-            .frame(maxWidth: 1100)
-            .frame(maxWidth: .infinity)
         }
+        .background(Color("BgBase"))
+        .onAppear { now = Date() }
     }
 
     @ViewBuilder
@@ -48,25 +61,41 @@ struct DashboardView: View {
 
 struct HeroZone: View {
     @Environment(DashboardConfig.self) private var config
-    @State private var now = Date()
+    let state: CloudState
 
-    private var hour: Int { Calendar.current.component(.hour, from: now) }
-    private var cloudState: CloudState { Cloud.state(for: CloudInput(hour: hour)) }
+    @State private var aiMessage: String?
 
     var body: some View {
-        HStack(alignment: .center, spacing: Theme.gap) {
-            CloudAvatar(state: cloudState, size: 92)
+        let greeting = Cloud.greeting(for: state, name: config.name)
 
-            VStack(alignment: .leading, spacing: 4) {
-                Text("\(Cloud.greetingWord(hour: hour)), \(config.name)")
-                    .font(.title2.weight(.semibold))
-                Text(now, format: .dateTime.weekday(.wide).day().month(.wide))
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
+        VStack(spacing: 20) {
+            CloudAvatar(state: state, size: 150)
+
+            VStack(spacing: 10) {
+                Text(greeting.primary)
+                    .font(.system(size: 38, weight: .bold, design: .rounded))
+                    .multilineTextAlignment(.center)
+                    .foregroundStyle(.white)
+                    .shadow(color: .black.opacity(0.35), radius: 12, y: 2)
+
+                Text(aiMessage ?? greeting.secondary)
+                    .font(.title3)
+                    .multilineTextAlignment(.center)
+                    .foregroundStyle(.white.opacity(0.82))
+                    .shadow(color: .black.opacity(0.3), radius: 8, y: 1)
+                    .frame(maxWidth: 480)
+                    .transition(.opacity)
             }
-            Spacer()
         }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(.horizontal, 4)
+        .frame(maxWidth: .infinity)
+        .frame(minHeight: 440)
+        .padding(.top, 28)
+        .padding(.horizontal, Theme.gap)
+        .task(id: state) {
+            let body = GreetingRequest(mood: state.rawValue)
+            if let resp: GreetingResponse = try? await APIClient.shared.post("/api/ai/greeting", body: body) {
+                withAnimation(.easeOut(duration: 0.3)) { aiMessage = resp.message }
+            }
+        }
     }
 }
