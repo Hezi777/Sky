@@ -1,0 +1,6 @@
+# XcodeGen generates the project — commit project.yml + sources only.
+Sky.xcodeproj/
+.build/
+*.xcuserstate
+.DS_Store
+DerivedData/
