@@ -7,24 +7,31 @@ struct QuoteWidget: View {
     var body: some View {
         Card {
             VStack(alignment: .leading, spacing: 12) {
-                CardHeader(title: "Daily Quote", symbol: "quote.bubble.fill", tint: .purple)
+                CardHeader(title: "Daily Quote", symbol: "quote.bubble.fill", tint: Theme.accent)
 
                 if let errorMessage {
                     WidgetError(message: errorMessage) {
                         Task { await fetchQuote() }
                     }
                 } else if let quote {
-                    VStack(alignment: .trailing, spacing: 10) {
-                        Text("\u{201C}\(quote.q)\u{201D}")
-                            .font(.subheadline.weight(.medium))
-                            .italic()
-                            .foregroundStyle(.primary)
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                            .lineSpacing(3)
+                    VStack(alignment: .leading, spacing: 12) {
+                        HStack(alignment: .top, spacing: 8) {
+                            Image(systemName: "quote.opening")
+                                .font(.title3)
+                                .foregroundStyle(Theme.accent.opacity(0.4))
+
+                            Text(quote.q)
+                                .font(.subheadline.weight(.medium))
+                                .italic()
+                                .foregroundStyle(.primary)
+                                .lineSpacing(3)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                        }
 
                         Text("— \(quote.a)")
-                            .font(.caption)
+                            .font(.caption.weight(.medium))
                             .foregroundStyle(.tertiary)
+                            .frame(maxWidth: .infinity, alignment: .trailing)
                     }
                 } else {
                     WidgetLoading()

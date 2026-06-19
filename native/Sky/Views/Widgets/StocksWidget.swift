@@ -25,7 +25,7 @@ struct StocksWidget: View {
             isEmpty: \.isEmpty,
             emptyText: "No tickers — tap the pencil to add some"
         ) { quotes in
-            VStack(spacing: 10) {
+            VStack(spacing: 8) {
                 ForEach(quotes) { StockRow(quote: $0) }
             }
         }
@@ -53,27 +53,45 @@ private struct StockRow: View {
 
     private var isUp: Bool { quote.changePercent >= 0 }
     private var changeColor: Color { isUp ? .green : .red }
+    private var arrowSymbol: String { isUp ? "arrow.up.right" : "arrow.down.right" }
 
     var body: some View {
-        HStack(spacing: 10) {
-            Text(quote.symbol)
-                .font(.subheadline.weight(.semibold))
-            Spacer(minLength: 8)
-            Text(quote.price, format: .number.precision(.fractionLength(2)))
-                .font(.subheadline.weight(.medium))
-                .foregroundStyle(.secondary)
-                .monospacedDigit()
-            HStack(spacing: 2) {
-                Image(systemName: isUp ? "arrow.up.right" : "arrow.down.right")
-                    .font(.caption2.weight(.bold))
-                Text(abs(quote.changePercent), format: .number.precision(.fractionLength(2)))
-                    + Text("%")
+        Link(destination: URL(string: "https://finance.yahoo.com/quote/\(quote.symbol)") ?? URL(string: "https://finance.yahoo.com")!) {
+            HStack(spacing: 10) {
+                Text(quote.symbol)
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundStyle(.primary)
+
+                Spacer(minLength: 8)
+
+                Text(quote.price, format: .number.precision(.fractionLength(2)))
+                    .font(.subheadline.weight(.medium))
+                    .foregroundStyle(.secondary)
+                    .monospacedDigit()
+                    .contentTransition(.numericText())
+
+                HStack(spacing: 3) {
+                    Image(systemName: arrowSymbol)
+                        .font(.caption2.weight(.bold))
+
+                    Text(changeText)
+                        .font(.caption.weight(.semibold))
+                        .monospacedDigit()
+                }
+                .foregroundStyle(changeColor)
+                .padding(.horizontal, 8)
+                .padding(.vertical, 3)
+                .background(changeColor.opacity(0.12), in: Capsule())
             }
-            .font(.caption.weight(.semibold))
-            .foregroundStyle(changeColor)
-            .monospacedDigit()
-            .frame(width: 72, alignment: .trailing)
         }
+        .buttonStyle(.plain)
+    }
+
+    private var changeText: String {
+        let sign = isUp ? "+" : ""
+        let val = String(format: "%.2f", quote.change)
+        let pct = String(format: "%.2f", abs(quote.changePercent))
+        return "\(sign)\(val) (\(pct)%)"
     }
 }
 

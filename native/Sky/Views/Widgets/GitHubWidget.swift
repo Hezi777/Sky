@@ -3,7 +3,7 @@ import SwiftUI
 struct GitHubWidget: View {
     var body: some View {
         AsyncCard(
-            title: "GitHub",
+            title: "GitHub Activity",
             symbol: "chevron.left.forwardslash.chevron.right",
             tint: Theme.accent,
             load: { try await APIClient.shared.get("/api/github") as GithubResponse },
@@ -11,8 +11,15 @@ struct GitHubWidget: View {
             emptyText: "No activity"
         ) { data in
             VStack(alignment: .leading, spacing: 16) {
-                ContributionTotal(total: data.totalContributions)
+                HStack(alignment: .firstTextBaseline) {
+                    Spacer(minLength: 0)
+                    Text("\(data.totalContributions.formatted(.number.grouping(.automatic))) contributions")
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                }
+
                 ContributionHeatmap(days: data.contributions)
+
                 if !data.repos.isEmpty {
                     VStack(spacing: 8) {
                         ForEach(data.repos.prefix(3)) { RepoRow(repo: $0) }
@@ -23,59 +30,153 @@ struct GitHubWidget: View {
     }
 }
 
-// MARK: - Total contributions
-
-private struct ContributionTotal: View {
-    let total: Int
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 0) {
-            Text("\(total)")
-                .font(.system(.largeTitle, design: .rounded).weight(.bold))
-                .monospacedDigit()
-                .contentTransition(.numericText(value: Double(total)))
-                .animation(.snappy, value: total)
-            Text("contributions this year")
-                .font(.caption)
-                .foregroundStyle(.secondary)
-        }
-    }
-}
-
-// MARK: - Heatmap
+// MARK: - Heatmap (replicates git-hub-calendar.tsx)
 
 private struct ContributionHeatmap: View {
     let days: [GithubContributionDay]
 
-    // Last ~16 weeks (112 days), oldest first, grouped into columns of 7.
-    private var weeks: [[GithubContributionDay]] {
-        let recent = Array(days.suffix(16 * 7))
-        return stride(from: 0, to: recent.count, by: 7).map {
-            Array(recent[$0 ..< min($0 + 7, recent.count)])
+    private let cell: CGFloat = 11
+    private let gap: CGFloat = 3
+    private let labelWidth: CGFloat = 26
+
+    private static let dayLabels = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
+
+    private var calendar: Calendar {
+        var cal = Calendar(identifier: .gregorian)
+        cal.firstWeekday = 1 // Sunday
+        return cal
+    }
+
+    /// 53 columns of 7 days, starting from startOfWeek(today - 364).
+    private var weeks: [[Date]] {
+        let cal = calendar
+        let today = cal.startOfDay(for: Date())
+        guard
+            let minus364 = cal.date(byAdding: .day, value: -364, to: today),
+            let startWeek = cal.dateInterval(of: .weekOfYear, for: minus364)?.start
+        else { return [] }
+
+        var result: [[Date]] = []
+        var weekStart = startWeek
+        while weekStart <= today {
+            var week: [Date] = []
+            for d in 0..<7 {
+                if let day = cal.date(byAdding: .day, value: d, to: weekStart) {
+                    week.append(day)
+                }
+            }
+            result.append(week)
+            guard let next = cal.date(byAdding: .day, value: 7, to: weekStart) else { break }
+            weekStart = next
         }
+        return result
+    }
+
+    private var contributionsByDate: [String: Int] {
+        Dictionary(days.map { ($0.date, $0.count) }, uniquingKeysWith: { a, _ in a })
+    }
+
+    private static let keyFormatter: DateFormatter = {
+        let f = DateFormatter()
+        f.locale = Locale(identifier: "en_US_POSIX")
+        f.timeZone = TimeZone.current
+        f.dateFormat = "yyyy-MM-dd"
+        return f
+    }()
+
+    private static let monthFormatter: DateFormatter = {
+        let f = DateFormatter()
+        f.locale = Locale(identifier: "en_US_POSIX")
+        f.dateFormat = "MMM"
+        return f
+    }()
+
+    /// Month label per column where a new month begins.
+    private var monthLabels: [Int: String] {
+        let cal = calendar
+        var labels: [Int: String] = [:]
+        var seenMonth = ""
+        for (index, week) in weeks.enumerated() {
+            let firstOfMonth = week.first { cal.component(.day, from: $0) == 1 }
+            guard let labelDate = firstOfMonth ?? (index == 0 ? week.first : nil) else { continue }
+            let key = "\(cal.component(.year, from: labelDate))-\(cal.component(.month, from: labelDate))"
+            if key == seenMonth { continue }
+            seenMonth = key
+            labels[index] = Self.monthFormatter.string(from: labelDate)
+        }
+        return labels
     }
 
     var body: some View {
-        HStack(alignment: .top, spacing: 3) {
-            ForEach(Array(weeks.enumerated()), id: \.offset) { _, week in
-                VStack(spacing: 3) {
-                    ForEach(week) { day in
-                        RoundedRectangle(cornerRadius: 2, style: .continuous)
-                            .fill(color(for: day.level))
-                            .frame(width: 11, height: 11)
+        let cols = weeks
+        VStack(alignment: .leading, spacing: 6) {
+            // Month row
+            HStack(alignment: .top, spacing: gap) {
+                Color.clear.frame(width: labelWidth, height: 12)
+                ForEach(cols.indices, id: \.self) { i in
+                    ZStack(alignment: .leading) {
+                        Color.clear.frame(width: cell, height: 12)
+                        if let label = monthLabels[i] {
+                            Text(label)
+                                .font(.system(size: 9))
+                                .foregroundStyle(.secondary)
+                                .fixedSize()
+                        }
                     }
                 }
             }
+
+            // Weekday labels + grid
+            HStack(alignment: .top, spacing: gap) {
+                VStack(alignment: .leading, spacing: gap) {
+                    ForEach(Self.dayLabels, id: \.self) { d in
+                        Text(d)
+                            .font(.system(size: 8))
+                            .foregroundStyle(.secondary)
+                            .frame(width: labelWidth, height: cell, alignment: .leading)
+                    }
+                }
+
+                ForEach(cols.indices, id: \.self) { c in
+                    VStack(spacing: gap) {
+                        ForEach(cols[c], id: \.self) { day in
+                            let key = Self.keyFormatter.string(from: day)
+                            let count = contributionsByDate[key] ?? 0
+                            RoundedRectangle(cornerRadius: 3, style: .continuous)
+                                .fill(color(for: count))
+                                .frame(width: cell, height: cell)
+                        }
+                    }
+                }
+            }
+
+            // Legend
+            HStack(spacing: 4) {
+                Text("Less")
+                    .font(.system(size: 9))
+                    .foregroundStyle(.secondary)
+                ForEach(Theme.githubLevels.indices, id: \.self) { i in
+                    RoundedRectangle(cornerRadius: 3, style: .continuous)
+                        .fill(Theme.githubLevels[i])
+                        .frame(width: 11, height: 11)
+                }
+                Text("More")
+                    .font(.system(size: 9))
+                    .foregroundStyle(.secondary)
+            }
+            .padding(.top, 4)
+            .frame(maxWidth: .infinity, alignment: .center)
         }
     }
 
-    private func color(for level: Int) -> Color {
-        switch level {
-        case 1: return .green.opacity(0.35)
-        case 2: return .green.opacity(0.55)
-        case 3: return .green.opacity(0.78)
-        case 4: return .green
-        default: return .secondary.opacity(0.15)
+    // Matches web getColor(): count thresholds, not level.
+    private func color(for count: Int) -> Color {
+        switch count {
+        case 0: return Theme.githubLevels[0]
+        case 1: return Theme.githubLevels[1]
+        case 2: return Theme.githubLevels[2]
+        case 3: return Theme.githubLevels[3]
+        default: return Theme.githubLevels[4]
         }
     }
 }
@@ -86,30 +187,52 @@ private struct RepoRow: View {
     let repo: GithubRepo
 
     var body: some View {
-        HStack(spacing: 8) {
-            Circle()
-                .fill(languageColor)
-                .frame(width: 8, height: 8)
-            Text(repo.name)
-                .font(.subheadline.weight(.medium))
-                .lineLimit(1)
-            Spacer(minLength: 8)
-            Label("\(repo.stars)", systemImage: "star.fill")
-                .labelStyle(.titleAndIcon)
-                .font(.caption.weight(.medium))
-                .foregroundStyle(.secondary)
+        Link(destination: URL(string: repo.url) ?? URL(string: "https://github.com")!) {
+            VStack(alignment: .leading, spacing: 2) {
+                HStack(spacing: 8) {
+                    Text(repo.name)
+                        .font(.subheadline.weight(.medium))
+                        .lineLimit(1)
+                        .truncationMode(.tail)
+                    Spacer(minLength: 8)
+                    Label("\(repo.stars)", systemImage: "star")
+                        .labelStyle(.titleAndIcon)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+                Text(secondLine)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .lineLimit(1)
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(.horizontal, 12)
+            .padding(.vertical, 8)
+            .background(
+                RoundedRectangle(cornerRadius: 12, style: .continuous)
+                    .fill(.quaternary.opacity(0.4))
+            )
+            .contentShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
         }
+        .buttonStyle(.plain)
     }
 
-    private var languageColor: Color {
-        guard let lang = repo.language else { return .secondary.opacity(0.4) }
-        switch lang {
-        case "Swift": return .orange
-        case "TypeScript", "JavaScript": return .yellow
-        case "Python": return .blue
-        case "Go": return .cyan
-        case "Rust": return .red
-        default: return Theme.accent
-        }
+    private var secondLine: String {
+        "\(repo.language ?? "Code") · pushed \(relativeTime(repo.pushedAt))"
+    }
+
+    private func relativeTime(_ iso: String) -> String {
+        guard let date = ISO8601DateFormatter.parse(iso) else { return "recently" }
+        let sec = Int(Date().timeIntervalSince(date))
+        if sec < 60 { return "just now" }
+        let min = sec / 60
+        if min < 60 { return "\(min)m ago" }
+        let hr = min / 60
+        if hr < 24 { return "\(hr)h ago" }
+        let day = hr / 24
+        if day < 30 { return "\(day)d ago" }
+        let mo = day / 30
+        if mo < 12 { return "\(mo)mo ago" }
+        return "\(mo / 12)y ago"
     }
 }
