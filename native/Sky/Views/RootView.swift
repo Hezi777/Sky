@@ -6,6 +6,7 @@ struct RootView: View {
     var body: some View {
         NavigationStack {
             DashboardView()
+                .background(SkyBackground())
                 .navigationTitle("Sky")
                 #if os(iOS)
                 .navigationBarTitleDisplayMode(.inline)

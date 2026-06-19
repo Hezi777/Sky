@@ -8,7 +8,7 @@ struct WeatherWidget: View {
     var body: some View {
         Card {
             VStack(alignment: .leading, spacing: 12) {
-                CardHeader(title: "Weather", symbol: "cloud.sun.fill", tint: .cyan)
+                CardHeader(title: "Weather", symbol: "cloud.sun.fill", tint: Theme.accent)
 
                 if let err = location.error ?? errorMessage {
                     WidgetError(message: err) {
@@ -70,9 +70,13 @@ private struct WeatherContent: View {
                     .font(.system(size: 48, weight: .thin, design: .rounded))
                     .contentTransition(.numericText())
 
-                Text("Feels \(Int(current.apparentTemperature.rounded()))°")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
+                Label {
+                    Text("Feels like \(Int(current.apparentTemperature.rounded()))°")
+                } icon: {
+                    Image(systemName: "thermometer.variable")
+                }
+                .font(.caption)
+                .foregroundStyle(.secondary)
             }
 
             Spacer(minLength: 8)
@@ -80,24 +84,37 @@ private struct WeatherContent: View {
             VStack(alignment: .trailing, spacing: 8) {
                 Image(systemName: weatherSymbol(for: current.weatherCode))
                     .font(.system(size: 36))
-                    .foregroundStyle(.cyan)
+                    .foregroundStyle(Theme.accent)
                     .symbolRenderingMode(.hierarchical)
 
                 if let hi = daily.temperature2mMax.first,
                    let lo = daily.temperature2mMin.first {
-                    HStack(spacing: 6) {
-                        Label("\(Int(hi.rounded()))°", systemImage: "arrow.up")
-                        Label("\(Int(lo.rounded()))°", systemImage: "arrow.down")
+                    VStack(alignment: .trailing, spacing: 4) {
+                        Label {
+                            Text("\(Int(hi.rounded()))°")
+                                .contentTransition(.numericText())
+                        } icon: {
+                            Image(systemName: "arrow.up")
+                                .foregroundStyle(.orange)
+                        }
+                        Label {
+                            Text("\(Int(lo.rounded()))°")
+                                .contentTransition(.numericText())
+                        } icon: {
+                            Image(systemName: "arrow.down")
+                                .foregroundStyle(Theme.chartColor(2))
+                        }
                     }
                     .font(.caption.weight(.medium))
                     .foregroundStyle(.secondary)
+                    .monospacedDigit()
                 }
             }
         }
     }
 }
 
-// MARK: - WMO weather code → SF Symbol
+// MARK: - WMO weather code -> SF Symbol
 
 private func weatherSymbol(for code: Int) -> String {
     switch code {

@@ -49,26 +49,43 @@ struct StravaWidget: View {
 private struct ActivityRow: View {
     let activity: StravaActivity
 
+    private var stravaURL: URL {
+        URL(string: "https://www.strava.com/activities/\(activity.id)")!
+    }
+
     var body: some View {
-        HStack(spacing: 10) {
-            Image(systemName: symbol)
-                .font(.subheadline.weight(.semibold))
-                .foregroundStyle(Theme.accent)
-                .frame(width: 22)
-            VStack(alignment: .leading, spacing: 2) {
-                Text(activity.name)
-                    .font(.subheadline.weight(.medium))
-                    .lineLimit(1)
-                Text(activity.type)
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
+        Link(destination: stravaURL) {
+            HStack(spacing: 10) {
+                Image(systemName: symbol)
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundStyle(Theme.accent)
+                    .frame(width: 22)
+
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(activity.name)
+                        .font(.subheadline.weight(.medium))
+                        .foregroundStyle(.primary)
+                        .lineLimit(1)
+                    Text(subtitleText)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+
+                Spacer(minLength: 8)
+
+                VStack(alignment: .trailing, spacing: 2) {
+                    Text(distanceText)
+                        .font(.caption.weight(.medium))
+                        .foregroundStyle(.primary)
+                        .monospacedDigit()
+                    Text(durationText)
+                        .font(.caption2)
+                        .foregroundStyle(.tertiary)
+                        .monospacedDigit()
+                }
             }
-            Spacer(minLength: 8)
-            Text(distanceText)
-                .font(.caption.weight(.medium))
-                .foregroundStyle(.secondary)
-                .monospacedDigit()
         }
+        .buttonStyle(.plain)
     }
 
     private var symbol: String {
@@ -81,8 +98,21 @@ private struct ActivityRow: View {
         }
     }
 
+    private var subtitleText: String {
+        activity.type
+    }
+
     private var distanceText: String {
         let km = activity.distance / 1000
         return String(format: "%.1f km", km)
+    }
+
+    private var durationText: String {
+        let hours = activity.movingTime / 3600
+        let minutes = (activity.movingTime % 3600) / 60
+        if hours > 0 {
+            return "\(hours)h \(minutes)m"
+        }
+        return "\(minutes)m"
     }
 }

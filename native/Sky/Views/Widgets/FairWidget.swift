@@ -13,7 +13,7 @@ struct FairWidget: View {
                 try await APIClient.shared.get("/api/fair", query: ["fund": fund]) as FairPrice
             }
         ) { fair in
-            VStack(alignment: .leading, spacing: 8) {
+            VStack(alignment: .leading, spacing: 10) {
                 if let name = fair.fundName, !name.isEmpty {
                     Text(name)
                         .font(.subheadline.weight(.medium))
@@ -21,11 +21,19 @@ struct FairWidget: View {
                         .lineLimit(2)
                 }
 
-                Text(priceText(fair))
-                    .font(.system(.largeTitle, design: .rounded).weight(.bold))
-                    .monospacedDigit()
-                    .contentTransition(.numericText(value: fair.price))
-                    .animation(.snappy, value: fair.price)
+                HStack(alignment: .firstTextBaseline, spacing: 2) {
+                    Text(symbol(for: fair.currency))
+                        .font(.system(.title, design: .rounded).weight(.semibold))
+                        .foregroundStyle(.secondary)
+                    Text(fair.price, format: .number.precision(.fractionLength(2)))
+                        .font(.system(.largeTitle, design: .rounded).weight(.bold))
+                        .monospacedDigit()
+                        .contentTransition(.numericText(value: fair.price))
+                        .animation(.snappy, value: fair.price)
+                    Text("/ unit")
+                        .font(.subheadline)
+                        .foregroundStyle(.tertiary)
+                }
 
                 HStack(spacing: 8) {
                     if let asOf = asOfText(fair.asOf) {
@@ -33,18 +41,16 @@ struct FairWidget: View {
                     }
                     Spacer(minLength: 8)
                     Text(fair.source)
-                        .foregroundStyle(.tertiary)
+                        .font(.caption2.weight(.medium))
+                        .padding(.horizontal, 7)
+                        .padding(.vertical, 2)
+                        .background(.secondary.opacity(0.12), in: Capsule())
+                        .foregroundStyle(.secondary)
                 }
                 .font(.caption)
                 .foregroundStyle(.secondary)
             }
         }
-    }
-
-    private func priceText(_ fair: FairPrice) -> String {
-        let symbol = symbol(for: fair.currency)
-        let number = fair.price.formatted(.number.precision(.fractionLength(2)))
-        return "\(symbol)\(number)"
     }
 
     private func symbol(for currency: String) -> String {

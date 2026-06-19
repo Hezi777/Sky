@@ -12,26 +12,26 @@ struct SpotifyWidget: View {
         ) { response in
             VStack(alignment: .leading, spacing: 12) {
                 if let np = response.nowPlaying {
-                    NowPlayingRow(nowPlaying: np)
+                    NowPlayingBlock(nowPlaying: np)
+                } else {
+                    NothingPlayingHint()
                 }
 
                 if !response.recent.isEmpty {
-                    VStack(spacing: 8) {
-                        ForEach(response.recent.prefix(4)) { track in
-                            RecentTrackRow(track: track)
-                        }
-                    }
+                    RecentSection(tracks: Array(response.recent.prefix(3)))
                 }
             }
         }
     }
 }
 
-private struct NowPlayingRow: View {
+// MARK: - Now Playing
+
+private struct NowPlayingBlock: View {
     let nowPlaying: SpotifyNowPlaying
 
     var body: some View {
-        HStack(spacing: 12) {
+        let content = HStack(spacing: 12) {
             AsyncImage(url: nowPlaying.albumArt.flatMap(URL.init)) { image in
                 image.resizable()
                     .aspectRatio(contentMode: .fill)
@@ -44,9 +44,11 @@ private struct NowPlayingRow: View {
 
             VStack(alignment: .leading, spacing: 4) {
                 HStack(spacing: 6) {
-                    EqualizerIndicator(isPlaying: nowPlaying.isPlaying)
+                    if nowPlaying.isPlaying {
+                        EqualizerIndicator(isPlaying: true)
+                    }
                     Text(nowPlaying.title)
-                        .font(.subheadline.weight(.medium))
+                        .font(.subheadline.weight(.semibold))
                         .lineLimit(1)
                 }
                 Text(nowPlaying.artist)
@@ -54,8 +56,25 @@ private struct NowPlayingRow: View {
                     .foregroundStyle(.secondary)
                     .lineLimit(1)
 
-                ProgressBar(progress: progressFraction)
+                if nowPlaying.isPlaying && nowPlaying.durationMs > 0 {
+                    ProgressBar(progress: progressFraction)
+                } else if !nowPlaying.isPlaying {
+                    Text("Paused")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
             }
+        }
+        .padding(4)
+        .contentShape(Rectangle())
+
+        if let url = URL(string: nowPlaying.url) {
+            Link(destination: url) {
+                content
+            }
+            .buttonStyle(.plain)
+        } else {
+            content
         }
     }
 
@@ -65,52 +84,58 @@ private struct NowPlayingRow: View {
     }
 }
 
-private struct ProgressBar: View {
-    let progress: Double
+// MARK: - Nothing playing placeholder
 
+private struct NothingPlayingHint: View {
     var body: some View {
-        GeometryReader { geo in
-            Capsule()
-                .fill(.fill.tertiary)
-                .overlay(alignment: .leading) {
-                    Capsule()
-                        .fill(.green)
-                        .frame(width: geo.size.width * progress)
-                }
+        HStack(spacing: 12) {
+            ZStack {
+                RoundedRectangle(cornerRadius: 8, style: .continuous)
+                    .fill(.fill.tertiary)
+                    .frame(width: 56, height: 56)
+                Image(systemName: "music.note")
+                    .foregroundStyle(.secondary)
+                    .font(.title3)
+            }
+            Text("Nothing playing right now")
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
         }
-        .frame(height: 3)
-        .clipShape(Capsule())
+        .padding(4)
     }
 }
 
-private struct EqualizerIndicator: View {
-    let isPlaying: Bool
+// MARK: - Recent tracks section
+
+private struct RecentSection: View {
+    let tracks: [SpotifyTrack]
 
     var body: some View {
-        HStack(spacing: 1.5) {
-            ForEach(0..<3, id: \.self) { i in
-                RoundedRectangle(cornerRadius: 0.5)
-                    .fill(.green)
-                    .frame(width: 2.5, height: isPlaying ? barHeight(i) : 4)
+        VStack(alignment: .leading, spacing: 6) {
+            Divider()
+            Text("Recently played")
+                .font(.caption.weight(.medium))
+                .textCase(.uppercase)
+                .tracking(0.5)
+                .foregroundStyle(.secondary)
+                .padding(.top, 2)
+
+            VStack(spacing: 2) {
+                ForEach(tracks) { track in
+                    RecentTrackRow(track: track)
+                }
             }
         }
-        .frame(width: 12, height: 12)
-    }
-
-    private func barHeight(_ index: Int) -> CGFloat {
-        switch index {
-        case 0: return 8
-        case 1: return 12
-        default: return 6
-        }
     }
 }
+
+// MARK: - Recent track row
 
 private struct RecentTrackRow: View {
     let track: SpotifyTrack
 
     var body: some View {
-        HStack(spacing: 10) {
+        let content = HStack(spacing: 10) {
             AsyncImage(url: track.albumArt.flatMap(URL.init)) { image in
                 image.resizable()
                     .aspectRatio(contentMode: .fill)
@@ -132,6 +157,63 @@ private struct RecentTrackRow: View {
             }
 
             Spacer(minLength: 8)
+        }
+        .padding(.vertical, 3)
+        .padding(.horizontal, 4)
+        .contentShape(Rectangle())
+
+        if let url = URL(string: track.url) {
+            Link(destination: url) {
+                content
+            }
+            .buttonStyle(.plain)
+        } else {
+            content
+        }
+    }
+}
+
+// MARK: - Progress bar
+
+private struct ProgressBar: View {
+    let progress: Double
+
+    var body: some View {
+        GeometryReader { geo in
+            Capsule()
+                .fill(.fill.tertiary)
+                .overlay(alignment: .leading) {
+                    Capsule()
+                        .fill(.green)
+                        .frame(width: geo.size.width * progress)
+                }
+        }
+        .frame(height: 3)
+        .clipShape(Capsule())
+    }
+}
+
+// MARK: - Equalizer indicator
+
+private struct EqualizerIndicator: View {
+    let isPlaying: Bool
+
+    var body: some View {
+        HStack(spacing: 1.5) {
+            ForEach(0..<3, id: \.self) { i in
+                RoundedRectangle(cornerRadius: 0.5)
+                    .fill(.green)
+                    .frame(width: 2.5, height: isPlaying ? barHeight(i) : 4)
+            }
+        }
+        .frame(width: 12, height: 12)
+    }
+
+    private func barHeight(_ index: Int) -> CGFloat {
+        switch index {
+        case 0: return 8
+        case 1: return 12
+        default: return 6
         }
     }
 }

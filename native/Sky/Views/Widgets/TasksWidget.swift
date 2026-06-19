@@ -17,7 +17,7 @@ struct TasksWidget: View {
                     if tasks.isEmpty {
                         EmptyHint(text: "All clear today")
                     } else {
-                        VStack(spacing: 8) {
+                        VStack(spacing: 0) {
                             ForEach(tasks.prefix(6)) { task in
                                 TaskRow(task: task) { complete(task) }
                             }
@@ -57,54 +57,88 @@ struct TasksWidget: View {
     }
 }
 
+// MARK: - Task row
+
 private struct TaskRow: View {
     let task: TickTickTask
     let onComplete: () -> Void
 
     var body: some View {
         HStack(spacing: 10) {
+            // Priority circle (tap to complete)
             Button(action: onComplete) {
                 Circle()
                     .strokeBorder(priorityColor, lineWidth: 1.5)
-                    .frame(width: 20, height: 20)
+                    .frame(width: 18, height: 18)
             }
             .buttonStyle(.plain)
 
-            VStack(alignment: .leading, spacing: 2) {
-                Text(task.title)
-                    .font(.subheadline.weight(.medium))
-                    .lineLimit(1)
+            // Title
+            Text(task.title)
+                .font(.subheadline.weight(.medium))
+                .lineLimit(1)
+                .frame(maxWidth: .infinity, alignment: .leading)
 
-                if !task.tags.isEmpty {
-                    HStack(spacing: 4) {
-                        ForEach(task.tags, id: \.self) { tag in
-                            Text(tag)
-                                .font(.caption2)
-                                .foregroundStyle(.secondary)
-                                .padding(.horizontal, 6)
-                                .padding(.vertical, 2)
-                                .background(.fill.tertiary, in: Capsule())
-                        }
-                    }
-                }
-            }
-
-            Spacer(minLength: 8)
-
-            if let dueDate = task.dueDate, let date = ISO8601DateFormatter.parse(dueDate) {
-                Text(date.formatted(date: .omitted, time: .shortened))
-                    .font(.caption.weight(.medium))
-                    .foregroundStyle(.secondary)
-            }
+            // Metadata: subtasks, tags, due time
+            TaskMetadata(task: task)
+        }
+        .padding(.vertical, 8)
+        .overlay(alignment: .bottom) {
+            Divider()
         }
     }
 
     private var priorityColor: Color {
         switch task.priority {
-        case .none: return .secondary
+        case .none: return .gray
         case .low: return .blue
         case .medium: return .yellow
         case .high: return .red
+        }
+    }
+}
+
+// MARK: - Task metadata (subtasks, tags, due time)
+
+private struct TaskMetadata: View {
+    let task: TickTickTask
+
+    var body: some View {
+        let hasContent = task.subtaskCount > 0 || !task.tags.isEmpty || task.dueDate != nil
+        if hasContent {
+            HStack(spacing: 8) {
+                if task.subtaskCount > 0 {
+                    Label {
+                        Text("\(task.subtaskCount)")
+                            .monospacedDigit()
+                    } icon: {
+                        Image(systemName: "list.bullet")
+                    }
+                    .font(.caption2)
+                    .foregroundStyle(.secondary)
+                }
+
+                ForEach(task.tags.prefix(2), id: \.self) { tag in
+                    Text(tag)
+                        .font(.caption2)
+                        .foregroundStyle(.secondary)
+                        .padding(.horizontal, 6)
+                        .padding(.vertical, 2)
+                        .background(.fill.tertiary, in: Capsule())
+                        .lineLimit(1)
+                }
+
+                if let dueDate = task.dueDate, let date = ISO8601DateFormatter.parse(dueDate) {
+                    Label {
+                        Text(date.formatted(date: .omitted, time: .shortened))
+                            .monospacedDigit()
+                    } icon: {
+                        Image(systemName: "clock")
+                    }
+                    .font(.caption2.weight(.medium))
+                    .foregroundStyle(Theme.accent.opacity(0.8))
+                }
+            }
         }
     }
 }

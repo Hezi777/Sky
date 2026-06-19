@@ -1,0 +1,279 @@
+{
+  "" : {
+    "diagnostics" : "/Users/hen/Developer/active/personal/Sky/native/.build-ios/Build/Intermediates.noindex/Sky.build/Debug-iphonesimulator/Sky.build/Objects-normal/x86_64/Sky-primary.dia",
+    "emit-module-dependencies" : "/Users/hen/Developer/active/personal/Sky/native/.build-ios/Build/Intermediates.noindex/Sky.build/Debug-iphonesimulator/Sky.build/Objects-normal/x86_64/Sky-primary-emit-module.d",
+    "emit-module-diagnostics" : "/Users/hen/Developer/active/personal/Sky/native/.build-ios/Build/Intermediates.noindex/Sky.build/Debug-iphonesimulator/Sky.build/Objects-normal/x86_64/Sky-primary-emit-module.dia",
+    "pch" : "/Users/hen/Developer/active/personal/Sky/native/.build-ios/Build/Intermediates.noindex/Sky.build/Debug-iphonesimulator/Sky.build/Objects-normal/x86_64/Sky-primary-Bridging-header.pch",
+    "swift-dependencies" : "/Users/hen/Developer/active/personal/Sky/native/.build-ios/Build/Intermediates.noindex/Sky.build/Debug-iphonesimulator/Sky.build/Objects-normal/x86_64/Sky-primary.swiftdeps"
+  },
+  "/Users/hen/Developer/active/personal/Sky/native/.build-ios/Build/Intermediates.noindex/Sky.build/Debug-iphonesimulator/Sky.build/DerivedSources/GeneratedAssetSymbols.swift" : {
+    "const-values" : "/Users/hen/Developer/active/personal/Sky/native/.build-ios/Build/Intermediates.noindex/Sky.build/Debug-iphonesimulator/Sky.build/Objects-normal/x86_64/GeneratedAssetSymbols.swiftconstvalues",
+    "dependencies" : "/Users/hen/Developer/active/personal/Sky/native/.build-ios/Build/Intermediates.noindex/Sky.build/Debug-iphonesimulator/Sky.build/Objects-normal/x86_64/GeneratedAssetSymbols.d",
+    "diagnostics" : "/Users/hen/Developer/active/personal/Sky/native/.build-ios/Build/Intermediates.noindex/Sky.build/Debug-iphonesimulator/Sky.build/Objects-normal/x86_64/GeneratedAssetSymbols.dia",
+    "index-unit-output-path" : "/Sky.build/Debug-iphonesimulator/Sky.build/Objects-normal/x86_64/GeneratedAssetSymbols.o",
+    "llvm-bc" : "/Users/hen/Developer/active/personal/Sky/native/.build-ios/Build/Intermediates.noindex/Sky.build/Debug-iphonesimulator/Sky.build/Objects-normal/x86_64/GeneratedAssetSymbols.bc",
+    "object" : "/Users/hen/Developer/active/personal/Sky/native/.build-ios/Build/Intermediates.noindex/Sky.build/Debug-iphonesimulator/Sky.build/Objects-normal/x86_64/GeneratedAssetSymbols.o",
+    "swift-dependencies" : "/Users/hen/Developer/active/personal/Sky/native/.build-ios/Build/Intermediates.noindex/Sky.build/Debug-iphonesimulator/Sky.build/Objects-normal/x86_64/GeneratedAssetSymbols.swiftdeps",
+    "swiftmodule" : "/Users/hen/Developer/active/personal/Sky/native/.build-ios/Build/Intermediates.noindex/Sky.build/Debug-iphonesimulator/Sky.build/Objects-normal/x86_64/GeneratedAssetSymbols~partial.swiftmodule"
+  },
+  "/Users/hen/Developer/active/personal/Sky/native/Sky/DesignSystem/AsyncCard.swift" : {
+    "const-values" : "/Users/hen/Developer/active/personal/Sky/native/.build-ios/Build/Intermediates.noindex/Sky.build/Debug-iphonesimulator/Sky.build/Objects-normal/x86_64/AsyncCard.swiftconstvalues",
+    "dependencies" : "/Users/hen/Developer/active/personal/Sky/native/.build-ios/Build/Intermediates.noindex/Sky.build/Debug-iphonesimulator/Sky.build/Objects-normal/x86_64/AsyncCard.d",
+    "diagnostics" : "/Users/hen/Developer/active/personal/Sky/native/.build-ios/Build/Intermediates.noindex/Sky.build/Debug-iphonesimulator/Sky.build/Objects-normal/x86_64/AsyncCard.dia",
+    "index-unit-output-path" : "/Sky.build/Debug-iphonesimulator/Sky.build/Objects-normal/x86_64/AsyncCard.o",
+    "llvm-bc" : "/Users/hen/Developer/active/personal/Sky/native/.build-ios/Build/Intermediates.noindex/Sky.build/Debug-iphonesimulator/Sky.build/Objects-normal/x86_64/AsyncCard.bc",
+    "object" : "/Users/hen/Developer/active/personal/Sky/native/.build-ios/Build/Intermediates.noindex/Sky.build/Debug-iphonesimulator/Sky.build/Objects-normal/x86_64/AsyncCard.o",
+    "swift-dependencies" : "/Users/hen/Developer/active/personal/Sky/native/.build-ios/Build/Intermediates.noindex/Sky.build/Debug-iphonesimulator/Sky.build/Objects-normal/x86_64/AsyncCard.swiftdeps",
+    "swiftmodule" : "/Users/hen/Developer/active/personal/Sky/native/.build-ios/Build/Intermediates.noindex/Sky.build/Debug-iphonesimulator/Sky.build/Objects-normal/x86_64/AsyncCard~partial.swiftmodule"
+  },
+  "/Users/hen/Developer/active/personal/Sky/native/Sky/DesignSystem/CloudCharacter.swift" : {
+    "const-values" : "/Users/hen/Developer/active/personal/Sky/native/.build-ios/Build/Intermediates.noindex/Sky.build/Debug-iphonesimulator/Sky.build/Objects-normal/x86_64/CloudCharacter.swiftconstvalues",
+    "dependencies" : "/Users/hen/Developer/active/personal/Sky/native/.build-ios/Build/Intermediates.noindex/Sky.build/Debug-iphonesimulator/Sky.build/Objects-normal/x86_64/CloudCharacter.d",
+    "diagnostics" : "/Users/hen/Developer/active/personal/Sky/native/.build-ios/Build/Intermediates.noindex/Sky.build/Debug-iphonesimulator/Sky.build/Objects-normal/x86_64/CloudCharacter.dia",
+    "index-unit-output-path" : "/Sky.build/Debug-iphonesimulator/Sky.build/Objects-normal/x86_64/CloudCharacter.o",
+    "llvm-bc" : "/Users/hen/Developer/active/personal/Sky/native/.build-ios/Build/Intermediates.noindex/Sky.build/Debug-iphonesimulator/Sky.build/Objects-normal/x86_64/CloudCharacter.bc",
+    "object" : "/Users/hen/Developer/active/personal/Sky/native/.build-ios/Build/Intermediates.noindex/Sky.build/Debug-iphonesimulator/Sky.build/Objects-normal/x86_64/CloudCharacter.o",
+    "swift-dependencies" : "/Users/hen/Developer/active/personal/Sky/native/.build-ios/Build/Intermediates.noindex/Sky.build/Debug-iphonesimulator/Sky.build/Objects-normal/x86_64/CloudCharacter.swiftdeps",
+    "swiftmodule" : "/Users/hen/Developer/active/personal/Sky/native/.build-ios/Build/Intermediates.noindex/Sky.build/Debug-iphonesimulator/Sky.build/Objects-normal/x86_64/CloudCharacter~partial.swiftmodule"
+  },
+  "/Users/hen/Developer/active/personal/Sky/native/Sky/DesignSystem/Theme.swift" : {
+    "const-values" : "/Users/hen/Developer/active/personal/Sky/native/.build-ios/Build/Intermediates.noindex/Sky.build/Debug-iphonesimulator/Sky.build/Objects-normal/x86_64/Theme.swiftconstvalues",
+    "dependencies" : "/Users/hen/Developer/active/personal/Sky/native/.build-ios/Build/Intermediates.noindex/Sky.build/Debug-iphonesimulator/Sky.build/Objects-normal/x86_64/Theme.d",
+    "diagnostics" : "/Users/hen/Developer/active/personal/Sky/native/.build-ios/Build/Intermediates.noindex/Sky.build/Debug-iphonesimulator/Sky.build/Objects-normal/x86_64/Theme.dia",
+    "index-unit-output-path" : "/Sky.build/Debug-iphonesimulator/Sky.build/Objects-normal/x86_64/Theme.o",
+    "llvm-bc" : "/Users/hen/Developer/active/personal/Sky/native/.build-ios/Build/Intermediates.noindex/Sky.build/Debug-iphonesimulator/Sky.build/Objects-normal/x86_64/Theme.bc",
+    "object" : "/Users/hen/Developer/active/personal/Sky/native/.build-ios/Build/Intermediates.noindex/Sky.build/Debug-iphonesimulator/Sky.build/Objects-normal/x86_64/Theme.o",
+    "swift-dependencies" : "/Users/hen/Developer/active/personal/Sky/native/.build-ios/Build/Intermediates.noindex/Sky.build/Debug-iphonesimulator/Sky.build/Objects-normal/x86_64/Theme.swiftdeps",
+    "swiftmodule" : "/Users/hen/Developer/active/personal/Sky/native/.build-ios/Build/Intermediates.noindex/Sky.build/Debug-iphonesimulator/Sky.build/Objects-normal/x86_64/Theme~partial.swiftmodule"
+  },
+  "/Users/hen/Developer/active/personal/Sky/native/Sky/Models/APIModels.swift" : {
+    "const-values" : "/Users/hen/Developer/active/personal/Sky/native/.build-ios/Build/Intermediates.noindex/Sky.build/Debug-iphonesimulator/Sky.build/Objects-normal/x86_64/APIModels.swiftconstvalues",
+    "dependencies" : "/Users/hen/Developer/active/personal/Sky/native/.build-ios/Build/Intermediates.noindex/Sky.build/Debug-iphonesimulator/Sky.build/Objects-normal/x86_64/APIModels.d",
+    "diagnostics" : "/Users/hen/Developer/active/personal/Sky/native/.build-ios/Build/Intermediates.noindex/Sky.build/Debug-iphonesimulator/Sky.build/Objects-normal/x86_64/APIModels.dia",
+    "index-unit-output-path" : "/Sky.build/Debug-iphonesimulator/Sky.build/Objects-normal/x86_64/APIModels.o",
+    "llvm-bc" : "/Users/hen/Developer/active/personal/Sky/native/.build-ios/Build/Intermediates.noindex/Sky.build/Debug-iphonesimulator/Sky.build/Objects-normal/x86_64/APIModels.bc",
+    "object" : "/Users/hen/Developer/active/personal/Sky/native/.build-ios/Build/Intermediates.noindex/Sky.build/Debug-iphonesimulator/Sky.build/Objects-normal/x86_64/APIModels.o",
+    "swift-dependencies" : "/Users/hen/Developer/active/personal/Sky/native/.build-ios/Build/Intermediates.noindex/Sky.build/Debug-iphonesimulator/Sky.build/Objects-normal/x86_64/APIModels.swiftdeps",
+    "swiftmodule" : "/Users/hen/Developer/active/personal/Sky/native/.build-ios/Build/Intermediates.noindex/Sky.build/Debug-iphonesimulator/Sky.build/Objects-normal/x86_64/APIModels~partial.swiftmodule"
+  },
+  "/Users/hen/Developer/active/personal/Sky/native/Sky/Models/NewWidgetModels.swift" : {
+    "const-values" : "/Users/hen/Developer/active/personal/Sky/native/.build-ios/Build/Intermediates.noindex/Sky.build/Debug-iphonesimulator/Sky.build/Objects-normal/x86_64/NewWidgetModels.swiftconstvalues",
+    "dependencies" : "/Users/hen/Developer/active/personal/Sky/native/.build-ios/Build/Intermediates.noindex/Sky.build/Debug-iphonesimulator/Sky.build/Objects-normal/x86_64/NewWidgetModels.d",
+    "diagnostics" : "/Users/hen/Developer/active/personal/Sky/native/.build-ios/Build/Intermediates.noindex/Sky.build/Debug-iphonesimulator/Sky.build/Objects-normal/x86_64/NewWidgetModels.dia",
+    "index-unit-output-path" : "/Sky.build/Debug-iphonesimulator/Sky.build/Objects-normal/x86_64/NewWidgetModels.o",
+    "llvm-bc" : "/Users/hen/Developer/active/personal/Sky/native/.build-ios/Build/Intermediates.noindex/Sky.build/Debug-iphonesimulator/Sky.build/Objects-normal/x86_64/NewWidgetModels.bc",
+    "object" : "/Users/hen/Developer/active/personal/Sky/native/.build-ios/Build/Intermediates.noindex/Sky.build/Debug-iphonesimulator/Sky.build/Objects-normal/x86_64/NewWidgetModels.o",
+    "swift-dependencies" : "/Users/hen/Developer/active/personal/Sky/native/.build-ios/Build/Intermediates.noindex/Sky.build/Debug-iphonesimulator/Sky.build/Objects-normal/x86_64/NewWidgetModels.swiftdeps",
+    "swiftmodule" : "/Users/hen/Developer/active/personal/Sky/native/.build-ios/Build/Intermediates.noindex/Sky.build/Debug-iphonesimulator/Sky.build/Objects-normal/x86_64/NewWidgetModels~partial.swiftmodule"
+  },
+  "/Users/hen/Developer/active/personal/Sky/native/Sky/Networking/APIClient.swift" : {
+    "const-values" : "/Users/hen/Developer/active/personal/Sky/native/.build-ios/Build/Intermediates.noindex/Sky.build/Debug-iphonesimulator/Sky.build/Objects-normal/x86_64/APIClient.swiftconstvalues",
+    "dependencies" : "/Users/hen/Developer/active/personal/Sky/native/.build-ios/Build/Intermediates.noindex/Sky.build/Debug-iphonesimulator/Sky.build/Objects-normal/x86_64/APIClient.d",
+    "diagnostics" : "/Users/hen/Developer/active/personal/Sky/native/.build-ios/Build/Intermediates.noindex/Sky.build/Debug-iphonesimulator/Sky.build/Objects-normal/x86_64/APIClient.dia",
+    "index-unit-output-path" : "/Sky.build/Debug-iphonesimulator/Sky.build/Objects-normal/x86_64/APIClient.o",
+    "llvm-bc" : "/Users/hen/Developer/active/personal/Sky/native/.build-ios/Build/Intermediates.noindex/Sky.build/Debug-iphonesimulator/Sky.build/Objects-normal/x86_64/APIClient.bc",
+    "object" : "/Users/hen/Developer/active/personal/Sky/native/.build-ios/Build/Intermediates.noindex/Sky.build/Debug-iphonesimulator/Sky.build/Objects-normal/x86_64/APIClient.o",
+    "swift-dependencies" : "/Users/hen/Developer/active/personal/Sky/native/.build-ios/Build/Intermediates.noindex/Sky.build/Debug-iphonesimulator/Sky.build/Objects-normal/x86_64/APIClient.swiftdeps",
+    "swiftmodule" : "/Users/hen/Developer/active/personal/Sky/native/.build-ios/Build/Intermediates.noindex/Sky.build/Debug-iphonesimulator/Sky.build/Objects-normal/x86_64/APIClient~partial.swiftmodule"
+  },
+  "/Users/hen/Developer/active/personal/Sky/native/Sky/SkyApp.swift" : {
+    "const-values" : "/Users/hen/Developer/active/personal/Sky/native/.build-ios/Build/Intermediates.noindex/Sky.build/Debug-iphonesimulator/Sky.build/Objects-normal/x86_64/SkyApp.swiftconstvalues",
+    "dependencies" : "/Users/hen/Developer/active/personal/Sky/native/.build-ios/Build/Intermediates.noindex/Sky.build/Debug-iphonesimulator/Sky.build/Objects-normal/x86_64/SkyApp.d",
+    "diagnostics" : "/Users/hen/Developer/active/personal/Sky/native/.build-ios/Build/Intermediates.noindex/Sky.build/Debug-iphonesimulator/Sky.build/Objects-normal/x86_64/SkyApp.dia",
+    "index-unit-output-path" : "/Sky.build/Debug-iphonesimulator/Sky.build/Objects-normal/x86_64/SkyApp.o",
+    "llvm-bc" : "/Users/hen/Developer/active/personal/Sky/native/.build-ios/Build/Intermediates.noindex/Sky.build/Debug-iphonesimulator/Sky.build/Objects-normal/x86_64/SkyApp.bc",
+    "object" : "/Users/hen/Developer/active/personal/Sky/native/.build-ios/Build/Intermediates.noindex/Sky.build/Debug-iphonesimulator/Sky.build/Objects-normal/x86_64/SkyApp.o",
+    "swift-dependencies" : "/Users/hen/Developer/active/personal/Sky/native/.build-ios/Build/Intermediates.noindex/Sky.build/Debug-iphonesimulator/Sky.build/Objects-normal/x86_64/SkyApp.swiftdeps",
+    "swiftmodule" : "/Users/hen/Developer/active/personal/Sky/native/.build-ios/Build/Intermediates.noindex/Sky.build/Debug-iphonesimulator/Sky.build/Objects-normal/x86_64/SkyApp~partial.swiftmodule"
+  },
+  "/Users/hen/Developer/active/personal/Sky/native/Sky/Stores/DashboardConfig.swift" : {
+    "const-values" : "/Users/hen/Developer/active/personal/Sky/native/.build-ios/Build/Intermediates.noindex/Sky.build/Debug-iphonesimulator/Sky.build/Objects-normal/x86_64/DashboardConfig.swiftconstvalues",
+    "dependencies" : "/Users/hen/Developer/active/personal/Sky/native/.build-ios/Build/Intermediates.noindex/Sky.build/Debug-iphonesimulator/Sky.build/Objects-normal/x86_64/DashboardConfig.d",
+    "diagnostics" : "/Users/hen/Developer/active/personal/Sky/native/.build-ios/Build/Intermediates.noindex/Sky.build/Debug-iphonesimulator/Sky.build/Objects-normal/x86_64/DashboardConfig.dia",
+    "index-unit-output-path" : "/Sky.build/Debug-iphonesimulator/Sky.build/Objects-normal/x86_64/DashboardConfig.o",
+    "llvm-bc" : "/Users/hen/Developer/active/personal/Sky/native/.build-ios/Build/Intermediates.noindex/Sky.build/Debug-iphonesimulator/Sky.build/Objects-normal/x86_64/DashboardConfig.bc",
+    "object" : "/Users/hen/Developer/active/personal/Sky/native/.build-ios/Build/Intermediates.noindex/Sky.build/Debug-iphonesimulator/Sky.build/Objects-normal/x86_64/DashboardConfig.o",
+    "swift-dependencies" : "/Users/hen/Developer/active/personal/Sky/native/.build-ios/Build/Intermediates.noindex/Sky.build/Debug-iphonesimulator/Sky.build/Objects-normal/x86_64/DashboardConfig.swiftdeps",
+    "swiftmodule" : "/Users/hen/Developer/active/personal/Sky/native/.build-ios/Build/Intermediates.noindex/Sky.build/Debug-iphonesimulator/Sky.build/Objects-normal/x86_64/DashboardConfig~partial.swiftmodule"
+  },
+  "/Users/hen/Developer/active/personal/Sky/native/Sky/Stores/LocationProvider.swift" : {
+    "const-values" : "/Users/hen/Developer/active/personal/Sky/native/.build-ios/Build/Intermediates.noindex/Sky.build/Debug-iphonesimulator/Sky.build/Objects-normal/x86_64/LocationProvider.swiftconstvalues",
+    "dependencies" : "/Users/hen/Developer/active/personal/Sky/native/.build-ios/Build/Intermediates.noindex/Sky.build/Debug-iphonesimulator/Sky.build/Objects-normal/x86_64/LocationProvider.d",
+    "diagnostics" : "/Users/hen/Developer/active/personal/Sky/native/.build-ios/Build/Intermediates.noindex/Sky.build/Debug-iphonesimulator/Sky.build/Objects-normal/x86_64/LocationProvider.dia",
+    "index-unit-output-path" : "/Sky.build/Debug-iphonesimulator/Sky.build/Objects-normal/x86_64/LocationProvider.o",
+    "llvm-bc" : "/Users/hen/Developer/active/personal/Sky/native/.build-ios/Build/Intermediates.noindex/Sky.build/Debug-iphonesimulator/Sky.build/Objects-normal/x86_64/LocationProvider.bc",
+    "object" : "/Users/hen/Developer/active/personal/Sky/native/.build-ios/Build/Intermediates.noindex/Sky.build/Debug-iphonesimulator/Sky.build/Objects-normal/x86_64/LocationProvider.o",
+    "swift-dependencies" : "/Users/hen/Developer/active/personal/Sky/native/.build-ios/Build/Intermediates.noindex/Sky.build/Debug-iphonesimulator/Sky.build/Objects-normal/x86_64/LocationProvider.swiftdeps",
+    "swiftmodule" : "/Users/hen/Developer/active/personal/Sky/native/.build-ios/Build/Intermediates.noindex/Sky.build/Debug-iphonesimulator/Sky.build/Objects-normal/x86_64/LocationProvider~partial.swiftmodule"
+  },
+  "/Users/hen/Developer/active/personal/Sky/native/Sky/Stores/WidgetKind.swift" : {
+    "const-values" : "/Users/hen/Developer/active/personal/Sky/native/.build-ios/Build/Intermediates.noindex/Sky.build/Debug-iphonesimulator/Sky.build/Objects-normal/x86_64/WidgetKind.swiftconstvalues",
+    "dependencies" : "/Users/hen/Developer/active/personal/Sky/native/.build-ios/Build/Intermediates.noindex/Sky.build/Debug-iphonesimulator/Sky.build/Objects-normal/x86_64/WidgetKind.d",
+    "diagnostics" : "/Users/hen/Developer/active/personal/Sky/native/.build-ios/Build/Intermediates.noindex/Sky.build/Debug-iphonesimulator/Sky.build/Objects-normal/x86_64/WidgetKind.dia",
+    "index-unit-output-path" : "/Sky.build/Debug-iphonesimulator/Sky.build/Objects-normal/x86_64/WidgetKind.o",
+    "llvm-bc" : "/Users/hen/Developer/active/personal/Sky/native/.build-ios/Build/Intermediates.noindex/Sky.build/Debug-iphonesimulator/Sky.build/Objects-normal/x86_64/WidgetKind.bc",
+    "object" : "/Users/hen/Developer/active/personal/Sky/native/.build-ios/Build/Intermediates.noindex/Sky.build/Debug-iphonesimulator/Sky.build/Objects-normal/x86_64/WidgetKind.o",
+    "swift-dependencies" : "/Users/hen/Developer/active/personal/Sky/native/.build-ios/Build/Intermediates.noindex/Sky.build/Debug-iphonesimulator/Sky.build/Objects-normal/x86_64/WidgetKind.swiftdeps",
+    "swiftmodule" : "/Users/hen/Developer/active/personal/Sky/native/.build-ios/Build/Intermediates.noindex/Sky.build/Debug-iphonesimulator/Sky.build/Objects-normal/x86_64/WidgetKind~partial.swiftmodule"
+  },
+  "/Users/hen/Developer/active/personal/Sky/native/Sky/Views/Dashboard/DashboardView.swift" : {
+    "const-values" : "/Users/hen/Developer/active/personal/Sky/native/.build-ios/Build/Intermediates.noindex/Sky.build/Debug-iphonesimulator/Sky.build/Objects-normal/x86_64/DashboardView.swiftconstvalues",
+    "dependencies" : "/Users/hen/Developer/active/personal/Sky/native/.build-ios/Build/Intermediates.noindex/Sky.build/Debug-iphonesimulator/Sky.build/Objects-normal/x86_64/DashboardView.d",
+    "diagnostics" : "/Users/hen/Developer/active/personal/Sky/native/.build-ios/Build/Intermediates.noindex/Sky.build/Debug-iphonesimulator/Sky.build/Objects-normal/x86_64/DashboardView.dia",
+    "index-unit-output-path" : "/Sky.build/Debug-iphonesimulator/Sky.build/Objects-normal/x86_64/DashboardView.o",
+    "llvm-bc" : "/Users/hen/Developer/active/personal/Sky/native/.build-ios/Build/Intermediates.noindex/Sky.build/Debug-iphonesimulator/Sky.build/Objects-normal/x86_64/DashboardView.bc",
+    "object" : "/Users/hen/Developer/active/personal/Sky/native/.build-ios/Build/Intermediates.noindex/Sky.build/Debug-iphonesimulator/Sky.build/Objects-normal/x86_64/DashboardView.o",
+    "swift-dependencies" : "/Users/hen/Developer/active/personal/Sky/native/.build-ios/Build/Intermediates.noindex/Sky.build/Debug-iphonesimulator/Sky.build/Objects-normal/x86_64/DashboardView.swiftdeps",
+    "swiftmodule" : "/Users/hen/Developer/active/personal/Sky/native/.build-ios/Build/Intermediates.noindex/Sky.build/Debug-iphonesimulator/Sky.build/Objects-normal/x86_64/DashboardView~partial.swiftmodule"
+  },
+  "/Users/hen/Developer/active/personal/Sky/native/Sky/Views/RootView.swift" : {
+    "const-values" : "/Users/hen/Developer/active/personal/Sky/native/.build-ios/Build/Intermediates.noindex/Sky.build/Debug-iphonesimulator/Sky.build/Objects-normal/x86_64/RootView.swiftconstvalues",
+    "dependencies" : "/Users/hen/Developer/active/personal/Sky/native/.build-ios/Build/Intermediates.noindex/Sky.build/Debug-iphonesimulator/Sky.build/Objects-normal/x86_64/RootView.d",
+    "diagnostics" : "/Users/hen/Developer/active/personal/Sky/native/.build-ios/Build/Intermediates.noindex/Sky.build/Debug-iphonesimulator/Sky.build/Objects-normal/x86_64/RootView.dia",
+    "index-unit-output-path" : "/Sky.build/Debug-iphonesimulator/Sky.build/Objects-normal/x86_64/RootView.o",
+    "llvm-bc" : "/Users/hen/Developer/active/personal/Sky/native/.build-ios/Build/Intermediates.noindex/Sky.build/Debug-iphonesimulator/Sky.build/Objects-normal/x86_64/RootView.bc",
+    "object" : "/Users/hen/Developer/active/personal/Sky/native/.build-ios/Build/Intermediates.noindex/Sky.build/Debug-iphonesimulator/Sky.build/Objects-normal/x86_64/RootView.o",
+    "swift-dependencies" : "/Users/hen/Developer/active/personal/Sky/native/.build-ios/Build/Intermediates.noindex/Sky.build/Debug-iphonesimulator/Sky.build/Objects-normal/x86_64/RootView.swiftdeps",
+    "swiftmodule" : "/Users/hen/Developer/active/personal/Sky/native/.build-ios/Build/Intermediates.noindex/Sky.build/Debug-iphonesimulator/Sky.build/Objects-normal/x86_64/RootView~partial.swiftmodule"
+  },
+  "/Users/hen/Developer/active/personal/Sky/native/Sky/Views/Settings/SettingsView.swift" : {
+    "const-values" : "/Users/hen/Developer/active/personal/Sky/native/.build-ios/Build/Intermediates.noindex/Sky.build/Debug-iphonesimulator/Sky.build/Objects-normal/x86_64/SettingsView.swiftconstvalues",
+    "dependencies" : "/Users/hen/Developer/active/personal/Sky/native/.build-ios/Build/Intermediates.noindex/Sky.build/Debug-iphonesimulator/Sky.build/Objects-normal/x86_64/SettingsView.d",
+    "diagnostics" : "/Users/hen/Developer/active/personal/Sky/native/.build-ios/Build/Intermediates.noindex/Sky.build/Debug-iphonesimulator/Sky.build/Objects-normal/x86_64/SettingsView.dia",
+    "index-unit-output-path" : "/Sky.build/Debug-iphonesimulator/Sky.build/Objects-normal/x86_64/SettingsView.o",
+    "llvm-bc" : "/Users/hen/Developer/active/personal/Sky/native/.build-ios/Build/Intermediates.noindex/Sky.build/Debug-iphonesimulator/Sky.build/Objects-normal/x86_64/SettingsView.bc",
+    "object" : "/Users/hen/Developer/active/personal/Sky/native/.build-ios/Build/Intermediates.noindex/Sky.build/Debug-iphonesimulator/Sky.build/Objects-normal/x86_64/SettingsView.o",
+    "swift-dependencies" : "/Users/hen/Developer/active/personal/Sky/native/.build-ios/Build/Intermediates.noindex/Sky.build/Debug-iphonesimulator/Sky.build/Objects-normal/x86_64/SettingsView.swiftdeps",
+    "swiftmodule" : "/Users/hen/Developer/active/personal/Sky/native/.build-ios/Build/Intermediates.noindex/Sky.build/Debug-iphonesimulator/Sky.build/Objects-normal/x86_64/SettingsView~partial.swiftmodule"
+  },
+  "/Users/hen/Developer/active/personal/Sky/native/Sky/Views/Widgets/CalendarWidget.swift" : {
+    "const-values" : "/Users/hen/Developer/active/personal/Sky/native/.build-ios/Build/Intermediates.noindex/Sky.build/Debug-iphonesimulator/Sky.build/Objects-normal/x86_64/CalendarWidget.swiftconstvalues",
+    "dependencies" : "/Users/hen/Developer/active/personal/Sky/native/.build-ios/Build/Intermediates.noindex/Sky.build/Debug-iphonesimulator/Sky.build/Objects-normal/x86_64/CalendarWidget.d",
+    "diagnostics" : "/Users/hen/Developer/active/personal/Sky/native/.build-ios/Build/Intermediates.noindex/Sky.build/Debug-iphonesimulator/Sky.build/Objects-normal/x86_64/CalendarWidget.dia",
+    "index-unit-output-path" : "/Sky.build/Debug-iphonesimulator/Sky.build/Objects-normal/x86_64/CalendarWidget.o",
+    "llvm-bc" : "/Users/hen/Developer/active/personal/Sky/native/.build-ios/Build/Intermediates.noindex/Sky.build/Debug-iphonesimulator/Sky.build/Objects-normal/x86_64/CalendarWidget.bc",
+    "object" : "/Users/hen/Developer/active/personal/Sky/native/.build-ios/Build/Intermediates.noindex/Sky.build/Debug-iphonesimulator/Sky.build/Objects-normal/x86_64/CalendarWidget.o",
+    "swift-dependencies" : "/Users/hen/Developer/active/personal/Sky/native/.build-ios/Build/Intermediates.noindex/Sky.build/Debug-iphonesimulator/Sky.build/Objects-normal/x86_64/CalendarWidget.swiftdeps",
+    "swiftmodule" : "/Users/hen/Developer/active/personal/Sky/native/.build-ios/Build/Intermediates.noindex/Sky.build/Debug-iphonesimulator/Sky.build/Objects-normal/x86_64/CalendarWidget~partial.swiftmodule"
+  },
+  "/Users/hen/Developer/active/personal/Sky/native/Sky/Views/Widgets/CountdownWidget.swift" : {
+    "const-values" : "/Users/hen/Developer/active/personal/Sky/native/.build-ios/Build/Intermediates.noindex/Sky.build/Debug-iphonesimulator/Sky.build/Objects-normal/x86_64/CountdownWidget.swiftconstvalues",
+    "dependencies" : "/Users/hen/Developer/active/personal/Sky/native/.build-ios/Build/Intermediates.noindex/Sky.build/Debug-iphonesimulator/Sky.build/Objects-normal/x86_64/CountdownWidget.d",
+    "diagnostics" : "/Users/hen/Developer/active/personal/Sky/native/.build-ios/Build/Intermediates.noindex/Sky.build/Debug-iphonesimulator/Sky.build/Objects-normal/x86_64/CountdownWidget.dia",
+    "index-unit-output-path" : "/Sky.build/Debug-iphonesimulator/Sky.build/Objects-normal/x86_64/CountdownWidget.o",
+    "llvm-bc" : "/Users/hen/Developer/active/personal/Sky/native/.build-ios/Build/Intermediates.noindex/Sky.build/Debug-iphonesimulator/Sky.build/Objects-normal/x86_64/CountdownWidget.bc",
+    "object" : "/Users/hen/Developer/active/personal/Sky/native/.build-ios/Build/Intermediates.noindex/Sky.build/Debug-iphonesimulator/Sky.build/Objects-normal/x86_64/CountdownWidget.o",
+    "swift-dependencies" : "/Users/hen/Developer/active/personal/Sky/native/.build-ios/Build/Intermediates.noindex/Sky.build/Debug-iphonesimulator/Sky.build/Objects-normal/x86_64/CountdownWidget.swiftdeps",
+    "swiftmodule" : "/Users/hen/Developer/active/personal/Sky/native/.build-ios/Build/Intermediates.noindex/Sky.build/Debug-iphonesimulator/Sky.build/Objects-normal/x86_64/CountdownWidget~partial.swiftmodule"
+  },
+  "/Users/hen/Developer/active/personal/Sky/native/Sky/Views/Widgets/FairWidget.swift" : {
+    "const-values" : "/Users/hen/Developer/active/personal/Sky/native/.build-ios/Build/Intermediates.noindex/Sky.build/Debug-iphonesimulator/Sky.build/Objects-normal/x86_64/FairWidget.swiftconstvalues",
+    "dependencies" : "/Users/hen/Developer/active/personal/Sky/native/.build-ios/Build/Intermediates.noindex/Sky.build/Debug-iphonesimulator/Sky.build/Objects-normal/x86_64/FairWidget.d",
+    "diagnostics" : "/Users/hen/Developer/active/personal/Sky/native/.build-ios/Build/Intermediates.noindex/Sky.build/Debug-iphonesimulator/Sky.build/Objects-normal/x86_64/FairWidget.dia",
+    "index-unit-output-path" : "/Sky.build/Debug-iphonesimulator/Sky.build/Objects-normal/x86_64/FairWidget.o",
+    "llvm-bc" : "/Users/hen/Developer/active/personal/Sky/native/.build-ios/Build/Intermediates.noindex/Sky.build/Debug-iphonesimulator/Sky.build/Objects-normal/x86_64/FairWidget.bc",
+    "object" : "/Users/hen/Developer/active/personal/Sky/native/.build-ios/Build/Intermediates.noindex/Sky.build/Debug-iphonesimulator/Sky.build/Objects-normal/x86_64/FairWidget.o",
+    "swift-dependencies" : "/Users/hen/Developer/active/personal/Sky/native/.build-ios/Build/Intermediates.noindex/Sky.build/Debug-iphonesimulator/Sky.build/Objects-normal/x86_64/FairWidget.swiftdeps",
+    "swiftmodule" : "/Users/hen/Developer/active/personal/Sky/native/.build-ios/Build/Intermediates.noindex/Sky.build/Debug-iphonesimulator/Sky.build/Objects-normal/x86_64/FairWidget~partial.swiftmodule"
+  },
+  "/Users/hen/Developer/active/personal/Sky/native/Sky/Views/Widgets/GitHubWidget.swift" : {
+    "const-values" : "/Users/hen/Developer/active/personal/Sky/native/.build-ios/Build/Intermediates.noindex/Sky.build/Debug-iphonesimulator/Sky.build/Objects-normal/x86_64/GitHubWidget.swiftconstvalues",
+    "dependencies" : "/Users/hen/Developer/active/personal/Sky/native/.build-ios/Build/Intermediates.noindex/Sky.build/Debug-iphonesimulator/Sky.build/Objects-normal/x86_64/GitHubWidget.d",
+    "diagnostics" : "/Users/hen/Developer/active/personal/Sky/native/.build-ios/Build/Intermediates.noindex/Sky.build/Debug-iphonesimulator/Sky.build/Objects-normal/x86_64/GitHubWidget.dia",
+    "index-unit-output-path" : "/Sky.build/Debug-iphonesimulator/Sky.build/Objects-normal/x86_64/GitHubWidget.o",
+    "llvm-bc" : "/Users/hen/Developer/active/personal/Sky/native/.build-ios/Build/Intermediates.noindex/Sky.build/Debug-iphonesimulator/Sky.build/Objects-normal/x86_64/GitHubWidget.bc",
+    "object" : "/Users/hen/Developer/active/personal/Sky/native/.build-ios/Build/Intermediates.noindex/Sky.build/Debug-iphonesimulator/Sky.build/Objects-normal/x86_64/GitHubWidget.o",
+    "swift-dependencies" : "/Users/hen/Developer/active/personal/Sky/native/.build-ios/Build/Intermediates.noindex/Sky.build/Debug-iphonesimulator/Sky.build/Objects-normal/x86_64/GitHubWidget.swiftdeps",
+    "swiftmodule" : "/Users/hen/Developer/active/personal/Sky/native/.build-ios/Build/Intermediates.noindex/Sky.build/Debug-iphonesimulator/Sky.build/Objects-normal/x86_64/GitHubWidget~partial.swiftmodule"
+  },
+  "/Users/hen/Developer/active/personal/Sky/native/Sky/Views/Widgets/IBKRWidget.swift" : {
+    "const-values" : "/Users/hen/Developer/active/personal/Sky/native/.build-ios/Build/Intermediates.noindex/Sky.build/Debug-iphonesimulator/Sky.build/Objects-normal/x86_64/IBKRWidget.swiftconstvalues",
+    "dependencies" : "/Users/hen/Developer/active/personal/Sky/native/.build-ios/Build/Intermediates.noindex/Sky.build/Debug-iphonesimulator/Sky.build/Objects-normal/x86_64/IBKRWidget.d",
+    "diagnostics" : "/Users/hen/Developer/active/personal/Sky/native/.build-ios/Build/Intermediates.noindex/Sky.build/Debug-iphonesimulator/Sky.build/Objects-normal/x86_64/IBKRWidget.dia",
+    "index-unit-output-path" : "/Sky.build/Debug-iphonesimulator/Sky.build/Objects-normal/x86_64/IBKRWidget.o",
+    "llvm-bc" : "/Users/hen/Developer/active/personal/Sky/native/.build-ios/Build/Intermediates.noindex/Sky.build/Debug-iphonesimulator/Sky.build/Objects-normal/x86_64/IBKRWidget.bc",
+    "object" : "/Users/hen/Developer/active/personal/Sky/native/.build-ios/Build/Intermediates.noindex/Sky.build/Debug-iphonesimulator/Sky.build/Objects-normal/x86_64/IBKRWidget.o",
+    "swift-dependencies" : "/Users/hen/Developer/active/personal/Sky/native/.build-ios/Build/Intermediates.noindex/Sky.build/Debug-iphonesimulator/Sky.build/Objects-normal/x86_64/IBKRWidget.swiftdeps",
+    "swiftmodule" : "/Users/hen/Developer/active/personal/Sky/native/.build-ios/Build/Intermediates.noindex/Sky.build/Debug-iphonesimulator/Sky.build/Objects-normal/x86_64/IBKRWidget~partial.swiftmodule"
+  },
+  "/Users/hen/Developer/active/personal/Sky/native/Sky/Views/Widgets/QuoteWidget.swift" : {
+    "const-values" : "/Users/hen/Developer/active/personal/Sky/native/.build-ios/Build/Intermediates.noindex/Sky.build/Debug-iphonesimulator/Sky.build/Objects-normal/x86_64/QuoteWidget.swiftconstvalues",
+    "dependencies" : "/Users/hen/Developer/active/personal/Sky/native/.build-ios/Build/Intermediates.noindex/Sky.build/Debug-iphonesimulator/Sky.build/Objects-normal/x86_64/QuoteWidget.d",
+    "diagnostics" : "/Users/hen/Developer/active/personal/Sky/native/.build-ios/Build/Intermediates.noindex/Sky.build/Debug-iphonesimulator/Sky.build/Objects-normal/x86_64/QuoteWidget.dia",
+    "index-unit-output-path" : "/Sky.build/Debug-iphonesimulator/Sky.build/Objects-normal/x86_64/QuoteWidget.o",
+    "llvm-bc" : "/Users/hen/Developer/active/personal/Sky/native/.build-ios/Build/Intermediates.noindex/Sky.build/Debug-iphonesimulator/Sky.build/Objects-normal/x86_64/QuoteWidget.bc",
+    "object" : "/Users/hen/Developer/active/personal/Sky/native/.build-ios/Build/Intermediates.noindex/Sky.build/Debug-iphonesimulator/Sky.build/Objects-normal/x86_64/QuoteWidget.o",
+    "swift-dependencies" : "/Users/hen/Developer/active/personal/Sky/native/.build-ios/Build/Intermediates.noindex/Sky.build/Debug-iphonesimulator/Sky.build/Objects-normal/x86_64/QuoteWidget.swiftdeps",
+    "swiftmodule" : "/Users/hen/Developer/active/personal/Sky/native/.build-ios/Build/Intermediates.noindex/Sky.build/Debug-iphonesimulator/Sky.build/Objects-normal/x86_64/QuoteWidget~partial.swiftmodule"
+  },
+  "/Users/hen/Developer/active/personal/Sky/native/Sky/Views/Widgets/ReadingWidget.swift" : {
+    "const-values" : "/Users/hen/Developer/active/personal/Sky/native/.build-ios/Build/Intermediates.noindex/Sky.build/Debug-iphonesimulator/Sky.build/Objects-normal/x86_64/ReadingWidget.swiftconstvalues",
+    "dependencies" : "/Users/hen/Developer/active/personal/Sky/native/.build-ios/Build/Intermediates.noindex/Sky.build/Debug-iphonesimulator/Sky.build/Objects-normal/x86_64/ReadingWidget.d",
+    "diagnostics" : "/Users/hen/Developer/active/personal/Sky/native/.build-ios/Build/Intermediates.noindex/Sky.build/Debug-iphonesimulator/Sky.build/Objects-normal/x86_64/ReadingWidget.dia",
+    "index-unit-output-path" : "/Sky.build/Debug-iphonesimulator/Sky.build/Objects-normal/x86_64/ReadingWidget.o",
+    "llvm-bc" : "/Users/hen/Developer/active/personal/Sky/native/.build-ios/Build/Intermediates.noindex/Sky.build/Debug-iphonesimulator/Sky.build/Objects-normal/x86_64/ReadingWidget.bc",
+    "object" : "/Users/hen/Developer/active/personal/Sky/native/.build-ios/Build/Intermediates.noindex/Sky.build/Debug-iphonesimulator/Sky.build/Objects-normal/x86_64/ReadingWidget.o",
+    "swift-dependencies" : "/Users/hen/Developer/active/personal/Sky/native/.build-ios/Build/Intermediates.noindex/Sky.build/Debug-iphonesimulator/Sky.build/Objects-normal/x86_64/ReadingWidget.swiftdeps",
+    "swiftmodule" : "/Users/hen/Developer/active/personal/Sky/native/.build-ios/Build/Intermediates.noindex/Sky.build/Debug-iphonesimulator/Sky.build/Objects-normal/x86_64/ReadingWidget~partial.swiftmodule"
+  },
+  "/Users/hen/Developer/active/personal/Sky/native/Sky/Views/Widgets/SpotifyWidget.swift" : {
+    "const-values" : "/Users/hen/Developer/active/personal/Sky/native/.build-ios/Build/Intermediates.noindex/Sky.build/Debug-iphonesimulator/Sky.build/Objects-normal/x86_64/SpotifyWidget.swiftconstvalues",
+    "dependencies" : "/Users/hen/Developer/active/personal/Sky/native/.build-ios/Build/Intermediates.noindex/Sky.build/Debug-iphonesimulator/Sky.build/Objects-normal/x86_64/SpotifyWidget.d",
+    "diagnostics" : "/Users/hen/Developer/active/personal/Sky/native/.build-ios/Build/Intermediates.noindex/Sky.build/Debug-iphonesimulator/Sky.build/Objects-normal/x86_64/SpotifyWidget.dia",
+    "index-unit-output-path" : "/Sky.build/Debug-iphonesimulator/Sky.build/Objects-normal/x86_64/SpotifyWidget.o",
+    "llvm-bc" : "/Users/hen/Developer/active/personal/Sky/native/.build-ios/Build/Intermediates.noindex/Sky.build/Debug-iphonesimulator/Sky.build/Objects-normal/x86_64/SpotifyWidget.bc",
+    "object" : "/Users/hen/Developer/active/personal/Sky/native/.build-ios/Build/Intermediates.noindex/Sky.build/Debug-iphonesimulator/Sky.build/Objects-normal/x86_64/SpotifyWidget.o",
+    "swift-dependencies" : "/Users/hen/Developer/active/personal/Sky/native/.build-ios/Build/Intermediates.noindex/Sky.build/Debug-iphonesimulator/Sky.build/Objects-normal/x86_64/SpotifyWidget.swiftdeps",
+    "swiftmodule" : "/Users/hen/Developer/active/personal/Sky/native/.build-ios/Build/Intermediates.noindex/Sky.build/Debug-iphonesimulator/Sky.build/Objects-normal/x86_64/SpotifyWidget~partial.swiftmodule"
+  },
+  "/Users/hen/Developer/active/personal/Sky/native/Sky/Views/Widgets/StocksWidget.swift" : {
+    "const-values" : "/Users/hen/Developer/active/personal/Sky/native/.build-ios/Build/Intermediates.noindex/Sky.build/Debug-iphonesimulator/Sky.build/Objects-normal/x86_64/StocksWidget.swiftconstvalues",
+    "dependencies" : "/Users/hen/Developer/active/personal/Sky/native/.build-ios/Build/Intermediates.noindex/Sky.build/Debug-iphonesimulator/Sky.build/Objects-normal/x86_64/StocksWidget.d",
+    "diagnostics" : "/Users/hen/Developer/active/personal/Sky/native/.build-ios/Build/Intermediates.noindex/Sky.build/Debug-iphonesimulator/Sky.build/Objects-normal/x86_64/StocksWidget.dia",
+    "index-unit-output-path" : "/Sky.build/Debug-iphonesimulator/Sky.build/Objects-normal/x86_64/StocksWidget.o",
+    "llvm-bc" : "/Users/hen/Developer/active/personal/Sky/native/.build-ios/Build/Intermediates.noindex/Sky.build/Debug-iphonesimulator/Sky.build/Objects-normal/x86_64/StocksWidget.bc",
+    "object" : "/Users/hen/Developer/active/personal/Sky/native/.build-ios/Build/Intermediates.noindex/Sky.build/Debug-iphonesimulator/Sky.build/Objects-normal/x86_64/StocksWidget.o",
+    "swift-dependencies" : "/Users/hen/Developer/active/personal/Sky/native/.build-ios/Build/Intermediates.noindex/Sky.build/Debug-iphonesimulator/Sky.build/Objects-normal/x86_64/StocksWidget.swiftdeps",
+    "swiftmodule" : "/Users/hen/Developer/active/personal/Sky/native/.build-ios/Build/Intermediates.noindex/Sky.build/Debug-iphonesimulator/Sky.build/Objects-normal/x86_64/StocksWidget~partial.swiftmodule"
+  },
+  "/Users/hen/Developer/active/personal/Sky/native/Sky/Views/Widgets/StravaWidget.swift" : {
+    "const-values" : "/Users/hen/Developer/active/personal/Sky/native/.build-ios/Build/Intermediates.noindex/Sky.build/Debug-iphonesimulator/Sky.build/Objects-normal/x86_64/StravaWidget.swiftconstvalues",
+    "dependencies" : "/Users/hen/Developer/active/personal/Sky/native/.build-ios/Build/Intermediates.noindex/Sky.build/Debug-iphonesimulator/Sky.build/Objects-normal/x86_64/StravaWidget.d",
+    "diagnostics" : "/Users/hen/Developer/active/personal/Sky/native/.build-ios/Build/Intermediates.noindex/Sky.build/Debug-iphonesimulator/Sky.build/Objects-normal/x86_64/StravaWidget.dia",
+    "index-unit-output-path" : "/Sky.build/Debug-iphonesimulator/Sky.build/Objects-normal/x86_64/StravaWidget.o",
+    "llvm-bc" : "/Users/hen/Developer/active/personal/Sky/native/.build-ios/Build/Intermediates.noindex/Sky.build/Debug-iphonesimulator/Sky.build/Objects-normal/x86_64/StravaWidget.bc",
+    "object" : "/Users/hen/Developer/active/personal/Sky/native/.build-ios/Build/Intermediates.noindex/Sky.build/Debug-iphonesimulator/Sky.build/Objects-normal/x86_64/StravaWidget.o",
+    "swift-dependencies" : "/Users/hen/Developer/active/personal/Sky/native/.build-ios/Build/Intermediates.noindex/Sky.build/Debug-iphonesimulator/Sky.build/Objects-normal/x86_64/StravaWidget.swiftdeps",
+    "swiftmodule" : "/Users/hen/Developer/active/personal/Sky/native/.build-ios/Build/Intermediates.noindex/Sky.build/Debug-iphonesimulator/Sky.build/Objects-normal/x86_64/StravaWidget~partial.swiftmodule"
+  },
+  "/Users/hen/Developer/active/personal/Sky/native/Sky/Views/Widgets/TasksWidget.swift" : {
+    "const-values" : "/Users/hen/Developer/active/personal/Sky/native/.build-ios/Build/Intermediates.noindex/Sky.build/Debug-iphonesimulator/Sky.build/Objects-normal/x86_64/TasksWidget.swiftconstvalues",
+    "dependencies" : "/Users/hen/Developer/active/personal/Sky/native/.build-ios/Build/Intermediates.noindex/Sky.build/Debug-iphonesimulator/Sky.build/Objects-normal/x86_64/TasksWidget.d",
+    "diagnostics" : "/Users/hen/Developer/active/personal/Sky/native/.build-ios/Build/Intermediates.noindex/Sky.build/Debug-iphonesimulator/Sky.build/Objects-normal/x86_64/TasksWidget.dia",
+    "index-unit-output-path" : "/Sky.build/Debug-iphonesimulator/Sky.build/Objects-normal/x86_64/TasksWidget.o",
+    "llvm-bc" : "/Users/hen/Developer/active/personal/Sky/native/.build-ios/Build/Intermediates.noindex/Sky.build/Debug-iphonesimulator/Sky.build/Objects-normal/x86_64/TasksWidget.bc",
+    "object" : "/Users/hen/Developer/active/personal/Sky/native/.build-ios/Build/Intermediates.noindex/Sky.build/Debug-iphonesimulator/Sky.build/Objects-normal/x86_64/TasksWidget.o",
+    "swift-dependencies" : "/Users/hen/Developer/active/personal/Sky/native/.build-ios/Build/Intermediates.noindex/Sky.build/Debug-iphonesimulator/Sky.build/Objects-normal/x86_64/TasksWidget.swiftdeps",
+    "swiftmodule" : "/Users/hen/Developer/active/personal/Sky/native/.build-ios/Build/Intermediates.noindex/Sky.build/Debug-iphonesimulator/Sky.build/Objects-normal/x86_64/TasksWidget~partial.swiftmodule"
+  },
+  "/Users/hen/Developer/active/personal/Sky/native/Sky/Views/Widgets/WeatherWidget.swift" : {
+    "const-values" : "/Users/hen/Developer/active/personal/Sky/native/.build-ios/Build/Intermediates.noindex/Sky.build/Debug-iphonesimulator/Sky.build/Objects-normal/x86_64/WeatherWidget.swiftconstvalues",
+    "dependencies" : "/Users/hen/Developer/active/personal/Sky/native/.build-ios/Build/Intermediates.noindex/Sky.build/Debug-iphonesimulator/Sky.build/Objects-normal/x86_64/WeatherWidget.d",
+    "diagnostics" : "/Users/hen/Developer/active/personal/Sky/native/.build-ios/Build/Intermediates.noindex/Sky.build/Debug-iphonesimulator/Sky.build/Objects-normal/x86_64/WeatherWidget.dia",
+    "index-unit-output-path" : "/Sky.build/Debug-iphonesimulator/Sky.build/Objects-normal/x86_64/WeatherWidget.o",
+    "llvm-bc" : "/Users/hen/Developer/active/personal/Sky/native/.build-ios/Build/Intermediates.noindex/Sky.build/Debug-iphonesimulator/Sky.build/Objects-normal/x86_64/WeatherWidget.bc",
+    "object" : "/Users/hen/Developer/active/personal/Sky/native/.build-ios/Build/Intermediates.noindex/Sky.build/Debug-iphonesimulator/Sky.build/Objects-normal/x86_64/WeatherWidget.o",
+    "swift-dependencies" : "/Users/hen/Developer/active/personal/Sky/native/.build-ios/Build/Intermediates.noindex/Sky.build/Debug-iphonesimulator/Sky.build/Objects-normal/x86_64/WeatherWidget.swiftdeps",
+    "swiftmodule" : "/Users/hen/Developer/active/personal/Sky/native/.build-ios/Build/Intermediates.noindex/Sky.build/Debug-iphonesimulator/Sky.build/Objects-normal/x86_64/WeatherWidget~partial.swiftmodule"
+  },
+  "/Users/hen/Developer/active/personal/Sky/native/Sky/Views/Widgets/WidgetPlaceholder.swift" : {
+    "const-values" : "/Users/hen/Developer/active/personal/Sky/native/.build-ios/Build/Intermediates.noindex/Sky.build/Debug-iphonesimulator/Sky.build/Objects-normal/x86_64/WidgetPlaceholder.swiftconstvalues",
+    "dependencies" : "/Users/hen/Developer/active/personal/Sky/native/.build-ios/Build/Intermediates.noindex/Sky.build/Debug-iphonesimulator/Sky.build/Objects-normal/x86_64/WidgetPlaceholder.d",
+    "diagnostics" : "/Users/hen/Developer/active/personal/Sky/native/.build-ios/Build/Intermediates.noindex/Sky.build/Debug-iphonesimulator/Sky.build/Objects-normal/x86_64/WidgetPlaceholder.dia",
+    "index-unit-output-path" : "/Sky.build/Debug-iphonesimulator/Sky.build/Objects-normal/x86_64/WidgetPlaceholder.o",
+    "llvm-bc" : "/Users/hen/Developer/active/personal/Sky/native/.build-ios/Build/Intermediates.noindex/Sky.build/Debug-iphonesimulator/Sky.build/Objects-normal/x86_64/WidgetPlaceholder.bc",
+    "object" : "/Users/hen/Developer/active/personal/Sky/native/.build-ios/Build/Intermediates.noindex/Sky.build/Debug-iphonesimulator/Sky.build/Objects-normal/x86_64/WidgetPlaceholder.o",
+    "swift-dependencies" : "/Users/hen/Developer/active/personal/Sky/native/.build-ios/Build/Intermediates.noindex/Sky.build/Debug-iphonesimulator/Sky.build/Objects-normal/x86_64/WidgetPlaceholder.swiftdeps",
+    "swiftmodule" : "/Users/hen/Developer/active/personal/Sky/native/.build-ios/Build/Intermediates.noindex/Sky.build/Debug-iphonesimulator/Sky.build/Objects-normal/x86_64/WidgetPlaceholder~partial.swiftmodule"
+  }
+}

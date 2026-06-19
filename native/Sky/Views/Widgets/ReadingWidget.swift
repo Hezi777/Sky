@@ -21,7 +21,7 @@ private struct BookRow: View {
     let book: ReadingBook
 
     var body: some View {
-        HStack(alignment: .top, spacing: 12) {
+        let content = HStack(alignment: .top, spacing: 12) {
             if let cover = book.cover, let url = URL(string: cover) {
                 AsyncImage(url: url) { phase in
                     switch phase {
@@ -38,6 +38,7 @@ private struct BookRow: View {
             VStack(alignment: .leading, spacing: 4) {
                 Text(book.title)
                     .font(.subheadline.weight(.medium))
+                    .foregroundStyle(.primary)
                     .lineLimit(1)
                 if let author = book.author, !author.isEmpty {
                     Text(author)
@@ -45,20 +46,37 @@ private struct BookRow: View {
                         .foregroundStyle(.secondary)
                         .lineLimit(1)
                 }
+
                 ProgressBar(progress: book.progress)
                     .padding(.top, 2)
-                Text(pageText)
-                    .font(.caption2)
-                    .foregroundStyle(.tertiary)
-                    .monospacedDigit()
+
+                HStack(spacing: 4) {
+                    Text(pageText)
+                        .font(.caption2)
+                        .foregroundStyle(.tertiary)
+                        .monospacedDigit()
+                    Spacer(minLength: 4)
+                    Text("\(book.progress)%")
+                        .font(.caption2.weight(.medium))
+                        .foregroundStyle(Theme.accent)
+                        .monospacedDigit()
+                        .contentTransition(.numericText())
+                }
             }
+        }
+
+        if let linkURL = URL(string: book.url) {
+            Link(destination: linkURL) { content }
+                .buttonStyle(.plain)
+        } else {
+            content
         }
     }
 
     private var pageText: String {
         let current = book.currentPage.map(String.init) ?? "—"
         let total = book.totalPages.map(String.init) ?? "—"
-        return "p.\(current)/\(total)"
+        return "p. \(current) / \(total)"
     }
 }
 

@@ -16,7 +16,7 @@ struct CountdownWidget: View {
     var body: some View {
         Card {
             VStack(alignment: .leading, spacing: 12) {
-                CardHeader(title: "Countdown", symbol: "airplane.departure", tint: .orange) {
+                CardHeader(title: "Countdown", symbol: "airplane.departure", tint: Theme.accent) {
                     Button {
                         editingTrip = nil
                         showEditor = true
@@ -66,24 +66,11 @@ private struct TripCountdownView: View {
     }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 6) {
-            Text(trip.destination)
-                .font(.headline)
-                .lineLimit(1)
-
+        VStack(alignment: .leading, spacing: 8) {
             HStack(alignment: .firstTextBaseline, spacing: 4) {
-                Text("\(daysRemaining)")
-                    .font(.system(size: 44, weight: .thin, design: .rounded))
-                    .contentTransition(.numericText())
-                Text(daysRemaining == 1 ? "day" : "days")
-                    .font(.title3.weight(.light))
-                    .foregroundStyle(.secondary)
-            }
-
-            HStack {
-                Text(trip.date.formatted(.dateTime.month(.wide).day().year()))
-                    .font(.caption)
-                    .foregroundStyle(.tertiary)
+                Text(trip.destination)
+                    .font(.headline)
+                    .lineLimit(1)
                 Spacer(minLength: 8)
                 Button {
                     onEdit()
@@ -94,6 +81,25 @@ private struct TripCountdownView: View {
                 }
                 .buttonStyle(.borderless)
             }
+
+            HStack(alignment: .firstTextBaseline, spacing: 6) {
+                Text("\(daysRemaining)")
+                    .font(.system(size: 54, weight: .ultraLight, design: .rounded))
+                    .foregroundStyle(Theme.accent)
+                    .contentTransition(.numericText())
+                Text(daysRemaining == 1 ? "day" : "days")
+                    .font(.title3.weight(.light))
+                    .foregroundStyle(.secondary)
+            }
+
+            Label {
+                Text(trip.date.formatted(.dateTime.month(.wide).day().year()))
+            } icon: {
+                Image(systemName: "calendar")
+                    .foregroundStyle(Theme.accent)
+            }
+            .font(.caption)
+            .foregroundStyle(.tertiary)
         }
     }
 }

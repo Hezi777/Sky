@@ -8,8 +8,20 @@ enum Theme {
     static let cardPadding: CGFloat = 18
     static let cardRadius: CGFloat = 22
 
-    // Accent — Sky blue, matches the web app's --primary.
-    static let accent = Color(red: 0.15, green: 0.39, blue: 0.92) // #2563EB
+    // Accent — Sky blue, matches the web app's --primary (light/dark via asset).
+    static let accent = Color("SkyPrimary")
+
+    /// Ordered chart palette, mirrors the web --chart-1…5 (adapts light/dark).
+    static let chartPalette: [Color] = [
+        Color("Chart1"), Color("Chart2"), Color("Chart3"), Color("Chart4"), Color("Chart5"),
+    ]
+
+    /// GitHub contribution scale: index 0 = empty, 1…4 = increasing intensity.
+    static let githubLevels: [Color] = [
+        Color("GithubEmpty"), Color("Github1"), Color("Github2"), Color("Github3"), Color("Github4"),
+    ]
+
+    static func chartColor(_ index: Int) -> Color { chartPalette[index % chartPalette.count] }
 }
 
 // MARK: - Glass helper with graceful fallback
@@ -38,12 +50,13 @@ struct Card<Content: View>: View {
             .padding(Theme.cardPadding)
             .background(
                 RoundedRectangle(cornerRadius: Theme.cardRadius, style: .continuous)
-                    .fill(.background.secondary)
+                    .fill(Color("CardBg").opacity(0.92))
             )
             .overlay(
                 RoundedRectangle(cornerRadius: Theme.cardRadius, style: .continuous)
-                    .strokeBorder(.separator.opacity(0.5), lineWidth: 0.5)
+                    .strokeBorder(.white.opacity(0.06), lineWidth: 0.5)
             )
+            .shadow(color: .black.opacity(0.18), radius: 14, y: 6)
             .clipShape(RoundedRectangle(cornerRadius: Theme.cardRadius, style: .continuous))
     }
 }
