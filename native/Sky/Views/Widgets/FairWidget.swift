@@ -1,12 +1,17 @@
 import SwiftUI
 
 struct FairWidget: View {
+    // Israeli mutual fund number (Maya/TASE). Editable later via settings.
+    @AppStorage("sky.fair.fund") private var fund = "5140785"
+
     var body: some View {
         AsyncCard(
             title: "Fund",
             symbol: "building.columns.fill",
             tint: Theme.accent,
-            load: { try await APIClient.shared.get("/api/fair") as FairPrice }
+            load: { [fund] in
+                try await APIClient.shared.get("/api/fair", query: ["fund": fund]) as FairPrice
+            }
         ) { fair in
             VStack(alignment: .leading, spacing: 8) {
                 if let name = fair.fundName, !name.isEmpty {

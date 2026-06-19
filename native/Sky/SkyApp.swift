@@ -11,7 +11,7 @@ struct SkyApp: App {
         }
         #if os(macOS)
         .windowStyle(.hiddenTitleBar)
-        .defaultSize(width: 980, height: 720)
+        .defaultSize(width: 1040, height: 920)
         #endif
     }
 }
