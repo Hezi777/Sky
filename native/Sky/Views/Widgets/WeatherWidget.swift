@@ -1,4 +1,5 @@
 import SwiftUI
+import Charts
 
 struct WeatherWidget: View {
     @State private var location = LocationProvider()
@@ -18,7 +19,8 @@ struct WeatherWidget: View {
                     WeatherContent(
                         placeName: location.placeName ?? "Current Location",
                         current: w.current,
-                        daily: w.daily
+                        daily: w.daily,
+                        hourly: w.hourly
                     )
                 } else {
                     WidgetLoading()
@@ -39,7 +41,7 @@ struct WeatherWidget: View {
         }
         guard let coord = location.coordinate else { return }
 
-        let urlString = "https://api.open-meteo.com/v1/forecast?latitude=\(coord.latitude)&longitude=\(coord.longitude)&current=temperature_2m,weather_code,apparent_temperature&daily=temperature_2m_max,temperature_2m_min&timezone=auto"
+        let urlString = "https://api.open-meteo.com/v1/forecast?latitude=\(coord.latitude)&longitude=\(coord.longitude)&current=temperature_2m,weather_code,apparent_temperature&hourly=temperature_2m&forecast_hours=24&daily=temperature_2m_max,temperature_2m_min&timezone=auto"
         guard let url = URL(string: urlString) else { return }
 
         do {
@@ -57,8 +59,19 @@ private struct WeatherContent: View {
     let placeName: String
     let current: OpenMeteoCurrent
     let daily: OpenMeteoDaily
+    let hourly: OpenMeteoHourly?
 
     var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            topRow
+            if let hourly, hourly.temperature2m.count > 1 {
+                HourlyTempChart(temps: hourly.temperature2m, times: hourly.time)
+                    .frame(height: 56)
+            }
+        }
+    }
+
+    private var topRow: some View {
         HStack(alignment: .top, spacing: 14) {
             VStack(alignment: .leading, spacing: 4) {
                 Text(placeName)
@@ -114,6 +127,43 @@ private struct WeatherContent: View {
     }
 }
 
+// MARK: - Hourly temperature curve (next 24h)
+
+private struct HourlyTempChart: View {
+    let temps: [Double]
+    let times: [String]
+
+    var body: some View {
+        let points = Array(temps.enumerated())
+        let lo = temps.min() ?? 0
+        let hi = temps.max() ?? 1
+
+        Chart(points, id: \.offset) { index, temp in
+            AreaMark(
+                x: .value("Hour", index),
+                yStart: .value("lo", lo - 1),
+                yEnd: .value("Temp", temp)
+            )
+            .interpolationMethod(.catmullRom)
+            .foregroundStyle(
+                .linearGradient(
+                    colors: [Theme.accent.opacity(0.25), Theme.accent.opacity(0.0)],
+                    startPoint: .top, endPoint: .bottom
+                )
+            )
+
+            LineMark(x: .value("Hour", index), y: .value("Temp", temp))
+                .interpolationMethod(.catmullRom)
+                .foregroundStyle(Theme.accent)
+                .lineStyle(StrokeStyle(lineWidth: 2))
+        }
+        .chartYScale(domain: (lo - 1)...(hi + 1))
+        .chartXAxis(.hidden)
+        .chartYAxis(.hidden)
+        .chartLegend(.hidden)
+    }
+}
+
 // MARK: - WMO weather code -> SF Symbol
 
 private func weatherSymbol(for code: Int) -> String {
@@ -135,6 +185,17 @@ private func weatherSymbol(for code: Int) -> String {
 private struct OpenMeteoResponse: Codable, Sendable {
     let current: OpenMeteoCurrent
     let daily: OpenMeteoDaily
+    let hourly: OpenMeteoHourly?
+}
+
+private struct OpenMeteoHourly: Codable, Sendable {
+    let time: [String]
+    let temperature2m: [Double]
+
+    enum CodingKeys: String, CodingKey {
+        case time
+        case temperature2m = "temperature_2m"
+    }
 }
 
 private struct OpenMeteoCurrent: Codable, Sendable {

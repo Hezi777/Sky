@@ -13,6 +13,32 @@ interface StockQuote {
   price: number;
   changePercent: number;
   change: number;
+  spark?: number[]; // recent closes (oldest→newest), when TWELVEDATA_API_KEY is set
+}
+
+// Optional intraday sparkline series via Twelve Data (free tier). Returns recent
+// closes oldest→newest, or undefined if the key is unset or the call fails.
+async function fetchSpark(symbol: string): Promise<number[] | undefined> {
+  const key = process.env.TWELVEDATA_API_KEY;
+  if (!key) return undefined;
+  try {
+    const res = await fetch(
+      `https://api.twelvedata.com/time_series?symbol=${encodeURIComponent(
+        symbol
+      )}&interval=1h&outputsize=24&apikey=${key}`,
+      { cache: "no-store" }
+    );
+    if (!res.ok) return undefined;
+    const data = (await res.json()) as { values?: { close: string }[] };
+    if (!Array.isArray(data.values)) return undefined;
+    // Twelve Data returns newest→oldest; reverse to chronological.
+    return data.values
+      .map((v) => Number(v.close))
+      .filter((n) => Number.isFinite(n))
+      .reverse();
+  } catch {
+    return undefined;
+  }
 }
 
 export async function GET(request: Request) {
@@ -34,12 +60,15 @@ export async function GET(request: Request) {
   try {
     const quotes = await Promise.all(
       symbols.map(async (symbol): Promise<StockQuote> => {
-        const res = await fetch(
-          `https://finnhub.io/api/v1/quote?symbol=${encodeURIComponent(
-            symbol
-          )}&token=${apiKey}`,
-          { cache: "no-store" }
-        );
+        const [res, spark] = await Promise.all([
+          fetch(
+            `https://finnhub.io/api/v1/quote?symbol=${encodeURIComponent(
+              symbol
+            )}&token=${apiKey}`,
+            { cache: "no-store" }
+          ),
+          fetchSpark(symbol),
+        ]);
         if (!res.ok) throw new Error(`Finnhub ${res.status} for ${symbol}`);
         const data = (await res.json()) as FinnhubQuote;
         return {
@@ -47,6 +76,7 @@ export async function GET(request: Request) {
           price: data.c ?? 0,
           changePercent: data.dp ?? 0,
           change: data.d ?? 0,
+          spark,
         };
       })
     );

@@ -1,4 +1,5 @@
 import SwiftUI
+import Charts
 
 struct StocksWidget: View {
     @AppStorage("stocks.tickers") private var tickersCSV: String = "AAPL,MSFT,NVDA"
@@ -62,6 +63,11 @@ private struct StockRow: View {
                     .font(.subheadline.weight(.semibold))
                     .foregroundStyle(.primary)
 
+                if let spark = quote.spark, spark.count > 1 {
+                    Sparkline(values: spark, color: changeColor)
+                        .frame(width: 56, height: 22)
+                }
+
                 Spacer(minLength: 8)
 
                 Text(quote.price, format: .number.precision(.fractionLength(2)))
@@ -92,6 +98,42 @@ private struct StockRow: View {
         let val = String(format: "%.2f", quote.change)
         let pct = String(format: "%.2f", abs(quote.changePercent))
         return "\(sign)\(val) (\(pct)%)"
+    }
+}
+
+// Compact intraday sparkline (Swift Charts), gradient area under a smooth line.
+private struct Sparkline: View {
+    let values: [Double]
+    let color: Color
+
+    var body: some View {
+        let points = Array(values.enumerated())
+        let lo = values.min() ?? 0
+        let hi = values.max() ?? 1
+
+        Chart(points, id: \.offset) { index, value in
+            AreaMark(
+                x: .value("t", index),
+                yStart: .value("lo", lo),
+                yEnd: .value("price", value)
+            )
+            .interpolationMethod(.catmullRom)
+            .foregroundStyle(
+                .linearGradient(
+                    colors: [color.opacity(0.28), color.opacity(0.0)],
+                    startPoint: .top, endPoint: .bottom
+                )
+            )
+
+            LineMark(x: .value("t", index), y: .value("price", value))
+                .interpolationMethod(.catmullRom)
+                .foregroundStyle(color)
+                .lineStyle(StrokeStyle(lineWidth: 1.5))
+        }
+        .chartXAxis(.hidden)
+        .chartYAxis(.hidden)
+        .chartYScale(domain: lo...max(hi, lo + 0.0001))
+        .chartLegend(.hidden)
     }
 }
 

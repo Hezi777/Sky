@@ -23,6 +23,8 @@ struct IBKRWidget: View {
                         .frame(maxWidth: .infinity, alignment: .leading)
                 }
 
+                PnlBars(positions: data.positions)
+
                 PositionsList(positions: data.positions)
 
                 if data.source == .flex {
@@ -175,6 +177,55 @@ private struct AllocationLegend: View {
                 }
             }
         }
+    }
+}
+
+// MARK: - P&L by position (bar chart)
+
+private struct PnlBars: View {
+    let positions: [IbkrPosition]
+
+    var body: some View {
+        let ranked = positions.sorted { $0.pnlPercent > $1.pnlPercent }
+
+        VStack(alignment: .leading, spacing: 6) {
+            Text("P&L by position")
+                .font(.caption2.weight(.semibold))
+                .textCase(.uppercase)
+                .foregroundStyle(.secondary)
+
+            Chart(ranked) { position in
+                BarMark(
+                    x: .value("P&L", position.pnlPercent),
+                    y: .value("Ticker", position.ticker)
+                )
+                .cornerRadius(3)
+                .foregroundStyle(position.pnlPercent >= 0 ? Color.green : Color.red)
+                .annotation(position: position.pnlPercent >= 0 ? .trailing : .leading) {
+                    Text(position.pnlPercent / 100, format: .percent.precision(.fractionLength(1)))
+                        .font(.system(size: 9, weight: .medium))
+                        .monospacedDigit()
+                        .foregroundStyle(.secondary)
+                }
+            }
+            .chartXAxis(.hidden)
+            .chartYAxis {
+                AxisMarks(position: .leading) {
+                    AxisValueLabel().font(.caption2)
+                }
+            }
+            .chartXScale(domain: pnlDomain(ranked))
+            .frame(height: CGFloat(ranked.count) * 22 + 8)
+        }
+    }
+
+    /// Symmetric-ish domain with headroom so the % annotations don't clip.
+    private func pnlDomain(_ positions: [IbkrPosition]) -> ClosedRange<Double> {
+        let values = positions.map(\.pnlPercent)
+        let lo = min(0, values.min() ?? 0)
+        let hi = max(0, values.max() ?? 0)
+        let pad = max(4, (hi - lo) * 0.22)
+        return (lo - pad)...(hi + pad)
     }
 }
 
