@@ -11,6 +11,9 @@ struct StockQuote: Codable, Hashable, Identifiable, Sendable {
     let price: Double
     let changePercent: Double
     let change: Double
+    /// Recent close prices (oldest→newest) for a sparkline. Present only when the
+    /// backend has a TWELVEDATA_API_KEY; nil otherwise.
+    let spark: [Double]?
     var id: String { symbol }
 }
 

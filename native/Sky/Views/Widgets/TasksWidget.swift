@@ -1,24 +1,38 @@
 import SwiftUI
+import Charts
 
 private struct EmptyResponse: Decodable {}
 
 struct TasksWidget: View {
     @State private var tasks: [TickTickTask]?
+    @State private var completed: Set<String> = []
     @State private var errorMessage: String?
+
+    // Keep completed tasks in the list (so the total is stable) but filter them
+    // from view — mirrors the web ticktick widget's progress ring.
+    private var visible: [TickTickTask] {
+        (tasks ?? []).filter { !completed.contains($0.id) }
+    }
 
     var body: some View {
         Card {
             VStack(alignment: .leading, spacing: 12) {
-                CardHeader(title: "Tasks", symbol: "checklist", tint: Theme.accent)
+                CardHeader(title: "Tasks", symbol: "checklist", tint: Theme.accent) {
+                    if let tasks, !tasks.isEmpty {
+                        TaskProgressRing(completed: completed.count, total: tasks.count)
+                    }
+                }
 
                 if let errorMessage {
                     WidgetError(message: errorMessage) { Task { await reload() } }
                 } else if let tasks {
                     if tasks.isEmpty {
                         EmptyHint(text: "All clear today")
+                    } else if visible.isEmpty {
+                        EmptyHint(text: "All done — nice work")
                     } else {
                         VStack(spacing: 0) {
-                            ForEach(tasks.prefix(6)) { task in
+                            ForEach(visible.prefix(6)) { task in
                                 TaskRow(task: task) { complete(task) }
                             }
                         }
@@ -41,18 +55,38 @@ struct TasksWidget: View {
     }
 
     private func complete(_ task: TickTickTask) {
-        withAnimation {
-            tasks?.removeAll { $0.id == task.id }
-        }
+        withAnimation { _ = completed.insert(task.id) }
         Task {
             do {
                 _ = try await APIClient.shared.post("/api/ticktick/complete", body: ["id": task.id]) as EmptyResponse
             } catch {
-                // Re-insert on failure
-                withAnimation {
-                    tasks?.append(task)
-                }
+                withAnimation { completed.remove(task.id) }
             }
+        }
+    }
+}
+
+// MARK: - Progress ring
+
+private struct TaskProgressRing: View {
+    let completed: Int
+    let total: Int
+
+    var body: some View {
+        let remaining = max(0, total - completed)
+        Chart {
+            SectorMark(angle: .value("Done", completed), innerRadius: .ratio(0.68), angularInset: 1)
+                .cornerRadius(2)
+                .foregroundStyle(Theme.accent)
+            SectorMark(angle: .value("Left", remaining), innerRadius: .ratio(0.68), angularInset: 1)
+                .foregroundStyle(Color.secondary.opacity(0.18))
+        }
+        .chartLegend(.hidden)
+        .frame(width: 40, height: 40)
+        .overlay {
+            Text("\(completed)/\(total)")
+                .font(.system(size: 9, weight: .bold))
+                .monospacedDigit()
         }
     }
 }
