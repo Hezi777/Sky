@@ -1,6 +1,10 @@
 # XcodeGen generates the project — commit project.yml + sources only.
 Sky.xcodeproj/
 .build/
+.build-ios/
 *.xcuserstate
 .DS_Store
 DerivedData/
+
+# DMG packaging venv (fixed dmgbuild 1.6.7, not on PyPI)
+.dmgvenv/

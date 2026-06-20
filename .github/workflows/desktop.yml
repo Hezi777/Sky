@@ -31,9 +31,9 @@ jobs:
         with:
           name: sky-${{ matrix.os }}
           path: |
-            release/*.dmg
-            release/*.zip
-            release/*.exe
+            release/electron/**/*.dmg
+            release/electron/**/*.zip
+            release/electron/**/*.exe
           if-no-files-found: error
 
   release:

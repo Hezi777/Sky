@@ -13,19 +13,17 @@ struct IBKRWidget: View {
         ) { data in
             let slices = AllocationSlice.make(from: data.positions)
 
-            VStack(alignment: .leading, spacing: 16) {
+            VStack(alignment: .leading, spacing: 12) {
                 PortfolioHeader(summary: data.summary)
 
-                HStack(alignment: .center, spacing: 16) {
+                HStack(alignment: .center, spacing: 12) {
                     AllocationDonut(slices: slices)
-                        .frame(width: 120, height: 120)
+                        .frame(width: 108, height: 108)
                     AllocationLegend(slices: slices)
                         .frame(maxWidth: .infinity, alignment: .leading)
                 }
 
-                PnlBars(positions: data.positions)
-
-                PositionsList(positions: data.positions)
+                TopMovers(positions: data.positions)
 
                 if data.source == .flex {
                     Text(flexFooter(asOf: data.asOf))
@@ -52,12 +50,12 @@ private struct PortfolioHeader: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
             Text(summary.totalValue, format: .currency(code: "USD").precision(.fractionLength(0)))
-                .font(.system(.largeTitle, design: .rounded).weight(.bold))
+                .font(.system(.title, design: .rounded).weight(.semibold))
                 .monospacedDigit()
                 .contentTransition(.numericText(value: summary.totalValue))
                 .animation(.snappy, value: summary.totalValue)
 
-            HStack(spacing: 14) {
+            HStack(spacing: 10) {
                 if let dayPnl = summary.dayPnl {
                     PnlBadge(
                         label: "Day P&L",
@@ -87,15 +85,12 @@ private struct PnlBadge<F: FormatStyle>: View where F.FormatInput == Double, F.F
             Text(label)
                 .font(.caption2)
                 .foregroundStyle(.secondary)
-            HStack(spacing: 3) {
-                Image(systemName: gain ? "arrow.up.right" : "arrow.down.right")
-                Text(value, format: format)
-                    .monospacedDigit()
-                    .contentTransition(.numericText(value: value))
-                    .animation(.snappy, value: value)
-            }
-            .font(.subheadline.weight(.semibold))
-            .foregroundStyle(gain ? .green : .red)
+            Text(value, format: format)
+                .font(.subheadline.weight(.semibold))
+                .monospacedDigit()
+                .contentTransition(.numericText(value: value))
+                .animation(.snappy, value: value)
+                .foregroundStyle(gain ? .green : .red)
         }
     }
 }
@@ -113,8 +108,8 @@ private struct AllocationSlice: Identifiable {
     /// into "Other" — mirrors the web allocation donut.
     static func make(from positions: [IbkrPosition]) -> [AllocationSlice] {
         let sorted = positions.sorted { abs($0.marketValue) > abs($1.marketValue) }
-        let top = sorted.prefix(5)
-        let rest = sorted.dropFirst(5)
+        let top = sorted.prefix(4)
+        let rest = sorted.dropFirst(4)
 
         var entries: [(String, Double)] = top.map { ($0.ticker, abs($0.marketValue)) }
         let restTotal = rest.reduce(0) { $0 + abs($1.marketValue) }
@@ -141,13 +136,26 @@ private struct AllocationDonut: View {
         Chart(slices) { slice in
             SectorMark(
                 angle: .value("Value", slice.value),
-                innerRadius: .ratio(0.62),
-                angularInset: 1.5
+                innerRadius: .ratio(0.65),
+                angularInset: 2
             )
-            .cornerRadius(4)
+            .cornerRadius(3)
             .foregroundStyle(slice.color)
         }
         .chartLegend(.hidden)
+        .chartBackground { _ in
+            // Total label centered in the donut hole
+            let total = slices.reduce(0) { $0 + $1.value }
+            VStack(spacing: 1) {
+                Text("Total")
+                    .font(.system(size: 8, weight: .medium))
+                    .foregroundStyle(.tertiary)
+                Text(total, format: .currency(code: "USD").precision(.fractionLength(0)))
+                    .font(.system(size: 11, weight: .semibold, design: .rounded))
+                    .monospacedDigit()
+                    .foregroundStyle(.secondary)
+            }
+        }
     }
 }
 
@@ -162,16 +170,16 @@ private struct AllocationLegend: View {
                 .foregroundStyle(.secondary)
 
             ForEach(slices) { slice in
-                HStack(spacing: 6) {
+                HStack(spacing: 5) {
                     Circle()
                         .fill(slice.color)
-                        .frame(width: 8, height: 8)
+                        .frame(width: 7, height: 7)
                     Text(slice.ticker)
-                        .font(.caption.weight(.medium))
+                        .font(.caption2.weight(.medium))
                         .lineLimit(1)
                     Spacer(minLength: 6)
                     Text(slice.fraction, format: .percent.precision(.fractionLength(1)))
-                        .font(.caption)
+                        .font(.caption2)
                         .monospacedDigit()
                         .foregroundStyle(.secondary)
                 }
@@ -180,100 +188,35 @@ private struct AllocationLegend: View {
     }
 }
 
-// MARK: - P&L by position (bar chart)
+// MARK: - Top movers
 
-private struct PnlBars: View {
+private struct TopMovers: View {
     let positions: [IbkrPosition]
 
-    var body: some View {
-        let ranked = positions.sorted { $0.pnlPercent > $1.pnlPercent }
+    /// Top 3 positions by absolute P&L%, descending.
+    private var movers: [IbkrPosition] {
+        Array(positions.sorted { abs($0.pnlPercent) > abs($1.pnlPercent) }.prefix(3))
+    }
 
-        VStack(alignment: .leading, spacing: 6) {
-            Text("P&L by position")
+    var body: some View {
+        VStack(alignment: .leading, spacing: 5) {
+            Text("Top movers")
                 .font(.caption2.weight(.semibold))
                 .textCase(.uppercase)
                 .foregroundStyle(.secondary)
 
-            Chart(ranked) { position in
-                BarMark(
-                    x: .value("P&L", position.pnlPercent),
-                    y: .value("Ticker", position.ticker)
-                )
-                .cornerRadius(3)
-                .foregroundStyle(position.pnlPercent >= 0 ? Color.green : Color.red)
-                .annotation(position: position.pnlPercent >= 0 ? .trailing : .leading) {
+            ForEach(movers) { position in
+                HStack(spacing: 5) {
+                    Text(position.ticker)
+                        .font(.caption2.weight(.semibold))
+                        .lineLimit(1)
+                    Spacer(minLength: 4)
                     Text(position.pnlPercent / 100, format: .percent.precision(.fractionLength(1)))
-                        .font(.system(size: 9, weight: .medium))
+                        .font(.caption2.weight(.semibold))
                         .monospacedDigit()
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(position.pnlPercent >= 0 ? .green : .red)
                 }
             }
-            .chartXAxis(.hidden)
-            .chartYAxis {
-                AxisMarks(position: .leading) {
-                    AxisValueLabel().font(.caption2)
-                }
-            }
-            .chartXScale(domain: pnlDomain(ranked))
-            .frame(height: CGFloat(ranked.count) * 22 + 8)
         }
-    }
-
-    /// Symmetric-ish domain with headroom so the % annotations don't clip.
-    private func pnlDomain(_ positions: [IbkrPosition]) -> ClosedRange<Double> {
-        let values = positions.map(\.pnlPercent)
-        let lo = min(0, values.min() ?? 0)
-        let hi = max(0, values.max() ?? 0)
-        let pad = max(4, (hi - lo) * 0.22)
-        return (lo - pad)...(hi + pad)
-    }
-}
-
-// MARK: - Positions list
-
-private struct PositionsList: View {
-    let positions: [IbkrPosition]
-
-    var body: some View {
-        VStack(spacing: 6) {
-            HStack(spacing: 8) {
-                Text("Ticker").frame(maxWidth: .infinity, alignment: .leading)
-                Text("Shares").frame(maxWidth: .infinity, alignment: .trailing)
-                Text("Avg").frame(maxWidth: .infinity, alignment: .trailing)
-                Text("Price").frame(maxWidth: .infinity, alignment: .trailing)
-                Text("P&L").frame(maxWidth: .infinity, alignment: .trailing)
-            }
-            .font(.caption2)
-            .foregroundStyle(.secondary)
-
-            ForEach(positions) { PositionRow(position: $0) }
-        }
-    }
-}
-
-private struct PositionRow: View {
-    let position: IbkrPosition
-
-    private var gain: Bool { position.pnlPercent >= 0 }
-
-    var body: some View {
-        HStack(spacing: 8) {
-            Text(position.ticker)
-                .font(.caption.weight(.semibold))
-                .lineLimit(1)
-                .frame(maxWidth: .infinity, alignment: .leading)
-            Text(position.shares, format: .number.precision(.fractionLength(0...2)))
-                .frame(maxWidth: .infinity, alignment: .trailing)
-            Text(position.avgCost, format: .currency(code: "USD").precision(.fractionLength(2)))
-                .frame(maxWidth: .infinity, alignment: .trailing)
-            Text(position.currentPrice, format: .currency(code: "USD").precision(.fractionLength(2)))
-                .frame(maxWidth: .infinity, alignment: .trailing)
-            Text(position.pnlPercent / 100, format: .percent.precision(.fractionLength(1)))
-                .foregroundStyle(gain ? .green : .red)
-                .fontWeight(.semibold)
-                .frame(maxWidth: .infinity, alignment: .trailing)
-        }
-        .font(.caption)
-        .monospacedDigit()
     }
 }

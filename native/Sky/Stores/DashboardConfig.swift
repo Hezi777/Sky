@@ -19,7 +19,7 @@ final class DashboardConfig {
             hidden = saved.hidden
         } else {
             name = "Hen"
-            order = WidgetKind.allCases
+            order = DashboardSectionSpec.defaultOrder
             hidden = Set(WidgetKind.allCases.filter { !$0.defaultVisible })
         }
     }

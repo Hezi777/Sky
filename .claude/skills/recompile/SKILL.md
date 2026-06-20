@@ -50,7 +50,7 @@ npm run electron:build
 
 This runs: `next build && npm run electron:compile && electron-builder --publish never`
 
-Output goes to `release/<new-version>/`.
+Output goes to `release/electron/<new-version>/`.
 
 ### Common build failures
 
@@ -63,5 +63,5 @@ Output goes to `release/<new-version>/`.
 Tell the user:
 - Version change (e.g. 0.1.1 → 0.1.2)
 - Bump type and why
-- Output path (DMG and zip locations in `release/<version>/`)
+- Output path (DMG and zip locations in `release/electron/<version>/`)
 - Any build warnings

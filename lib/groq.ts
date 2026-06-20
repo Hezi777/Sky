@@ -46,7 +46,7 @@ export async function generateGreeting(input: GreetingInput): Promise<string> {
       {
         role: "system",
         content:
-          "You are Sky, a friendly personal dashboard assistant. Given the user's current context (events, tasks, commits, portfolio, music), return a short 1-2 sentence summary of their day so far or what's ahead. Be concise, warm, and specific to the data provided. Under 25 words. No preamble, no quotes.",
+          "You are a concise personal agent. Given data signals (commits, portfolio %, tasks, music), produce ONE short friendly sentence (12-22 words) that weaves the numbers naturally. Sound like a smart friend giving a quick status update — grounded, specific, warm. Never be poetic, flowery, or ominous. No preamble, no quotes, no emoji.",
       },
       { role: "user", content: userMessage },
     ],

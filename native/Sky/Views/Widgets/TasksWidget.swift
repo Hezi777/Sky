@@ -1,5 +1,4 @@
 import SwiftUI
-import Charts
 
 private struct EmptyResponse: Decodable {}
 
@@ -73,21 +72,26 @@ private struct TaskProgressRing: View {
     let total: Int
 
     var body: some View {
-        let remaining = max(0, total - completed)
-        Chart {
-            SectorMark(angle: .value("Done", completed), innerRadius: .ratio(0.68), angularInset: 1)
-                .cornerRadius(2)
-                .foregroundStyle(Theme.accent)
-            SectorMark(angle: .value("Left", remaining), innerRadius: .ratio(0.68), angularInset: 1)
-                .foregroundStyle(Color.secondary.opacity(0.18))
-        }
-        .chartLegend(.hidden)
-        .frame(width: 40, height: 40)
-        .overlay {
+        let fraction = total > 0 ? Double(completed) / Double(total) : 0
+
+        ZStack {
+            // Background track
+            Circle()
+                .strokeBorder(Color.secondary.opacity(0.12), lineWidth: 4)
+
+            // Progress arc
+            Circle()
+                .trim(from: 0, to: fraction)
+                .stroke(Theme.accent, style: StrokeStyle(lineWidth: 4, lineCap: .round))
+                .rotationEffect(.degrees(-90))
+                .animation(.easeOut(duration: 0.4), value: fraction)
+
             Text("\(completed)/\(total)")
-                .font(.system(size: 9, weight: .bold))
+                .font(.system(size: 9, weight: .bold, design: .rounded))
                 .monospacedDigit()
+                .foregroundStyle(.secondary)
         }
+        .frame(width: 38, height: 38)
     }
 }
 

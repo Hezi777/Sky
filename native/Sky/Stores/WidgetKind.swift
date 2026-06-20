@@ -4,10 +4,8 @@ import SwiftUI
 // is not part of this list.
 
 enum WidgetKind: String, CaseIterable, Codable, Identifiable {
-    // Existing (ported from the web app)
-    case calendar, tasks, github, spotify, ibkr, fair
-    // New
-    case reading, countdown, stocks, weather, quote, strava
+    case quote, weather, countdown, calendar, tasks, spotify
+    case ibkr, stocks, fair, github, reading, strava
 
     var id: String { rawValue }
 

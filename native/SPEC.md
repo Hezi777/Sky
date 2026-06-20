@@ -26,6 +26,7 @@ native/
   project.yml                 # XcodeGen spec (canonical project definition)
   Sky/
     SkyApp.swift              # @main app entry (multiplatform)
+    Assets.xcassets           # cloud images, sky backgrounds, colors, native app icon
     DesignSystem/             # Color, Glass, Typography, Spacing, cloud assets
     Networking/               # APIClient, Endpoints, decoding
     Models/                   # Codable structs mirroring lib/types.ts
@@ -34,9 +35,6 @@ native/
       Dashboard/              # grid, hero/greeting zone, bottom bar
       Widgets/                # one file per card
       Settings/               # widget picker (eye toggles) + prefs, Liquid Glass
-      Charts/                 # reusable Apple-style Swift Charts components
-    Resources/
-      Assets.xcassets         # cloud-*.png, colors
   docs/                       # research cheatsheets (build-runbook, swiftui-2026)
 ```
 

@@ -2,7 +2,7 @@ appId: com.hen.sky
 productName: Sky
 directories:
   buildResources: assets/icons
-  output: "release/${version}"
+  output: "release/electron/${version}"
 files:
   - electron-dist/**
   - "!node_modules/**"

@@ -1,44 +1,44 @@
-# Sky — Personal Dashboard
+# Sky — Agent Guide
 
-Single-user morning dashboard. Always live-fetched, no database, no auth.
+This file orients AI agents (Claude Code, Copilot, Cursor, etc.) working in this repo.
+For coding rules, conventions, and do-nots, see **CLAUDE.md** (the canonical source).
 
-## Stack
+## Repo Layout
 
-Next.js 15 (App Router) · React · TypeScript · Tailwind CSS v4 · shadcn/ui · Recharts · SWR · Groq API · Electron
-
-## Commands
-
-```bash
-npm run dev              # Next.js dev server
-npm run build            # production build
-npm run lint             # eslint
-npm run electron:dev     # Electron shell with hot-reload
-npm run electron:build   # production Electron build → release/<version>/
+```text
+app/              Next.js App Router pages + API route handlers (the backend)
+components/       Web dashboard components and widgets
+lib/              Integration clients, shared types, Groq helpers
+hooks/            React hooks (SWR-based state)
+electron/         Electron shell source (TypeScript)
+electron-dist/    Compiled Electron output (generated, gitignored)
+native/           SwiftUI macOS/iOS client (XcodeGen-driven)
+  project.yml     XcodeGen source of truth
+  Sky/            Swift source, models, stores, views, assets
+  .build*/        Xcode build output (generated, gitignored)
+  Sky.xcodeproj/  Generated Xcode project (gitignored)
+public/           Static assets, .icon bundle for Electron
+assets/           DMG backgrounds, icon sources, design assets
+scripts/          OAuth token helpers, build utilities
+tools/            Local dev tools (IBKR gateway binaries, gitignored)
+docs/             Integration auth setup, desktop app docs, screenshots
+release/          Built app binaries (generated, gitignored): electron/<version>/, native/<version>/
 ```
 
-## Rules
+## Key Entry Points
 
-- All external API calls go through `app/api/*` route handlers. Never from client components.
-- Every widget fetches independently with SWR. No global loading state.
-- Each widget has its own skeleton loader and per-widget error state.
-- Brand icons use `BrandLogo` component (`/public/assets/integrations/`). UI icons use `@iconify/react` or `lucide-react`.
-- Tailwind only for styling. No inline styles. No CSS modules.
-- Dark mode via `next-themes`, class-based (`dark:`).
-- Env vars: never hardcode keys. Always `process.env.X`. See `.env.local.example`.
-- TypeScript strict mode. API responses typed in `lib/types.ts`.
-- See `docs/integrations.md` for auth setup per service.
+- **Web dashboard**: `app/page.tsx` renders `components/dashboard.tsx`
+- **API routes**: `app/api/*/route.ts` — all external service calls go here
+- **Widgets**: `components/widgets/` — each widget fetches independently via SWR
+- **Types**: `lib/types.ts` — TypeScript types for all API responses
+- **Native models**: `native/Sky/Models/` — Swift Codable types mirroring `lib/types.ts`
+- **Electron main**: `electron/main.ts`
 
-## Electron
+## Agent Workflow Notes
 
-- Mac icon: `.icon` bundle at `public/Mac Icon.icon/` — do NOT replace with `.icns` (Liquid Glass theming).
-- Requires full Xcode for `.icon` compilation.
-- DMG backgrounds live in `assets/dmg/`. Dimensions must match `dmg.window` in `electron-builder.yml`.
-- Icons (`.icns`, `.ico`) live in `assets/icons/`.
-
-## Do Not
-
-- Do not create a database — data is always live-fetched.
-- Do not add authentication — single-user personal app.
-- Do not add page navigation — single page dashboard only.
-- Do not use `pages/` router — App Router only.
-- Do not use the Anthropic API — use Groq for AI features.
+- Run `npm run lint` and `npm run build` before declaring any web/API task done.
+- Native builds: `npm run native:generate && npm run native:build`.
+- The three surfaces share the API layer (`app/api/*`). Changes to API response shapes must update both `lib/types.ts` and `native/Sky/Models/`.
+- `native/project.yml` is canonical; never hand-edit `native/Sky.xcodeproj/`.
+- Secrets live in `.env.local` (gitignored). See `.env.local.example` for the full list and `docs/integrations.md` for per-service auth setup.
+- No database, no auth, no page navigation, single-page dashboard. See CLAUDE.md "Do Not" section.

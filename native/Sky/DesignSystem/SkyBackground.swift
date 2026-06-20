@@ -5,7 +5,7 @@ import SwiftUI
 // dissolves to transparent by ~halfway down (mask: opaque top → clear bottom).
 struct SkyAmbient: View {
     let state: CloudState
-    var height: CGFloat = 520
+    var height: CGFloat = 360
 
     var body: some View {
         Image(state.skyAssetName)

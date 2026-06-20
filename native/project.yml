@@ -8,6 +8,9 @@ options:
   generateEmptyDirectories: true
   createIntermediateGroups: true
   defaultConfig: Release
+  fileTypes:
+    icon:
+      file: true
 
 settings:
   base:

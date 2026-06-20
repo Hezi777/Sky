@@ -118,8 +118,7 @@ private struct EventRow: View {
         let state = eventState
         let muted = state == .past
 
-        let rowContent = HStack(spacing: 10) {
-            // Time column
+        let rowContent = HStack(alignment: .top, spacing: 8) {
             VStack(alignment: .trailing, spacing: 2) {
                 if event.allDay {
                     Text("all day")
@@ -139,63 +138,50 @@ private struct EventRow: View {
                     }
                 }
             }
-            .frame(width: 52, alignment: .trailing)
+            .frame(width: 50, alignment: .trailing)
 
-            // Colored bar + content
-            HStack(spacing: 0) {
-                ZStack {
-                    Rectangle()
-                        .fill(accent)
-                        .frame(width: 3)
-                    Circle()
-                        .fill(accent)
-                        .frame(width: 9, height: 9)
-                        .overlay(
-                            Circle()
-                                .strokeBorder(Color("CardBg"), lineWidth: 2)
-                        )
-                }
-                .frame(width: 9)
+            RoundedRectangle(cornerRadius: 1.5, style: .continuous)
+                .fill(accent.opacity(muted ? 0.35 : 1.0))
+                .frame(width: 3, height: 18)
+                .padding(.top, 3)
 
-                VStack(alignment: .leading, spacing: 2) {
-                    HStack(spacing: 6) {
-                        Text(event.title)
-                            .font(.subheadline.weight(.medium))
-                            .lineLimit(1)
-                        if state == .now {
-                            Text("Now")
-                                .font(.system(size: 9, weight: .semibold))
-                                .textCase(.uppercase)
-                                .tracking(0.5)
-                                .foregroundStyle(.green)
-                                .padding(.horizontal, 5)
-                                .padding(.vertical, 1)
-                                .background(.green.opacity(0.12), in: Capsule())
-                        }
-                    }
-
-                    if let loc = event.location, !loc.isEmpty {
-                        Label(loc, systemImage: "mappin.and.ellipse")
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
-                            .lineLimit(1)
+            VStack(alignment: .leading, spacing: 2) {
+                HStack(spacing: 6) {
+                    Text(event.title)
+                        .font(.subheadline.weight(.medium))
+                        .lineLimit(1)
+                    if state == .now {
+                        Text("Now")
+                            .font(.system(size: 9, weight: .semibold))
+                            .textCase(.uppercase)
+                            .tracking(0.5)
+                            .foregroundStyle(.green)
+                            .padding(.horizontal, 4)
+                            .padding(.vertical, 1)
+                            .background(.green.opacity(0.12), in: Capsule())
                     }
                 }
-                .padding(.leading, 8)
+
+                if let loc = event.location, !loc.isEmpty {
+                    Label(loc, systemImage: "mappin.and.ellipse")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                        .lineLimit(1)
+                }
             }
 
             Spacer(minLength: 4)
 
-            // Relative time
             if let rel = relativeLabel {
                 Text(rel)
                     .font(.caption2.weight(.medium))
                     .foregroundStyle(.secondary)
                     .monospacedDigit()
+                    .padding(.top, 1)
             }
         }
-        .padding(.vertical, 6)
-        .padding(.horizontal, 6)
+        .padding(.vertical, 5)
+        .padding(.horizontal, 4)
         .contentShape(Rectangle())
         .opacity(muted ? 0.55 : 1.0)
 

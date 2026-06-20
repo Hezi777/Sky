@@ -102,6 +102,8 @@ private struct StockRow: View {
 }
 
 // Compact intraday sparkline (Swift Charts), gradient area under a smooth line.
+// Apple HIG: minimal chrome, let the data shape speak. Generous vertical padding
+// prevents the line from touching edges.
 private struct Sparkline: View {
     let values: [Double]
     let color: Color
@@ -110,17 +112,19 @@ private struct Sparkline: View {
         let points = Array(values.enumerated())
         let lo = values.min() ?? 0
         let hi = values.max() ?? 1
+        let range = hi - lo
+        let padding = max(range * 0.12, 0.001)
 
         Chart(points, id: \.offset) { index, value in
             AreaMark(
                 x: .value("t", index),
-                yStart: .value("lo", lo),
+                yStart: .value("lo", lo - padding),
                 yEnd: .value("price", value)
             )
             .interpolationMethod(.catmullRom)
             .foregroundStyle(
                 .linearGradient(
-                    colors: [color.opacity(0.28), color.opacity(0.0)],
+                    colors: [color.opacity(0.2), color.opacity(0.0)],
                     startPoint: .top, endPoint: .bottom
                 )
             )
@@ -128,11 +132,11 @@ private struct Sparkline: View {
             LineMark(x: .value("t", index), y: .value("price", value))
                 .interpolationMethod(.catmullRom)
                 .foregroundStyle(color)
-                .lineStyle(StrokeStyle(lineWidth: 1.5))
+                .lineStyle(StrokeStyle(lineWidth: 1.5, lineCap: .round))
         }
         .chartXAxis(.hidden)
         .chartYAxis(.hidden)
-        .chartYScale(domain: lo...max(hi, lo + 0.0001))
+        .chartYScale(domain: (lo - padding)...(hi + padding))
         .chartLegend(.hidden)
     }
 }

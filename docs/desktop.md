@@ -10,12 +10,12 @@ Sky packaged as a desktop app (Electron) for macOS and Windows. The web app runs
 npm run electron:build
 ```
 
-Output goes to a versioned folder under `release/`, using the `package.json` version:
+Output goes to a versioned folder under `release/electron/`, using the `package.json` version:
 
 - macOS: `.dmg` and `.zip` (arm64)
 - Windows: NSIS `.exe` (x64)
 
-For example, version `0.1.1` builds to `release/0.1.1/`.
+For example, version `0.1.1` builds to `release/electron/0.1.1/`.
 
 Builds are unsigned (ad-hoc on macOS).
 
