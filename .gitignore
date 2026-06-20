@@ -21,6 +21,12 @@
 /release
 /electron-dist
 
+# native SwiftUI / XcodeGen
+/native/Sky.xcodeproj/
+/native/.build/
+/native/.build-ios/
+/native/DerivedData/
+
 # production
 /build
 

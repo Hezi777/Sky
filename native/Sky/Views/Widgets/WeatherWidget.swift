@@ -66,7 +66,7 @@ private struct WeatherContent: View {
             topRow
             if let hourly, hourly.temperature2m.count > 1 {
                 HourlyTempChart(temps: hourly.temperature2m, times: hourly.time)
-                    .frame(height: 56)
+                    .frame(height: 72)
             }
         }
     }
@@ -137,17 +137,18 @@ private struct HourlyTempChart: View {
         let points = Array(temps.enumerated())
         let lo = temps.min() ?? 0
         let hi = temps.max() ?? 1
+        let padding = max((hi - lo) * 0.15, 0.5)
 
         Chart(points, id: \.offset) { index, temp in
             AreaMark(
                 x: .value("Hour", index),
-                yStart: .value("lo", lo - 1),
+                yStart: .value("lo", lo - padding),
                 yEnd: .value("Temp", temp)
             )
             .interpolationMethod(.catmullRom)
             .foregroundStyle(
                 .linearGradient(
-                    colors: [Theme.accent.opacity(0.25), Theme.accent.opacity(0.0)],
+                    colors: [Theme.accent.opacity(0.18), Theme.accent.opacity(0.0)],
                     startPoint: .top, endPoint: .bottom
                 )
             )
@@ -155,12 +156,45 @@ private struct HourlyTempChart: View {
             LineMark(x: .value("Hour", index), y: .value("Temp", temp))
                 .interpolationMethod(.catmullRom)
                 .foregroundStyle(Theme.accent)
-                .lineStyle(StrokeStyle(lineWidth: 2))
+                .lineStyle(StrokeStyle(lineWidth: 1.5, lineCap: .round))
         }
-        .chartYScale(domain: (lo - 1)...(hi + 1))
-        .chartXAxis(.hidden)
-        .chartYAxis(.hidden)
+        .chartYScale(domain: (lo - padding)...(hi + padding))
+        .chartXAxis {
+            AxisMarks(values: .stride(by: 6)) { value in
+                AxisValueLabel {
+                    if let idx = value.as(Int.self), idx < times.count {
+                        Text(hourLabel(times[idx]))
+                            .font(.caption2)
+                            .foregroundStyle(.tertiary)
+                    }
+                }
+            }
+        }
+        .chartYAxis {
+            AxisMarks(position: .trailing, values: .automatic(desiredCount: 3)) { value in
+                AxisValueLabel {
+                    if let v = value.as(Double.self) {
+                        Text("\(Int(v.rounded()))°")
+                            .font(.caption2)
+                            .foregroundStyle(.tertiary)
+                    }
+                }
+                AxisGridLine(stroke: StrokeStyle(lineWidth: 0.5, dash: [3, 3]))
+                    .foregroundStyle(.quaternary)
+            }
+        }
         .chartLegend(.hidden)
+    }
+
+    private func hourLabel(_ isoTime: String) -> String {
+        // "2026-06-20T14:00" → "2 PM"
+        guard let range = isoTime.range(of: "T") else { return "" }
+        let hourStr = String(isoTime[range.upperBound...].prefix(2))
+        guard let hour = Int(hourStr) else { return "" }
+        if hour == 0 { return "12 AM" }
+        if hour < 12 { return "\(hour) AM" }
+        if hour == 12 { return "12 PM" }
+        return "\(hour - 12) PM"
     }
 }
 
