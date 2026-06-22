@@ -39,6 +39,12 @@ final class DashboardConfig {
         order.move(fromOffsets: source, toOffset: destination)
     }
 
+    /// Restores the semantic default order and visibility (Settings → Dashboard).
+    func resetLayout() {
+        order = DashboardSectionSpec.defaultOrder
+        hidden = Set(WidgetKind.allCases.filter { !$0.defaultVisible })
+    }
+
     // MARK: - Persistence
 
     private struct Snapshot: Codable {

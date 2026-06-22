@@ -148,10 +148,12 @@ enum Tokens {
         #if os(macOS)
         static let heroCharacter: CGFloat = 148
         static let statusCharacter: CGFloat = 84
+        static let placeholderCharacter: CGFloat = 56
         static let skyAmbientHeight: CGFloat = 500
         #else
         static let heroCharacter: CGFloat = 118
         static let statusCharacter: CGFloat = 72
+        static let placeholderCharacter: CGFloat = 48
         static let skyAmbientHeight: CGFloat = 400
         #endif
         static let weatherChartHeight: CGFloat = 72

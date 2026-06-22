@@ -154,7 +154,7 @@ struct FairPrice: Codable, Equatable, Sendable {
     let fundName: String?
 }
 
-struct FairContribution: Codable, Hashable, Identifiable {
+struct FairContribution: Codable, Hashable, Identifiable, Sendable {
     let id: String
     let date: String       // YYYY-MM-DD
     let amount: Double
