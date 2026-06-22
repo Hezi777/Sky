@@ -1,0 +1,107 @@
+import SwiftUI
+
+// Sky design tokens — the single source of truth for spacing, radius, type, and
+// color. Calm, native, Apple-Health-adjacent.
+//
+// DESIGN SYSTEM RULES (enforced by convention in Phase 1, by SwiftLint later):
+// • No raw spacing / radius / color literals in Views — reference a token here.
+// • No `.glassEffect` outside DesignSystem/ — use GlassCard / glassSurface().
+// • Let the system handle accessibility: prefer semantic foreground styles
+//   (.secondary/.tertiary) and Dynamic Type fonts; never hard-code text colors
+//   or fixed point sizes for body text in Views.
+//
+// Colors are Assets.xcassets-backed (light/dark via luminosity) so dark mode is
+// automatic. `Theme` is kept as a back-compat alias while widgets migrate.
+
+enum Tokens {
+
+    // MARK: Spacing
+
+    /// Grid gutter / page horizontal padding.
+    static let gap: CGFloat = 16
+    /// Gap between cards within a section. Tighter than `gap` (the page margin)
+    /// so cards read as one connected group, not scattered tiles.
+    static let cardGap: CGFloat = 12
+    /// Gap between whole sections. Larger than `cardGap` so sections read as
+    /// distinct grouped bands (visual hierarchy), not one flat list of tiles.
+    static let sectionGap: CGFloat = 30
+    /// Outer padding inside every card surface.
+    static let cardPadding: CGFloat = 18
+    /// Standard spacing inside a card's content VStack.
+    static let contentSpacing: CGFloat = 12
+    /// Spacing between a section label and its content (sub-sections).
+    static let sectionSpacing: CGFloat = 6
+
+    // MARK: Radius
+
+    /// Card corner radius (continuous).
+    static let cardRadius: CGFloat = 22
+    /// Corner radius for nested containers inside a card (e.g. repo/list rows).
+    static let innerRadius: CGFloat = 12
+    /// Corner radius for media thumbnails (album art, etc.).
+    static let mediaRadius: CGFloat = 8
+
+    // MARK: Card surface (consumed by Card / WidgetShell — never re-implemented per widget)
+
+    /// Opaque card fill. Widget cards stay opaque; glass is hero-chrome only.
+    static let cardFill = Color("CardBg").opacity(0.92)
+    /// Hairline border that lifts the card off the background.
+    static let cardStroke = Color.white.opacity(0.06)
+    static let cardStrokeWidth: CGFloat = 0.5
+    static let cardShadowColor = Color.black.opacity(0.18)
+    static let cardShadowRadius: CGFloat = 14
+    static let cardShadowY: CGFloat = 6
+
+    // MARK: Semantic colors
+
+    /// Accent — Sky blue, matches the web app's --primary (light/dark via asset).
+    static let accent = Color("SkyPrimary")
+    /// Positive / negative meaning (gains, losses, up/down).
+    static let positive = Color.green
+    static let negative = Color.red
+    /// De-emphasized text. Semantic + accessibility-aware; pair with
+    /// `.foregroundStyle(.secondary)` / `.tertiary` in Views where a ShapeStyle
+    /// is needed.
+    static let textSecondary = Color.secondary
+
+    /// Ordered chart palette, mirrors the web --chart-1…5 (adapts light/dark).
+    static let chartPalette: [Color] = [
+        Color("Chart1"), Color("Chart2"), Color("Chart3"), Color("Chart4"), Color("Chart5"),
+    ]
+
+    /// GitHub contribution scale: index 0 = empty, 1…4 = increasing intensity.
+    static let githubLevels: [Color] = [
+        Color("GithubEmpty"), Color("Github1"), Color("Github2"), Color("Github3"), Color("Github4"),
+    ]
+
+    static func chartColor(_ index: Int) -> Color { chartPalette[index % chartPalette.count] }
+
+    // MARK: Type ramp
+
+    /// Named font roles from the design spec. Use these instead of `.font(.system(size:))`
+    /// for everything except the large rounded "primary value" displays.
+    enum Font {
+        /// Widget header title.
+        static let widgetTitle: SwiftUI.Font = .subheadline.weight(.semibold)
+        /// Standard body row text.
+        static let bodyRow: SwiftUI.Font = .subheadline.weight(.medium)
+        /// Emphasized body row text.
+        static let bodyRowStrong: SwiftUI.Font = .subheadline.weight(.semibold)
+        /// Caption / supporting text.
+        static let caption: SwiftUI.Font = .caption
+        /// Uppercased sub-section header.
+        static let sectionHeader: SwiftUI.Font = .caption2.weight(.semibold)
+        /// Micro data labels (heatmap weekday/month, chart ticks).
+        static let microLabel: SwiftUI.Font = .system(size: 9)
+
+        /// Large rounded, monospaced-digit "primary value" display (28–54pt).
+        /// Variable by design — temperature, countdown days, P&L all differ.
+        static func primaryValue(size: CGFloat, weight: SwiftUI.Font.Weight = .semibold) -> SwiftUI.Font {
+            .system(size: size, weight: weight, design: .rounded).monospacedDigit()
+        }
+    }
+}
+
+/// Back-compat alias. Widgets still reference `Theme.*`; Phase 2 migrates them
+/// to `Tokens.*` and removes this alias.
+typealias Theme = Tokens

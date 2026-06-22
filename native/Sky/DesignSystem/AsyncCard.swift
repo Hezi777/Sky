@@ -27,23 +27,19 @@ struct AsyncCard<Value: Sendable, Accessory: View, Content: View>: View {
     @State private var errorMessage: String?
 
     var body: some View {
-        Card {
-            VStack(alignment: .leading, spacing: 12) {
-                CardHeader(title: title, symbol: symbol, tint: tint) {
-                    accessory
-                }
-
-                if let errorMessage {
-                    WidgetError(message: errorMessage) { Task { await reload() } }
-                } else if let value {
-                    if isEmpty(value) {
-                        EmptyHint(text: emptyText)
-                    } else {
-                        content(value)
-                    }
+        WidgetShell(title: title, symbol: symbol, tint: tint) {
+            accessory
+        } content: {
+            if let errorMessage {
+                WidgetError(message: errorMessage) { Task { await reload() } }
+            } else if let value {
+                if isEmpty(value) {
+                    EmptyHint(text: emptyText)
                 } else {
-                    WidgetLoading()
+                    content(value)
                 }
+            } else {
+                WidgetLoading()
             }
         }
         .task { await reload() }
