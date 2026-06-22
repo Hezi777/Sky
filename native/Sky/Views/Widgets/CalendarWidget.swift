@@ -81,7 +81,7 @@ private struct DaySection: View {
     var body: some View {
         VStack(alignment: .leading, spacing: Tokens.sectionSpacing) {
             Text(group.label)
-                .font(.caption2.weight(.semibold))
+                .font(Tokens.Font.sectionHeader)
                 .textCase(.uppercase)
                 .foregroundStyle(.secondary)
 
@@ -120,7 +120,7 @@ private struct EventRow: View {
                         .monospacedDigit()
                     if let dur = durationText {
                         Text(dur)
-                            .font(.system(size: 9))
+                            .font(Tokens.Font.microLabel)
                             .foregroundStyle(.tertiary)
                     }
                 }
@@ -135,11 +135,11 @@ private struct EventRow: View {
             VStack(alignment: .leading, spacing: Tokens.extraTight) {
                 HStack(spacing: Tokens.sectionSpacing) {
                     Text(event.title)
-                        .font(.subheadline.weight(.medium))
+                        .font(Tokens.Font.bodyRow)
                         .lineLimit(1)
                     if state == .now {
                         Text("Now")
-                            .font(.system(size: 9, weight: .semibold))
+                            .font(Tokens.Font.microLabel.weight(.semibold))
                             .textCase(.uppercase)
                             .tracking(0.5)
                             .foregroundStyle(Tokens.positive)
@@ -171,6 +171,7 @@ private struct EventRow: View {
         .padding(.horizontal, Tokens.tight)
         .contentShape(Rectangle())
         .opacity(muted ? 0.55 : 1.0)
+        .accessibilityElement(children: .combine)
 
         if let urlString = event.url, let url = URL(string: urlString) {
             Link(destination: url) {

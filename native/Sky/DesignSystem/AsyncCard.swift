@@ -55,7 +55,11 @@ struct EmptyHint: View {
         Text(text)
             .font(.footnote)
             .foregroundStyle(.tertiary)
-            .frame(maxWidth: .infinity, minHeight: 44)
+            .frame(
+                maxWidth: .infinity,
+                minHeight: Tokens.Size.emptyStateHeight,
+                alignment: .leading
+            )
     }
 }
 

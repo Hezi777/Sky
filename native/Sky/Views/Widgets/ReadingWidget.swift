@@ -26,24 +26,29 @@ private struct BookRow: View {
 
     var body: some View {
         let content = HStack(alignment: .top, spacing: Tokens.contentSpacing) {
-            if let cover = book.cover, let url = URL(string: cover) {
-                AsyncImage(url: url) { phase in
-                    switch phase {
-                    case .success(let image):
-                        image.resizable().scaledToFill()
-                    default:
-                        Rectangle().fill(.quaternary)
+            AsyncImage(url: book.cover.flatMap(URL.init)) { phase in
+                switch phase {
+                case .success(let image):
+                    image.resizable().scaledToFill()
+                default:
+                    ZStack {
+                        RoundedRectangle(cornerRadius: Tokens.smallRadius, style: .continuous)
+                            .fill(.quaternary)
+                        Image(systemName: "book.closed")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
                     }
                 }
-                .frame(width: Tokens.Size.bookCoverWidth, height: Tokens.Size.bookCoverHeight)
-                .clipShape(RoundedRectangle(cornerRadius: Tokens.smallRadius, style: .continuous))
             }
+            .frame(width: Tokens.Size.bookCoverWidth, height: Tokens.Size.bookCoverHeight)
+            .clipShape(RoundedRectangle(cornerRadius: Tokens.smallRadius, style: .continuous))
+            .accessibilityHidden(true)
 
             VStack(alignment: .leading, spacing: Tokens.tight) {
                 Text(book.title)
-                    .font(.subheadline.weight(.medium))
+                    .font(Tokens.Font.bodyRow)
                     .foregroundStyle(.primary)
-                    .lineLimit(1)
+                    .lineLimit(2)
                 if let author = book.author, !author.isEmpty {
                     Text(author)
                         .font(.caption)
@@ -98,5 +103,7 @@ private struct ProgressBar: View {
             }
         }
         .frame(height: Tokens.Size.progressBar)
+        .accessibilityLabel("Reading progress")
+        .accessibilityValue((Double(progress) / 100).formatted(.percent))
     }
 }

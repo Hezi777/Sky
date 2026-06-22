@@ -27,8 +27,11 @@ struct TasksWidget: View {
                     EmptyHint(text: "All done — nice work")
                 } else {
                     VStack(spacing: Tokens.zeroSpacing) {
-                        ForEach(visible.prefix(6)) { task in
-                            TaskRow(task: task) { complete(task) }
+                        ForEach(Array(visible.prefix(6).enumerated()), id: \.element.id) { index, task in
+                            TaskRow(
+                                task: task,
+                                showsDivider: index < min(visible.count, 6) - 1
+                            ) { complete(task) }
                         }
                     }
                 }
@@ -76,6 +79,9 @@ private struct TaskProgressRing: View {
                 .foregroundStyle(.secondary)
         }
         .frame(width: Tokens.Size.progressRing, height: Tokens.Size.progressRing)
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel("Task progress")
+        .accessibilityValue("\(completed) of \(total) complete")
     }
 }
 
@@ -83,6 +89,7 @@ private struct TaskProgressRing: View {
 
 private struct TaskRow: View {
     let task: TickTickTask
+    let showsDivider: Bool
     let onComplete: () -> Void
 
     var body: some View {
@@ -94,10 +101,12 @@ private struct TaskRow: View {
                     .frame(width: Tokens.Size.symbolBox, height: Tokens.Size.symbolBox)
             }
             .buttonStyle(.plain)
+            .accessibilityLabel("Complete \(task.title)")
+            .help("Mark task complete")
 
             // Title
             Text(task.title)
-                .font(.subheadline.weight(.medium))
+                .font(Tokens.Font.bodyRow)
                 .lineLimit(1)
                 .frame(maxWidth: .infinity, alignment: .leading)
 
@@ -106,7 +115,9 @@ private struct TaskRow: View {
         }
         .padding(.vertical, Tokens.snug)
         .overlay(alignment: .bottom) {
-            Divider()
+            if showsDivider {
+                Divider()
+            }
         }
     }
 

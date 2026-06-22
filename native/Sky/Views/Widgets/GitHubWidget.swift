@@ -11,7 +11,7 @@ struct GitHubWidget: View {
             accessory: {
                 if case .loaded(let data) = store.github {
                     Text("\(data.totalContributions.formatted(.number.grouping(.automatic))) contributions")
-                        .font(.subheadline)
+                        .font(Tokens.Font.caption)
                         .foregroundStyle(.secondary)
                 }
             }
@@ -43,9 +43,6 @@ struct GitHubWidget: View {
 
 private struct ContributionHeatmap: View {
     let days: [GithubContributionDay]
-
-    private let gap = Tokens.badgePadding
-    private let labelWidth: CGFloat = 26
 
     private static let dayLabels = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
 
@@ -117,10 +114,22 @@ private struct ContributionHeatmap: View {
 
     @State private var availableWidth: CGFloat = 0
 
+    private var gap: CGFloat {
+        availableWidth < 500 ? Tokens.microSpacing : Tokens.badgePadding
+    }
+
+    private var labelWidth: CGFloat {
+        availableWidth < 500 ? 0 : 26
+    }
+
     private var cell: CGFloat {
         let cols = weeks
         guard !cols.isEmpty, availableWidth > 0 else { return 11 }
-        return max(2, (availableWidth - labelWidth - CGFloat(cols.count - 1) * gap) / CGFloat(cols.count))
+        let availableForCells = availableWidth - labelWidth - CGFloat(cols.count) * gap
+        return min(
+            Tokens.Size.heatmapCell,
+            max(2, availableForCells / CGFloat(cols.count))
+        )
     }
 
     var body: some View {
@@ -135,7 +144,7 @@ private struct ContributionHeatmap: View {
                         Color.clear.frame(width: cell, height: Tokens.Size.compactControl)
                         if let label = monthLabels[i] {
                             Text(label)
-                                .font(.system(size: 9))
+                                .font(Tokens.Font.microLabel)
                                 .foregroundStyle(.secondary)
                                 .fixedSize()
                         }
@@ -145,12 +154,14 @@ private struct ContributionHeatmap: View {
 
             // Weekday labels + grid
             HStack(alignment: .top, spacing: gap) {
-                VStack(alignment: .leading, spacing: gap) {
-                    ForEach(Self.dayLabels, id: \.self) { d in
-                        Text(d)
-                            .font(.system(size: 8))
-                            .foregroundStyle(.secondary)
-                            .frame(width: labelWidth, height: cell, alignment: .leading)
+                if labelWidth > 0 {
+                    VStack(alignment: .leading, spacing: gap) {
+                        ForEach(Self.dayLabels, id: \.self) { day in
+                            Text(day)
+                                .font(Tokens.Font.microLabel)
+                                .foregroundStyle(.secondary)
+                                .frame(width: labelWidth, height: cell, alignment: .leading)
+                        }
                     }
                 }
 
@@ -170,7 +181,7 @@ private struct ContributionHeatmap: View {
             // Legend
             HStack(spacing: Tokens.tight) {
                 Text("Less")
-                    .font(.system(size: 9))
+                    .font(Tokens.Font.microLabel)
                     .foregroundStyle(.secondary)
                 ForEach(Tokens.githubLevels.indices, id: \.self) { i in
                     RoundedRectangle(cornerRadius: Tokens.barRadius, style: .continuous)
@@ -178,7 +189,7 @@ private struct ContributionHeatmap: View {
                         .frame(width: Tokens.Size.heatmapCell, height: Tokens.Size.heatmapCell)
                 }
                 Text("More")
-                    .font(.system(size: 9))
+                    .font(Tokens.Font.microLabel)
                     .foregroundStyle(.secondary)
             }
             .padding(.top, Tokens.tight)
@@ -190,6 +201,9 @@ private struct ContributionHeatmap: View {
             }
         )
         .onPreferenceChange(HeatmapWidthKey.self) { availableWidth = $0 }
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel("Contribution history")
+        .accessibilityValue("\(days.reduce(0) { $0 + $1.count }) contributions in the past year")
     }
 
     // Matches web getColor(): count thresholds, not level.
@@ -214,7 +228,7 @@ private struct RepoRow: View {
             VStack(alignment: .leading, spacing: Tokens.extraTight) {
                 HStack(spacing: Tokens.snug) {
                     Text(repo.name)
-                        .font(.subheadline.weight(.medium))
+                        .font(Tokens.Font.bodyRow)
                         .lineLimit(1)
                         .truncationMode(.tail)
                     Spacer(minLength: Tokens.snug)

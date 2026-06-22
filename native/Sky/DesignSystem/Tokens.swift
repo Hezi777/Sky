@@ -54,6 +54,8 @@ enum Tokens {
     static let dashboardGridBreakpoint: CGFloat = 560
     static let dashboardGridTarget: CGFloat = 300
     static let dashboardGridMinimum: CGFloat = 220
+    static let dashboardGridMaxColumns = 4
+    static let dashboardWideColumnSpan = 2
 
     // MARK: Radius
 

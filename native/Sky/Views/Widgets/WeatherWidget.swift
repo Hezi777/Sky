@@ -30,6 +30,7 @@ struct WeatherWidget: View {
     }
 
     private func fetchWeather() async {
+        errorMessage = nil
         // Wait for coordinates
         for _ in 0..<50 {
             if location.coordinate != nil || location.error != nil { break }
@@ -59,15 +60,25 @@ private struct WeatherContent: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: Tokens.contentSpacing) {
-            topRow
+            WeatherSummary(
+                placeName: placeName,
+                current: current,
+                daily: daily
+            )
             if let hourly, hourly.temperature2m.count > 1 {
                 HourlyTempChart(temps: hourly.temperature2m, times: hourly.time)
                     .frame(height: Tokens.Size.weatherChartHeight)
             }
         }
     }
+}
 
-    private var topRow: some View {
+private struct WeatherSummary: View {
+    let placeName: String
+    let current: OpenMeteoCurrent
+    let daily: OpenMeteoDaily
+
+    var body: some View {
         HStack(alignment: .top, spacing: Tokens.wideSpacing) {
             VStack(alignment: .leading, spacing: Tokens.tight) {
                 Text(placeName)
@@ -76,7 +87,8 @@ private struct WeatherContent: View {
                     .lineLimit(1)
 
                 Text("\(Int(current.temperature2m.rounded()))°")
-                    .font(.system(size: 48, weight: .thin, design: .rounded))
+                    .font(Tokens.Font.primaryValue(size: 48, weight: .thin))
+                    .monospacedDigit()
                     .contentTransition(.numericText())
 
                 Label {
@@ -92,7 +104,7 @@ private struct WeatherContent: View {
 
             VStack(alignment: .trailing, spacing: Tokens.snug) {
                 Image(systemName: weatherSymbol(for: current.weatherCode))
-                    .font(.system(size: 36))
+                    .font(.largeTitle)
                     .foregroundStyle(Tokens.accent)
                     .symbolRenderingMode(.hierarchical)
 
@@ -120,6 +132,7 @@ private struct WeatherContent: View {
                 }
             }
         }
+        .accessibilityElement(children: .combine)
     }
 }
 

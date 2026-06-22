@@ -28,12 +28,19 @@ struct FairWidget: View {
                     Text(fair.price, format: .number.precision(.fractionLength(2)))
                         .font(.system(.largeTitle, design: .rounded).weight(.bold))
                         .monospacedDigit()
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.75)
                         .contentTransition(.numericText(value: fair.price))
                         .animation(.snappy, value: fair.price)
                     Text("/ unit")
                         .font(.subheadline)
                         .foregroundStyle(.tertiary)
                 }
+                .accessibilityElement(children: .ignore)
+                .accessibilityLabel("Unit price")
+                .accessibilityValue(
+                    fair.price.formatted(.currency(code: fair.currency).precision(.fractionLength(2)))
+                )
 
                 HStack(spacing: Tokens.snug) {
                     if let asOf = asOfText(fair.asOf) {
@@ -46,6 +53,7 @@ struct FairWidget: View {
                         .padding(.vertical, Tokens.extraTight)
                         .background(.secondary.opacity(0.12), in: Capsule())
                         .foregroundStyle(.secondary)
+                        .accessibilityLabel("Data source: \(fair.source)")
                 }
                 .font(.caption)
                 .foregroundStyle(.secondary)

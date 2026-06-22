@@ -24,43 +24,45 @@ struct StravaWidget: View {
 private struct ActivityRow: View {
     let activity: StravaActivity
 
-    private var stravaURL: URL {
-        URL(string: "https://www.strava.com/activities/\(activity.id)")!
-    }
-
     var body: some View {
-        Link(destination: stravaURL) {
-            HStack(spacing: Tokens.rowSpacing) {
-                Image(systemName: symbol)
-                    .font(.subheadline.weight(.semibold))
-                    .foregroundStyle(Tokens.accent)
-                    .frame(width: Tokens.Size.activityIcon)
+        let content = HStack(spacing: Tokens.rowSpacing) {
+            Image(systemName: symbol)
+                .font(.subheadline.weight(.semibold))
+                .foregroundStyle(Tokens.accent)
+                .frame(width: Tokens.Size.activityIcon)
 
-                VStack(alignment: .leading, spacing: Tokens.extraTight) {
-                    Text(activity.name)
-                        .font(.subheadline.weight(.medium))
-                        .foregroundStyle(.primary)
-                        .lineLimit(1)
-                    Text(subtitleText)
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                }
+            VStack(alignment: .leading, spacing: Tokens.extraTight) {
+                Text(activity.name)
+                    .font(Tokens.Font.bodyRow)
+                    .foregroundStyle(.primary)
+                    .lineLimit(1)
+                Text(subtitleText)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
 
-                Spacer(minLength: Tokens.snug)
+            Spacer(minLength: Tokens.snug)
 
-                VStack(alignment: .trailing, spacing: Tokens.extraTight) {
-                    Text(distanceText)
-                        .font(.caption.weight(.medium))
-                        .foregroundStyle(.primary)
-                        .monospacedDigit()
-                    Text(durationText)
-                        .font(.caption2)
-                        .foregroundStyle(.tertiary)
-                        .monospacedDigit()
-                }
+            VStack(alignment: .trailing, spacing: Tokens.extraTight) {
+                Text(distanceText)
+                    .font(.caption.weight(.medium))
+                    .foregroundStyle(.primary)
+                    .monospacedDigit()
+                Text(durationText)
+                    .font(.caption2)
+                    .foregroundStyle(.tertiary)
+                    .monospacedDigit()
             }
         }
-        .buttonStyle(.plain)
+
+        if let stravaURL = URL(string: "https://www.strava.com/activities/\(activity.id)") {
+            Link(destination: stravaURL) { content }
+                .buttonStyle(.plain)
+                .accessibilityElement(children: .combine)
+        } else {
+            content
+                .accessibilityElement(children: .combine)
+        }
     }
 
     private var symbol: String {
@@ -74,7 +76,8 @@ private struct ActivityRow: View {
     }
 
     private var subtitleText: String {
-        activity.type
+        guard let date = ISO8601DateFormatter.parse(activity.startDate) else { return activity.type }
+        return "\(activity.type) · \(date.formatted(date: .abbreviated, time: .omitted))"
     }
 
     private var distanceText: String {

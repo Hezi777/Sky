@@ -44,20 +44,21 @@ struct CardHeader<Accessory: View>: View {
     @ViewBuilder var accessory: Accessory
 
     // Header-internal geometry (DesignSystem-only constants, not Tokens).
-    private let headerSpacing: CGFloat = 7
-    private let symbolBox: CGFloat = 18
-
     var body: some View {
-        HStack(spacing: headerSpacing) {
+        HStack(spacing: Tokens.headerSpacing) {
             Image(systemName: symbol)
                 .font(.system(size: 13, weight: .medium))
                 .imageScale(.medium)
                 .foregroundStyle(tint)
-                .frame(width: symbolBox, height: symbolBox, alignment: .center)
+                .frame(
+                    width: Tokens.Size.symbolBox,
+                    height: Tokens.Size.symbolBox,
+                    alignment: .center
+                )
             Text(title)
                 .font(Tokens.Font.widgetTitle)
                 .foregroundStyle(.secondary)
-            Spacer(minLength: 8)
+            Spacer(minLength: Tokens.snug)
             accessory
         }
     }
@@ -105,11 +106,12 @@ extension WidgetShell where Accessory == EmptyView {
 
 struct WidgetLoading: View {
     var body: some View {
-        HStack(spacing: 8) {
+        HStack(spacing: Tokens.snug) {
             ProgressView().controlSize(.small)
             Text("Loading…").font(.footnote).foregroundStyle(.secondary)
         }
-        .frame(maxWidth: .infinity, minHeight: 44)
+        .frame(maxWidth: .infinity, minHeight: Tokens.Size.emptyStateHeight, alignment: .leading)
+        .accessibilityElement(children: .combine)
     }
 }
 
@@ -118,18 +120,18 @@ struct WidgetError: View {
     var retry: (() -> Void)?
 
     var body: some View {
-        HStack(spacing: 8) {
+        HStack(spacing: Tokens.snug) {
             Image(systemName: "exclamationmark.triangle.fill")
                 .foregroundStyle(.orange)
             Text(message).font(.footnote).foregroundStyle(.secondary)
                 .lineLimit(2)
-            Spacer(minLength: 4)
+            Spacer(minLength: Tokens.tight)
             if let retry {
                 Button("Retry", action: retry)
                     .font(.footnote)
                     .buttonStyle(.borderless)
             }
         }
-        .frame(maxWidth: .infinity, minHeight: 44)
+        .frame(maxWidth: .infinity, minHeight: Tokens.Size.emptyStateHeight, alignment: .leading)
     }
 }

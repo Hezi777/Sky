@@ -55,45 +55,54 @@ private struct StockRow: View {
     var body: some View {
         Link(destination: URL(string: "https://finance.yahoo.com/quote/\(quote.symbol)") ?? URL(string: "https://finance.yahoo.com")!) {
             HStack(spacing: Tokens.rowSpacing) {
-                Text(quote.symbol)
-                    .font(.subheadline.weight(.semibold))
-                    .foregroundStyle(.primary)
+                VStack(alignment: .leading, spacing: Tokens.microSpacing) {
+                    Text(quote.symbol)
+                        .font(Tokens.Font.bodyRowStrong)
+                        .foregroundStyle(.primary)
+                    Text(
+                        quote.change,
+                        format: .number.sign(strategy: .always()).precision(.fractionLength(2))
+                    )
+                        .font(.caption2)
+                        .foregroundStyle(.secondary)
+                        .monospacedDigit()
+                }
 
                 if let spark = quote.spark, spark.count > 1 {
                     Sparkline(values: spark, color: changeColor)
-                        .frame(width: Tokens.Size.artwork, height: Tokens.Size.stockSparklineHeight)
+                        .frame(maxWidth: Tokens.Size.artwork)
+                        .frame(height: Tokens.Size.stockSparklineHeight)
                 }
 
                 Spacer(minLength: Tokens.snug)
 
-                Text(quote.price, format: .number.precision(.fractionLength(2)))
-                    .font(.subheadline.weight(.medium))
-                    .foregroundStyle(.secondary)
-                    .monospacedDigit()
-                    .contentTransition(.numericText())
-
-                HStack(spacing: Tokens.badgePadding) {
-                    Image(systemName: arrowSymbol)
-                        .font(.caption2.weight(.bold))
-
-                    Text(changeText)
-                        .font(.caption.weight(.semibold))
+                VStack(alignment: .trailing, spacing: Tokens.extraTight) {
+                    Text(quote.price, format: .number.precision(.fractionLength(2)))
+                        .font(Tokens.Font.bodyRow)
+                        .foregroundStyle(.primary)
                         .monospacedDigit()
+                        .contentTransition(.numericText())
+
+                    Label(changeText, systemImage: arrowSymbol)
+                        .font(.caption2.weight(.semibold))
+                        .monospacedDigit()
+                        .foregroundStyle(changeColor)
                 }
-                .foregroundStyle(changeColor)
-                .padding(.horizontal, Tokens.snug)
-                .padding(.vertical, Tokens.badgePadding)
-                .background(changeColor.opacity(0.12), in: Capsule())
             }
         }
         .buttonStyle(.plain)
+        .accessibilityLabel(quote.symbol)
+        .accessibilityValue(
+            "Price \(quote.price.formatted(.number.precision(.fractionLength(2)))), "
+                + "change \(quote.change.formatted(.number.precision(.fractionLength(2)))) "
+                + "or \((quote.changePercent / 100).formatted(.percent.precision(.fractionLength(2))))"
+        )
     }
 
     private var changeText: String {
-        let sign = isUp ? "+" : ""
-        let val = String(format: "%.2f", quote.change)
-        let pct = String(format: "%.2f", abs(quote.changePercent))
-        return "\(sign)\(val) (\(pct)%)"
+        (quote.changePercent / 100).formatted(
+            .percent.sign(strategy: .always()).precision(.fractionLength(2))
+        )
     }
 }
 

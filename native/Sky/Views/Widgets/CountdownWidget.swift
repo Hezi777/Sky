@@ -28,6 +28,8 @@ struct CountdownWidget: View {
                         .foregroundStyle(.secondary)
                 }
                 .buttonStyle(.borderless)
+                .accessibilityLabel("Add trip")
+                .help("Add trip")
             }
         ) {
             if let trip = nextTrip {
@@ -81,26 +83,32 @@ private struct TripCountdownView: View {
                         .foregroundStyle(.secondary)
                 }
                 .buttonStyle(.borderless)
+                .accessibilityLabel("Edit \(trip.destination)")
+                .help("Edit trip")
             }
 
-            HStack(alignment: .firstTextBaseline, spacing: Tokens.sectionSpacing) {
-                Text("\(daysRemaining)")
-                    .font(.system(size: 54, weight: .ultraLight, design: .rounded))
-                    .foregroundStyle(Tokens.accent)
-                    .contentTransition(.numericText())
-                Text(daysRemaining == 1 ? "day" : "days")
-                    .font(.title3.weight(.light))
-                    .foregroundStyle(.secondary)
-            }
+            VStack(alignment: .leading, spacing: Tokens.snug) {
+                HStack(alignment: .firstTextBaseline, spacing: Tokens.sectionSpacing) {
+                    Text("\(daysRemaining)")
+                        .font(Tokens.Font.primaryValue(size: 54, weight: .ultraLight))
+                        .foregroundStyle(Tokens.accent)
+                        .contentTransition(.numericText())
+                    Text(daysRemaining == 1 ? "day" : "days")
+                        .font(.title3.weight(.light))
+                        .foregroundStyle(.secondary)
+                }
 
-            Label {
-                Text(trip.date.formatted(.dateTime.month(.wide).day().year()))
-            } icon: {
-                Image(systemName: "calendar")
-                    .foregroundStyle(Tokens.accent)
+                Label {
+                    Text(trip.date.formatted(.dateTime.month(.wide).day().year()))
+                } icon: {
+                    Image(systemName: "calendar")
+                        .foregroundStyle(Tokens.accent)
+                }
+                .font(.caption)
+                .foregroundStyle(.tertiary)
             }
-            .font(.caption)
-            .foregroundStyle(.tertiary)
+            .accessibilityElement(children: .combine)
+            .accessibilityLabel("\(daysRemaining) days until \(trip.destination)")
         }
     }
 }
