@@ -7,24 +7,20 @@ struct WeatherWidget: View {
     @State private var errorMessage: String?
 
     var body: some View {
-        Card {
-            VStack(alignment: .leading, spacing: 12) {
-                CardHeader(title: "Weather", symbol: "cloud.sun", tint: Theme.accent)
-
-                if let err = location.error ?? errorMessage {
-                    WidgetError(message: err) {
-                        Task { await fetchWeather() }
-                    }
-                } else if let w = weather {
-                    WeatherContent(
-                        placeName: location.placeName ?? "Current Location",
-                        current: w.current,
-                        daily: w.daily,
-                        hourly: w.hourly
-                    )
-                } else {
-                    WidgetLoading()
+        WidgetShell(title: "Weather", symbol: "cloud.sun", tint: Tokens.accent) {
+            if let err = location.error ?? errorMessage {
+                WidgetError(message: err) {
+                    Task { await fetchWeather() }
                 }
+            } else if let w = weather {
+                WeatherContent(
+                    placeName: location.placeName ?? "Current Location",
+                    current: w.current,
+                    daily: w.daily,
+                    hourly: w.hourly
+                )
+            } else {
+                WidgetLoading()
             }
         }
         .task {
@@ -62,7 +58,7 @@ private struct WeatherContent: View {
     let hourly: OpenMeteoHourly?
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: Tokens.contentSpacing) {
             topRow
             if let hourly, hourly.temperature2m.count > 1 {
                 HourlyTempChart(temps: hourly.temperature2m, times: hourly.time)
@@ -72,8 +68,8 @@ private struct WeatherContent: View {
     }
 
     private var topRow: some View {
-        HStack(alignment: .top, spacing: 14) {
-            VStack(alignment: .leading, spacing: 4) {
+        HStack(alignment: .top, spacing: Tokens.wideSpacing) {
+            VStack(alignment: .leading, spacing: Tokens.tight) {
                 Text(placeName)
                     .font(.caption)
                     .foregroundStyle(.secondary)
@@ -92,30 +88,30 @@ private struct WeatherContent: View {
                 .foregroundStyle(.secondary)
             }
 
-            Spacer(minLength: 8)
+            Spacer(minLength: Tokens.snug)
 
-            VStack(alignment: .trailing, spacing: 8) {
+            VStack(alignment: .trailing, spacing: Tokens.snug) {
                 Image(systemName: weatherSymbol(for: current.weatherCode))
                     .font(.system(size: 36))
-                    .foregroundStyle(Theme.accent)
+                    .foregroundStyle(Tokens.accent)
                     .symbolRenderingMode(.hierarchical)
 
                 if let hi = daily.temperature2mMax.first,
                    let lo = daily.temperature2mMin.first {
-                    VStack(alignment: .trailing, spacing: 4) {
+                    VStack(alignment: .trailing, spacing: Tokens.tight) {
                         Label {
                             Text("\(Int(hi.rounded()))°")
                                 .contentTransition(.numericText())
                         } icon: {
                             Image(systemName: "arrow.up")
-                                .foregroundStyle(.orange)
+                                .foregroundStyle(Tokens.warning)
                         }
                         Label {
                             Text("\(Int(lo.rounded()))°")
                                 .contentTransition(.numericText())
                         } icon: {
                             Image(systemName: "arrow.down")
-                                .foregroundStyle(Theme.chartColor(2))
+                                .foregroundStyle(Tokens.chartColor(2))
                         }
                     }
                     .font(.caption.weight(.medium))
@@ -148,14 +144,14 @@ private struct HourlyTempChart: View {
             .interpolationMethod(.catmullRom)
             .foregroundStyle(
                 .linearGradient(
-                    colors: [Theme.accent.opacity(0.18), Theme.accent.opacity(0.0)],
+                    colors: [Tokens.accent.opacity(0.18), Tokens.accent.opacity(0.0)],
                     startPoint: .top, endPoint: .bottom
                 )
             )
 
             LineMark(x: .value("Hour", index), y: .value("Temp", temp))
                 .interpolationMethod(.catmullRom)
-                .foregroundStyle(Theme.accent)
+                .foregroundStyle(Tokens.accent)
                 .lineStyle(StrokeStyle(lineWidth: 1.5, lineCap: .round))
         }
         .chartYScale(domain: (lo - padding)...(hi + padding))

@@ -14,28 +14,29 @@ struct CountdownWidget: View {
     }
 
     var body: some View {
-        Card {
-            VStack(alignment: .leading, spacing: 12) {
-                CardHeader(title: "Countdown", symbol: "airplane.departure", tint: Theme.accent) {
-                    Button {
-                        editingTrip = nil
-                        showEditor = true
-                    } label: {
-                        Image(systemName: "plus")
-                            .font(.caption.weight(.semibold))
-                            .foregroundStyle(.secondary)
-                    }
-                    .buttonStyle(.borderless)
+        WidgetShell(
+            title: "Countdown",
+            symbol: "airplane.departure",
+            tint: Tokens.accent,
+            accessory: {
+                Button {
+                    editingTrip = nil
+                    showEditor = true
+                } label: {
+                    Image(systemName: "plus")
+                        .font(.caption.weight(.semibold))
+                        .foregroundStyle(.secondary)
                 }
-
-                if let trip = nextTrip {
-                    TripCountdownView(trip: trip) {
-                        editingTrip = trip
-                        showEditor = true
-                    }
-                } else {
-                    EmptyHint(text: "No upcoming trips — tap + to add one")
+                .buttonStyle(.borderless)
+            }
+        ) {
+            if let trip = nextTrip {
+                TripCountdownView(trip: trip) {
+                    editingTrip = trip
+                    showEditor = true
                 }
+            } else {
+                EmptyHint(text: "No upcoming trips — tap + to add one")
             }
         }
         .sheet(isPresented: $showEditor) {
@@ -66,12 +67,12 @@ private struct TripCountdownView: View {
     }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            HStack(alignment: .firstTextBaseline, spacing: 4) {
+        VStack(alignment: .leading, spacing: Tokens.snug) {
+            HStack(alignment: .firstTextBaseline, spacing: Tokens.tight) {
                 Text(trip.destination)
                     .font(.headline)
                     .lineLimit(1)
-                Spacer(minLength: 8)
+                Spacer(minLength: Tokens.snug)
                 Button {
                     onEdit()
                 } label: {
@@ -82,10 +83,10 @@ private struct TripCountdownView: View {
                 .buttonStyle(.borderless)
             }
 
-            HStack(alignment: .firstTextBaseline, spacing: 6) {
+            HStack(alignment: .firstTextBaseline, spacing: Tokens.sectionSpacing) {
                 Text("\(daysRemaining)")
                     .font(.system(size: 54, weight: .ultraLight, design: .rounded))
-                    .foregroundStyle(Theme.accent)
+                    .foregroundStyle(Tokens.accent)
                     .contentTransition(.numericText())
                 Text(daysRemaining == 1 ? "day" : "days")
                     .font(.title3.weight(.light))
@@ -96,7 +97,7 @@ private struct TripCountdownView: View {
                 Text(trip.date.formatted(.dateTime.month(.wide).day().year()))
             } icon: {
                 Image(systemName: "calendar")
-                    .foregroundStyle(Theme.accent)
+                    .foregroundStyle(Tokens.accent)
             }
             .font(.caption)
             .foregroundStyle(.tertiary)

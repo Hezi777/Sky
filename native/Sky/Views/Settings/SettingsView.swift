@@ -49,10 +49,10 @@ private struct WidgetToggleRow: View {
 
     var body: some View {
         let visible = config.isVisible(kind)
-        HStack(spacing: 12) {
+        HStack(spacing: Tokens.contentSpacing) {
             Image(systemName: kind.symbol)
                 .frame(width: 22)
-                .foregroundStyle(visible ? Theme.accent : .secondary)
+                .foregroundStyle(visible ? Tokens.accent : .secondary)
             Text(kind.title)
                 .foregroundStyle(visible ? .primary : .secondary)
             Spacer()
@@ -60,7 +60,7 @@ private struct WidgetToggleRow: View {
                 withAnimation(.snappy) { config.toggle(kind) }
             } label: {
                 Image(systemName: visible ? "eye" : "eye.slash")
-                    .foregroundStyle(visible ? Theme.accent : .secondary)
+                    .foregroundStyle(visible ? Tokens.accent : .secondary)
             }
             .buttonStyle(.borderless)
             .accessibilityLabel(visible ? "Hide \(kind.title)" : "Show \(kind.title)")

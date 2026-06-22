@@ -11,7 +11,7 @@ import SwiftUI
 //   or fixed point sizes for body text in Views.
 //
 // Colors are Assets.xcassets-backed (light/dark via luminosity) so dark mode is
-// automatic. `Theme` is kept as a back-compat alias while widgets migrate.
+// automatic.
 
 enum Tokens {
 
@@ -31,6 +31,29 @@ enum Tokens {
     static let contentSpacing: CGFloat = 12
     /// Spacing between a section label and its content (sub-sections).
     static let sectionSpacing: CGFloat = 6
+    /// Micro-spacing for dense row internals — inline icon↔text gaps, badge
+    /// padding, chart legends. `tight` < `snug` < `sectionSpacing`.
+    static let zeroSpacing: CGFloat = 0
+    static let microSpacing: CGFloat = 1
+    static let equalizerSpacing: CGFloat = 1.5
+    static let extraTight: CGFloat = 2
+    static let badgePadding: CGFloat = 3
+    static let tight: CGFloat = 4
+    static let compact: CGFloat = 5
+    static let headerSpacing: CGFloat = 7
+    static let snug: CGFloat = 8
+    static let rowSpacing: CGFloat = 10
+    static let wideSpacing: CGFloat = 14
+    static let editorPadding: CGFloat = 24
+    static let dashboardBottomPadding: CGFloat = 32
+    static let heroTopPadding: CGFloat = 36
+
+    // MARK: Dashboard layout
+
+    static let dashboardMaxWidth: CGFloat = 1500
+    static let dashboardGridBreakpoint: CGFloat = 560
+    static let dashboardGridTarget: CGFloat = 300
+    static let dashboardGridMinimum: CGFloat = 220
 
     // MARK: Radius
 
@@ -40,6 +63,12 @@ enum Tokens {
     static let innerRadius: CGFloat = 12
     /// Corner radius for media thumbnails (album art, etc.).
     static let mediaRadius: CGFloat = 8
+    /// Corner radius for small chart elements (bars, pills).
+    static let barRadius: CGFloat = 3
+    static let hairlineRadius: CGFloat = 0.5
+    static let tinyRadius: CGFloat = 1.5
+    static let smallRadius: CGFloat = 4
+    static let compactRadius: CGFloat = 6
 
     // MARK: Card surface (consumed by Card / WidgetShell — never re-implemented per widget)
 
@@ -59,6 +88,10 @@ enum Tokens {
     /// Positive / negative meaning (gains, losses, up/down).
     static let positive = Color.green
     static let negative = Color.red
+    static let warning = Color.orange
+    static let caution = Color.yellow
+    static let info = Color.blue
+    static let neutral = Color.gray
     /// De-emphasized text. Semantic + accessibility-aware; pair with
     /// `.foregroundStyle(.secondary)` / `.tertiary` in Views where a ShapeStyle
     /// is needed.
@@ -72,6 +105,21 @@ enum Tokens {
     /// GitHub contribution scale: index 0 = empty, 1…4 = increasing intensity.
     static let githubLevels: [Color] = [
         Color("GithubEmpty"), Color("Github1"), Color("Github2"), Color("Github3"), Color("Github4"),
+    ]
+
+    /// Provider-defined Google Calendar palette keyed by Calendar API color ID.
+    static let calendarColors: [String: Color] = [
+        "1": Color(red: 0.475, green: 0.525, blue: 0.796),
+        "2": Color(red: 0.200, green: 0.714, blue: 0.475),
+        "3": Color(red: 0.557, green: 0.141, blue: 0.667),
+        "4": Color(red: 0.902, green: 0.486, blue: 0.451),
+        "5": Color(red: 0.965, green: 0.749, blue: 0.149),
+        "6": Color(red: 0.957, green: 0.318, blue: 0.118),
+        "7": Color(red: 0.012, green: 0.608, blue: 0.898),
+        "8": Color(red: 0.380, green: 0.380, blue: 0.380),
+        "9": Color(red: 0.247, green: 0.318, blue: 0.710),
+        "10": Color(red: 0.043, green: 0.502, blue: 0.263),
+        "11": Color(red: 0.835, green: 0.000, blue: 0.000),
     ]
 
     static func chartColor(_ index: Int) -> Color { chartPalette[index % chartPalette.count] }
@@ -101,7 +149,3 @@ enum Tokens {
         }
     }
 }
-
-/// Back-compat alias. Widgets still reference `Theme.*`; Phase 2 migrates them
-/// to `Tokens.*` and removes this alias.
-typealias Theme = Tokens

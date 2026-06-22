@@ -5,33 +5,34 @@ struct GitHubWidget: View {
     @State private var errorMessage: String?
 
     var body: some View {
-        Card {
-            VStack(alignment: .leading, spacing: Theme.contentSpacing) {
-                CardHeader(title: "GitHub Activity", symbol: "curlybraces", tint: Theme.accent) {
-                    if let data {
-                        Text("\(data.totalContributions.formatted(.number.grouping(.automatic))) contributions")
-                            .font(.subheadline)
-                            .foregroundStyle(.secondary)
-                    }
+        WidgetShell(
+            title: "GitHub Activity",
+            symbol: "curlybraces",
+            tint: Tokens.accent,
+            accessory: {
+                if let data {
+                    Text("\(data.totalContributions.formatted(.number.grouping(.automatic))) contributions")
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
                 }
+            }
+        ) {
+            if let errorMessage {
+                WidgetError(message: errorMessage) { Task { await reload() } }
+            } else if let data {
+                if data.repos.isEmpty && data.contributions.isEmpty {
+                    EmptyHint(text: "No activity")
+                } else {
+                    ContributionHeatmap(days: data.contributions)
 
-                if let errorMessage {
-                    WidgetError(message: errorMessage) { Task { await reload() } }
-                } else if let data {
-                    if data.repos.isEmpty && data.contributions.isEmpty {
-                        EmptyHint(text: "No activity")
-                    } else {
-                        ContributionHeatmap(days: data.contributions)
-
-                        if !data.repos.isEmpty {
-                            VStack(spacing: 8) {
-                                ForEach(data.repos.prefix(3)) { RepoRow(repo: $0) }
-                            }
+                    if !data.repos.isEmpty {
+                        VStack(spacing: Tokens.snug) {
+                            ForEach(data.repos.prefix(3)) { RepoRow(repo: $0) }
                         }
                     }
-                } else {
-                    WidgetLoading()
                 }
+            } else {
+                WidgetLoading()
             }
         }
         .task { await reload() }
@@ -52,7 +53,7 @@ struct GitHubWidget: View {
 private struct ContributionHeatmap: View {
     let days: [GithubContributionDay]
 
-    private let gap: CGFloat = 3
+    private let gap = Tokens.badgePadding
     private let labelWidth: CGFloat = 26
 
     private static let dayLabels = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
@@ -134,7 +135,7 @@ private struct ContributionHeatmap: View {
     var body: some View {
         let cols = weeks
         let cell = self.cell
-        VStack(alignment: .leading, spacing: 6) {
+        VStack(alignment: .leading, spacing: Tokens.sectionSpacing) {
             // Month row
             HStack(alignment: .top, spacing: gap) {
                 Color.clear.frame(width: labelWidth, height: 12)
@@ -167,7 +168,7 @@ private struct ContributionHeatmap: View {
                         ForEach(cols[c], id: \.self) { day in
                             let key = Self.keyFormatter.string(from: day)
                             let count = contributionsByDate[key] ?? 0
-                            RoundedRectangle(cornerRadius: 3, style: .continuous)
+                            RoundedRectangle(cornerRadius: Tokens.barRadius, style: .continuous)
                                 .fill(color(for: count))
                                 .frame(width: cell, height: cell)
                         }
@@ -176,20 +177,20 @@ private struct ContributionHeatmap: View {
             }
 
             // Legend
-            HStack(spacing: 4) {
+            HStack(spacing: Tokens.tight) {
                 Text("Less")
                     .font(.system(size: 9))
                     .foregroundStyle(.secondary)
-                ForEach(Theme.githubLevels.indices, id: \.self) { i in
-                    RoundedRectangle(cornerRadius: 3, style: .continuous)
-                        .fill(Theme.githubLevels[i])
+                ForEach(Tokens.githubLevels.indices, id: \.self) { i in
+                    RoundedRectangle(cornerRadius: Tokens.barRadius, style: .continuous)
+                        .fill(Tokens.githubLevels[i])
                         .frame(width: 11, height: 11)
                 }
                 Text("More")
                     .font(.system(size: 9))
                     .foregroundStyle(.secondary)
             }
-            .padding(.top, 4)
+            .padding(.top, Tokens.tight)
             .frame(maxWidth: .infinity, alignment: .center)
         }
         .background(
@@ -203,11 +204,11 @@ private struct ContributionHeatmap: View {
     // Matches web getColor(): count thresholds, not level.
     private func color(for count: Int) -> Color {
         switch count {
-        case 0: return Theme.githubLevels[0]
-        case 1: return Theme.githubLevels[1]
-        case 2: return Theme.githubLevels[2]
-        case 3: return Theme.githubLevels[3]
-        default: return Theme.githubLevels[4]
+        case 0: return Tokens.githubLevels[0]
+        case 1: return Tokens.githubLevels[1]
+        case 2: return Tokens.githubLevels[2]
+        case 3: return Tokens.githubLevels[3]
+        default: return Tokens.githubLevels[4]
         }
     }
 }
@@ -219,13 +220,13 @@ private struct RepoRow: View {
 
     var body: some View {
         Link(destination: URL(string: repo.url) ?? URL(string: "https://github.com")!) {
-            VStack(alignment: .leading, spacing: 2) {
-                HStack(spacing: 8) {
+            VStack(alignment: .leading, spacing: Tokens.extraTight) {
+                HStack(spacing: Tokens.snug) {
                     Text(repo.name)
                         .font(.subheadline.weight(.medium))
                         .lineLimit(1)
                         .truncationMode(.tail)
-                    Spacer(minLength: 8)
+                    Spacer(minLength: Tokens.snug)
                     Label("\(repo.stars)", systemImage: "star")
                         .labelStyle(.titleAndIcon)
                         .font(.caption)
@@ -237,13 +238,13 @@ private struct RepoRow: View {
                     .lineLimit(1)
             }
             .frame(maxWidth: .infinity, alignment: .leading)
-            .padding(.horizontal, 12)
-            .padding(.vertical, 8)
+            .padding(.horizontal, Tokens.contentSpacing)
+            .padding(.vertical, Tokens.snug)
             .background(
-                RoundedRectangle(cornerRadius: Theme.innerRadius, style: .continuous)
+                RoundedRectangle(cornerRadius: Tokens.innerRadius, style: .continuous)
                     .fill(.quaternary.opacity(0.4))
             )
-            .contentShape(RoundedRectangle(cornerRadius: Theme.innerRadius, style: .continuous))
+            .contentShape(RoundedRectangle(cornerRadius: Tokens.innerRadius, style: .continuous))
         }
         .buttonStyle(.plain)
     }

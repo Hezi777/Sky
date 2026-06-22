@@ -44,7 +44,7 @@ import SwiftUI
 }
 
 // Sample 1: a "primary value" widget (Weather-shaped).
-private var sampleValueWidget: some View {
+@MainActor private var sampleValueWidget: some View {
     WidgetShell(title: "Weather", symbol: "cloud.sun.fill", tint: Tokens.accent) {
         HStack(alignment: .firstTextBaseline, spacing: Tokens.sectionSpacing) {
             Text("21°").font(Tokens.Font.primaryValue(size: 48, weight: .thin))
@@ -54,7 +54,7 @@ private var sampleValueWidget: some View {
 }
 
 // Sample 2: a list widget with rows + a header accessory (Tasks-shaped).
-private var sampleListWidget: some View {
+@MainActor private var sampleListWidget: some View {
     WidgetShell(title: "Tasks", symbol: "checklist", tint: Tokens.accent) {
         Text("3").font(Tokens.Font.bodyRowStrong).foregroundStyle(.secondary)
     } content: {
@@ -69,7 +69,7 @@ private var sampleListWidget: some View {
     }
 }
 
-private func swatch(_ name: String, _ color: Color) -> some View {
+@MainActor private func swatch(_ name: String, _ color: Color) -> some View {
     VStack(spacing: 4) {
         RoundedRectangle(cornerRadius: Tokens.mediaRadius, style: .continuous)
             .fill(color)

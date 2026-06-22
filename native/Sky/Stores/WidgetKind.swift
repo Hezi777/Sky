@@ -3,6 +3,14 @@ import SwiftUI
 // Every toggleable dashboard widget. The cloud/greeting hero is always shown and
 // is not part of this list.
 
+/// How much horizontal room a widget claims in the dashboard flow.
+enum WidgetSpan: Equatable {
+    /// Flows into the responsive grid alongside its neighbours.
+    case regular
+    /// Takes the full row width on its own.
+    case full
+}
+
 enum WidgetKind: String, CaseIterable, Codable, Identifiable {
     case quote, weather, countdown, calendar, tasks, spotify
     case ibkr, stocks, fair, github, reading, strava
@@ -40,6 +48,15 @@ enum WidgetKind: String, CaseIterable, Codable, Identifiable {
         case .weather: "cloud.sun"
         case .quote: "quote.bubble"
         case .strava: "figure.run"
+        }
+    }
+
+    /// Dashboard layout footprint. `.full` widgets claim the whole row (they need
+    /// the width); `.regular` widgets flow into a responsive grid, in order.
+    var span: WidgetSpan {
+        switch self {
+        case .github, .spotify: .full
+        default: .regular
         }
     }
 

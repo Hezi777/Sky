@@ -6,17 +6,17 @@ struct IBKRWidget: View {
         AsyncCard(
             title: "Portfolio",
             symbol: "chart.pie",
-            tint: Theme.accent,
+            tint: Tokens.accent,
             load: { try await APIClient.shared.get("/api/ibkr") as IbkrResponse },
             isEmpty: { $0.positions.isEmpty },
             emptyText: "No positions"
         ) { data in
             let slices = AllocationSlice.make(from: data.positions)
 
-            VStack(alignment: .leading, spacing: 12) {
+            VStack(alignment: .leading, spacing: Tokens.contentSpacing) {
                 PortfolioHeader(summary: data.summary)
 
-                HStack(alignment: .center, spacing: 12) {
+                HStack(alignment: .center, spacing: Tokens.contentSpacing) {
                     AllocationDonut(slices: slices)
                         .frame(width: 108, height: 108)
                     AllocationLegend(slices: slices)
@@ -48,14 +48,14 @@ private struct PortfolioHeader: View {
     let summary: IbkrSummary
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 6) {
+        VStack(alignment: .leading, spacing: Tokens.sectionSpacing) {
             Text(summary.totalValue, format: .currency(code: "USD").precision(.fractionLength(0)))
                 .font(.system(.title, design: .rounded).weight(.semibold))
                 .monospacedDigit()
                 .contentTransition(.numericText(value: summary.totalValue))
                 .animation(.snappy, value: summary.totalValue)
 
-            HStack(spacing: 10) {
+            HStack(spacing: Tokens.rowSpacing) {
                 if let dayPnl = summary.dayPnl {
                     PnlBadge(
                         label: "Day P&L",
@@ -81,7 +81,7 @@ private struct PnlBadge<F: FormatStyle>: View where F.FormatInput == Double, F.F
     private var gain: Bool { value >= 0 }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 1) {
+        VStack(alignment: .leading, spacing: Tokens.microSpacing) {
             Text(label)
                 .font(.caption2)
                 .foregroundStyle(.secondary)
@@ -90,7 +90,7 @@ private struct PnlBadge<F: FormatStyle>: View where F.FormatInput == Double, F.F
                 .monospacedDigit()
                 .contentTransition(.numericText(value: value))
                 .animation(.snappy, value: value)
-                .foregroundStyle(gain ? .green : .red)
+                .foregroundStyle(gain ? Tokens.positive : Tokens.negative)
         }
     }
 }
@@ -123,7 +123,7 @@ private struct AllocationSlice: Identifiable {
                 ticker: entry.0,
                 value: entry.1,
                 fraction: entry.1 / total,
-                color: Theme.chartColor(index)
+                color: Tokens.chartColor(index)
             )
         }
     }
@@ -137,16 +137,16 @@ private struct AllocationDonut: View {
             SectorMark(
                 angle: .value("Value", slice.value),
                 innerRadius: .ratio(0.65),
-                angularInset: 2
+                angularInset: Tokens.extraTight
             )
-            .cornerRadius(3)
+            .cornerRadius(Tokens.barRadius)
             .foregroundStyle(slice.color)
         }
         .chartLegend(.hidden)
         .chartBackground { _ in
             // Total label centered in the donut hole
             let total = slices.reduce(0) { $0 + $1.value }
-            VStack(spacing: 1) {
+            VStack(spacing: Tokens.microSpacing) {
                 Text("Total")
                     .font(.system(size: 8, weight: .medium))
                     .foregroundStyle(.tertiary)
@@ -163,21 +163,21 @@ private struct AllocationLegend: View {
     let slices: [AllocationSlice]
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 6) {
+        VStack(alignment: .leading, spacing: Tokens.sectionSpacing) {
             Text("Allocation")
                 .font(.caption2.weight(.semibold))
                 .textCase(.uppercase)
                 .foregroundStyle(.secondary)
 
             ForEach(slices) { slice in
-                HStack(spacing: 5) {
+                HStack(spacing: Tokens.compact) {
                     Circle()
                         .fill(slice.color)
                         .frame(width: 7, height: 7)
                     Text(slice.ticker)
                         .font(.caption2.weight(.medium))
                         .lineLimit(1)
-                    Spacer(minLength: 6)
+                    Spacer(minLength: Tokens.sectionSpacing)
                     Text(slice.fraction, format: .percent.precision(.fractionLength(1)))
                         .font(.caption2)
                         .monospacedDigit()
@@ -199,22 +199,22 @@ private struct TopMovers: View {
     }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 5) {
+        VStack(alignment: .leading, spacing: Tokens.compact) {
             Text("Top movers")
                 .font(.caption2.weight(.semibold))
                 .textCase(.uppercase)
                 .foregroundStyle(.secondary)
 
             ForEach(movers) { position in
-                HStack(spacing: 5) {
+                HStack(spacing: Tokens.compact) {
                     Text(position.ticker)
                         .font(.caption2.weight(.semibold))
                         .lineLimit(1)
-                    Spacer(minLength: 4)
+                    Spacer(minLength: Tokens.tight)
                     Text(position.pnlPercent / 100, format: .percent.precision(.fractionLength(1)))
                         .font(.caption2.weight(.semibold))
                         .monospacedDigit()
-                        .foregroundStyle(position.pnlPercent >= 0 ? .green : .red)
+                        .foregroundStyle(position.pnlPercent >= 0 ? Tokens.positive : Tokens.negative)
                 }
             }
         }

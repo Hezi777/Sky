@@ -4,7 +4,7 @@ import SwiftUI
 // each widget only declares: title, icon, how to fetch, and how to render.
 //
 // Usage:
-//   AsyncCard(title: "Calendar", symbol: "calendar", tint: Theme.accent,
+//   AsyncCard(title: "Calendar", symbol: "calendar", tint: Tokens.accent,
 //             load: { try await APIClient.shared.get("/api/calendar") as [CalendarEvent] },
 //             isEmpty: \.isEmpty, emptyText: "No upcoming events") { events in
 //       ...render events...

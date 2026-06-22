@@ -23,7 +23,7 @@ struct StravaWidget: View {
         AsyncCard(
             title: "Strava",
             symbol: "figure.run",
-            tint: Theme.accent,
+            tint: Tokens.accent,
             load: { try await APIClient.shared.get("/api/strava") as Payload },
             isEmpty: { payload in
                 if case .activities(let a) = payload { return a.isEmpty }
@@ -38,7 +38,7 @@ struct StravaWidget: View {
                     .foregroundStyle(.tertiary)
                     .frame(maxWidth: .infinity, minHeight: 44)
             case .activities(let activities):
-                VStack(spacing: Theme.contentSpacing) {
+                VStack(spacing: Tokens.contentSpacing) {
                     ForEach(activities) { ActivityRow(activity: $0) }
                 }
             }
@@ -55,13 +55,13 @@ private struct ActivityRow: View {
 
     var body: some View {
         Link(destination: stravaURL) {
-            HStack(spacing: 10) {
+            HStack(spacing: Tokens.rowSpacing) {
                 Image(systemName: symbol)
                     .font(.subheadline.weight(.semibold))
-                    .foregroundStyle(Theme.accent)
+                    .foregroundStyle(Tokens.accent)
                     .frame(width: 22)
 
-                VStack(alignment: .leading, spacing: 2) {
+                VStack(alignment: .leading, spacing: Tokens.extraTight) {
                     Text(activity.name)
                         .font(.subheadline.weight(.medium))
                         .foregroundStyle(.primary)
@@ -71,9 +71,9 @@ private struct ActivityRow: View {
                         .foregroundStyle(.secondary)
                 }
 
-                Spacer(minLength: 8)
+                Spacer(minLength: Tokens.snug)
 
-                VStack(alignment: .trailing, spacing: 2) {
+                VStack(alignment: .trailing, spacing: Tokens.extraTight) {
                     Text(distanceText)
                         .font(.caption.weight(.medium))
                         .foregroundStyle(.primary)

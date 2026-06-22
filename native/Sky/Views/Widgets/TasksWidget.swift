@@ -14,31 +14,27 @@ struct TasksWidget: View {
     }
 
     var body: some View {
-        Card {
-            VStack(alignment: .leading, spacing: 12) {
-                CardHeader(title: "Tasks", symbol: "checklist", tint: Theme.accent) {
-                    if let tasks, !tasks.isEmpty {
-                        TaskProgressRing(completed: completed.count, total: tasks.count)
-                    }
-                }
-
-                if let errorMessage {
-                    WidgetError(message: errorMessage) { Task { await reload() } }
-                } else if let tasks {
-                    if tasks.isEmpty {
-                        EmptyHint(text: "All clear today")
-                    } else if visible.isEmpty {
-                        EmptyHint(text: "All done — nice work")
-                    } else {
-                        VStack(spacing: 0) {
-                            ForEach(visible.prefix(6)) { task in
-                                TaskRow(task: task) { complete(task) }
-                            }
+        WidgetShell(title: "Tasks", symbol: "checklist", tint: Tokens.accent) {
+            if let tasks, !tasks.isEmpty {
+                TaskProgressRing(completed: completed.count, total: tasks.count)
+            }
+        } content: {
+            if let errorMessage {
+                WidgetError(message: errorMessage) { Task { await reload() } }
+            } else if let tasks {
+                if tasks.isEmpty {
+                    EmptyHint(text: "All clear today")
+                } else if visible.isEmpty {
+                    EmptyHint(text: "All done — nice work")
+                } else {
+                    VStack(spacing: Tokens.zeroSpacing) {
+                        ForEach(visible.prefix(6)) { task in
+                            TaskRow(task: task) { complete(task) }
                         }
                     }
-                } else {
-                    WidgetLoading()
                 }
+            } else {
+                WidgetLoading()
             }
         }
         .task { await reload() }
@@ -59,7 +55,7 @@ struct TasksWidget: View {
             do {
                 _ = try await APIClient.shared.post("/api/ticktick/complete", body: ["id": task.id]) as EmptyResponse
             } catch {
-                withAnimation { completed.remove(task.id) }
+                withAnimation { _ = completed.remove(task.id) }
             }
         }
     }
@@ -82,7 +78,7 @@ private struct TaskProgressRing: View {
             // Progress arc
             Circle()
                 .trim(from: 0, to: fraction)
-                .stroke(Theme.accent, style: StrokeStyle(lineWidth: 4, lineCap: .round))
+                .stroke(Tokens.accent, style: StrokeStyle(lineWidth: 4, lineCap: .round))
                 .rotationEffect(.degrees(-90))
                 .animation(.easeOut(duration: 0.4), value: fraction)
 
@@ -102,7 +98,7 @@ private struct TaskRow: View {
     let onComplete: () -> Void
 
     var body: some View {
-        HStack(spacing: 10) {
+        HStack(spacing: Tokens.rowSpacing) {
             // Priority circle (tap to complete)
             Button(action: onComplete) {
                 Circle()
@@ -120,7 +116,7 @@ private struct TaskRow: View {
             // Metadata: subtasks, tags, due time
             TaskMetadata(task: task)
         }
-        .padding(.vertical, 8)
+        .padding(.vertical, Tokens.snug)
         .overlay(alignment: .bottom) {
             Divider()
         }
@@ -128,10 +124,10 @@ private struct TaskRow: View {
 
     private var priorityColor: Color {
         switch task.priority {
-        case .none: return .gray
-        case .low: return .blue
-        case .medium: return .yellow
-        case .high: return .red
+        case .none: return Tokens.neutral
+        case .low: return Tokens.info
+        case .medium: return Tokens.caution
+        case .high: return Tokens.negative
         }
     }
 }
@@ -144,7 +140,7 @@ private struct TaskMetadata: View {
     var body: some View {
         let hasContent = task.subtaskCount > 0 || !task.tags.isEmpty || task.dueDate != nil
         if hasContent {
-            HStack(spacing: 8) {
+            HStack(spacing: Tokens.snug) {
                 if task.subtaskCount > 0 {
                     Label {
                         Text("\(task.subtaskCount)")
@@ -160,8 +156,8 @@ private struct TaskMetadata: View {
                     Text(tag)
                         .font(.caption2)
                         .foregroundStyle(.secondary)
-                        .padding(.horizontal, 6)
-                        .padding(.vertical, 2)
+                        .padding(.horizontal, Tokens.sectionSpacing)
+                        .padding(.vertical, Tokens.extraTight)
                         .background(.fill.tertiary, in: Capsule())
                         .lineLimit(1)
                 }
@@ -174,7 +170,7 @@ private struct TaskMetadata: View {
                         Image(systemName: "clock")
                     }
                     .font(.caption2.weight(.medium))
-                    .foregroundStyle(Theme.accent.opacity(0.8))
+                    .foregroundStyle(Tokens.accent.opacity(0.8))
                 }
             }
         }
