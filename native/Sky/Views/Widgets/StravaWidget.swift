@@ -1,48 +1,23 @@
 import SwiftUI
 
 struct StravaWidget: View {
-    // Decodes either the happy-path array or the {error} not-connected shape,
-    // since the backend returns the error with HTTP 200 (calm placeholder, not
-    // a scary error state).
-    private enum Payload: Decodable, Sendable {
-        case activities([StravaActivity])
-        case notConnected(String)
-
-        init(from decoder: Decoder) throws {
-            let container = try decoder.singleValueContainer()
-            if let activities = try? container.decode([StravaActivity].self) {
-                self = .activities(activities)
-            } else {
-                let body = try container.decode(APIErrorBody.self)
-                self = .notConnected(body.error)
-            }
-        }
-    }
+    @Environment(DashboardStore.self) private var store
 
     var body: some View {
         AsyncCard(
             title: "Strava",
             symbol: "figure.run",
             tint: Tokens.accent,
-            load: { try await APIClient.shared.get("/api/strava") as Payload },
-            isEmpty: { payload in
-                if case .activities(let a) = payload { return a.isEmpty }
-                return false
-            },
-            emptyText: "No recent activities"
-        ) { payload in
-            switch payload {
-            case .notConnected:
-                Text("Connect Strava in settings")
-                    .font(.footnote)
-                    .foregroundStyle(.tertiary)
-                    .frame(maxWidth: .infinity, minHeight: Tokens.Size.emptyStateHeight)
-            case .activities(let activities):
-                VStack(spacing: Tokens.contentSpacing) {
-                    ForEach(activities) { ActivityRow(activity: $0) }
-                }
+            state: store.strava,
+            isEmpty: \.isEmpty,
+            emptyText: "No recent activities",
+            reload: { await store.load(.strava, force: true) }
+        ) { activities in
+            VStack(spacing: Tokens.contentSpacing) {
+                ForEach(activities) { ActivityRow(activity: $0) }
             }
         }
+        .task { await store.load(.strava) }
     }
 }
 

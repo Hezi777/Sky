@@ -5,13 +5,12 @@ import SwiftUI
 // dissolves to transparent by ~halfway down (mask: opaque top → clear bottom).
 struct SkyAmbient: View {
     let state: CloudState
-    var height: CGFloat = 360
 
     var body: some View {
         Image(state.skyAssetName)
             .resizable()
             .scaledToFill()
-            .frame(height: height)
+            .frame(height: Tokens.Size.skyAmbientHeight)
             .frame(maxWidth: .infinity)
             .clipped()
             .saturation(state == .hero ? 0.7 : 1.0)
@@ -20,7 +19,7 @@ struct SkyAmbient: View {
                 LinearGradient(
                     stops: [
                         .init(color: .black, location: 0.0),
-                        .init(color: .black, location: 0.40),
+                        .init(color: .black, location: 0.48),
                         .init(color: .clear, location: 1.0),
                     ],
                     startPoint: .top,

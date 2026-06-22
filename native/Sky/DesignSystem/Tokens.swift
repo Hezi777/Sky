@@ -143,10 +143,22 @@ enum Tokens {
         static let calendarTimeColumn: CGFloat = 50
         static let bookCoverHeight: CGFloat = 52
         static let artwork: CGFloat = 56
+        #if os(macOS)
+        static let heroCharacter: CGFloat = 148
+        static let statusCharacter: CGFloat = 84
+        static let skyAmbientHeight: CGFloat = 500
+        #else
+        static let heroCharacter: CGFloat = 118
         static let statusCharacter: CGFloat = 72
+        static let skyAmbientHeight: CGFloat = 400
+        #endif
         static let weatherChartHeight: CGFloat = 72
         static let portfolioChart: CGFloat = 108
+        #if os(macOS)
+        static let heroMinHeight: CGFloat = 270
+        #else
         static let heroMinHeight: CGFloat = 220
+        #endif
         static let editorMinHeight: CGFloat = 250
         static let editorMinWidth: CGFloat = 320
         static let heroTextMaxWidth: CGFloat = 420

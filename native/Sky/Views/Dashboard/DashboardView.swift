@@ -9,6 +9,7 @@ struct DashboardView: View {
     @Environment(DashboardConfig.self) private var config
     @Environment(IntegrationConfigStore.self) private var integrationConfig
     @Environment(BackendRuntime.self) private var backendRuntime
+    @Environment(DashboardStore.self) private var dashboardStore
     @State private var now = Date()
     let onOpenSettings: () -> Void
 
@@ -17,7 +18,14 @@ struct DashboardView: View {
     }
 
     private var cloudState: CloudState {
-        Cloud.state(for: CloudInput(hour: Calendar.current.component(.hour, from: now)))
+        let signals = dashboardStore.signals
+        return Cloud.state(for: CloudInput(
+            hour: Calendar.current.component(.hour, from: now),
+            githubCommits: signals.commitsToday ?? 0,
+            tasksCompleted: signals.completedTaskCount,
+            daysSinceActivity: signals.daysSinceExercise,
+            portfolioChangePercent: signals.portfolioDayChangePercent
+        ))
     }
 
     var body: some View {
@@ -61,6 +69,21 @@ struct DashboardView: View {
         .ignoresSafeArea(.container, edges: .top)
         .background(Color("BgBase"))
         .onAppear { now = Date() }
+        .task(id: loadIdentity) {
+            guard backendRuntime.state.isReady else { return }
+            await dashboardStore.loadVisible(
+                config.visibleWidgets,
+                configuredIntegrations: configuredIntegrationIDs
+            )
+        }
+        .refreshable {
+            guard backendRuntime.state.isReady else { return }
+            await dashboardStore.refreshVisible(
+                config.visibleWidgets,
+                configuredIntegrations: configuredIntegrationIDs
+            )
+            now = Date()
+        }
     }
 
     private var renderedWidgets: [WidgetKind] {
@@ -73,6 +96,16 @@ struct DashboardView: View {
             guard let integrationID = kind.integrationID else { return false }
             return !integrationConfig.isConfigured(integrationID)
         }
+    }
+
+    private var configuredIntegrationIDs: Set<String> {
+        Set(integrationConfig.integrationStatuses.filter(\.isConfigured).map(\.id))
+    }
+
+    private var loadIdentity: String {
+        let widgets = config.visibleWidgets.map(\.rawValue).joined(separator: ",")
+        let integrations = configuredIntegrationIDs.sorted().joined(separator: ",")
+        return "\(backendRuntime.state)|\(widgets)|\(integrations)"
     }
 
     private func retryBackend() {

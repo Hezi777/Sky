@@ -1,27 +1,26 @@
 import SwiftUI
 
-private struct EmptyResponse: Decodable {}
-
 struct TasksWidget: View {
-    @State private var tasks: [TickTickTask]?
+    @Environment(DashboardStore.self) private var store
     @State private var completed: Set<String> = []
-    @State private var errorMessage: String?
 
     // Keep completed tasks in the list (so the total is stable) but filter them
     // from view — mirrors the web ticktick widget's progress ring.
     private var visible: [TickTickTask] {
-        (tasks ?? []).filter { !completed.contains($0.id) }
+        guard case .loaded(let tasks) = store.tasks else { return [] }
+        return tasks.filter { !completed.contains($0.id) }
     }
 
     var body: some View {
         WidgetShell(title: "Tasks", symbol: "checklist", tint: Tokens.accent) {
-            if let tasks, !tasks.isEmpty {
+            if case .loaded(let tasks) = store.tasks, !tasks.isEmpty {
                 TaskProgressRing(completed: completed.count, total: tasks.count)
             }
         } content: {
-            if let errorMessage {
-                WidgetError(message: errorMessage) { Task { await reload() } }
-            } else if let tasks {
+            switch store.tasks {
+            case .failed(let message):
+                WidgetError(message: message) { Task { await store.load(.tasks, force: true) } }
+            case .loaded(let tasks):
                 if tasks.isEmpty {
                     EmptyHint(text: "All clear today")
                 } else if visible.isEmpty {
@@ -33,28 +32,17 @@ struct TasksWidget: View {
                         }
                     }
                 }
-            } else {
+            case .idle, .loading:
                 WidgetLoading()
             }
         }
-        .task { await reload() }
-    }
-
-    private func reload() async {
-        errorMessage = nil
-        do {
-            tasks = try await APIClient.shared.get("/api/ticktick") as [TickTickTask]
-        } catch {
-            errorMessage = (error as? APIError)?.errorDescription ?? error.localizedDescription
-        }
+        .task { await store.load(.tasks) }
     }
 
     private func complete(_ task: TickTickTask) {
         withAnimation { _ = completed.insert(task.id) }
         Task {
-            do {
-                _ = try await APIClient.shared.post("/api/ticktick/complete", body: ["id": task.id]) as EmptyResponse
-            } catch {
+            if !(await store.completeTask(task)) {
                 withAnimation { _ = completed.remove(task.id) }
             }
         }

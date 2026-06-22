@@ -2,25 +2,9 @@ import SwiftUI
 import Charts
 
 struct StocksWidget: View {
+    @Environment(DashboardStore.self) private var store
     @AppStorage("stocks.tickers") private var tickersCSV: String = "AAPL,MSFT,NVDA"
     @State private var isEditing = false
-
-    // The /api/stocks route returns the quote array on success, or an {error}
-    // object (HTTP 200) when FINNHUB_API_KEY is unset. Decode both so a missing
-    // key shows a calm placeholder instead of a scary "couldn't load" error.
-    private enum Payload: Decodable, Sendable {
-        case quotes([StockQuote])
-        case notConfigured(String)
-
-        init(from decoder: Decoder) throws {
-            let container = try decoder.singleValueContainer()
-            if let quotes = try? container.decode([StockQuote].self) {
-                self = .quotes(quotes)
-            } else {
-                self = .notConfigured(try container.decode(APIErrorBody.self).error)
-            }
-        }
-    }
 
     private var symbols: [String] {
         tickersCSV
@@ -35,16 +19,10 @@ struct StocksWidget: View {
             title: "Stocks",
             symbol: "chart.line.uptrend.xyaxis",
             tint: Tokens.accent,
-            load: {
-                try await APIClient.shared.get(
-                    "/api/stocks", query: ["symbols": query]
-                ) as Payload
-            },
-            isEmpty: { payload in
-                if case .quotes(let q) = payload { return q.isEmpty }
-                return false
-            },
+            state: store.stocks,
+            isEmpty: \.isEmpty,
             emptyText: "No tickers — tap the pencil to add some",
+            reload: { await store.load(.stocks, force: true, stockSymbols: symbols) },
             accessory: {
                 Button {
                     isEditing = true
@@ -55,21 +33,12 @@ struct StocksWidget: View {
                 }
                 .buttonStyle(.borderless)
             }
-        ) { payload in
-            switch payload {
-            case .notConfigured:
-                Text("Add a Finnhub API key in settings")
-                    .font(.footnote)
-                    .foregroundStyle(.tertiary)
-                    .frame(maxWidth: .infinity, minHeight: Tokens.Size.emptyStateHeight, alignment: .leading)
-            case .quotes(let quotes):
-                VStack(spacing: Tokens.contentSpacing) {
-                    ForEach(quotes) { StockRow(quote: $0) }
-                }
+        ) { quotes in
+            VStack(spacing: Tokens.contentSpacing) {
+                ForEach(quotes) { StockRow(quote: $0) }
             }
         }
-        // Force AsyncCard to reload whenever the ticker list changes.
-        .id(query)
+        .task(id: query) { await store.load(.stocks, force: true, stockSymbols: symbols) }
         .sheet(isPresented: $isEditing) {
             TickerEditor(tickersCSV: $tickersCSV)
         }

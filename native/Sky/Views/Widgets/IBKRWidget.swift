@@ -2,14 +2,17 @@ import SwiftUI
 import Charts
 
 struct IBKRWidget: View {
+    @Environment(DashboardStore.self) private var store
+
     var body: some View {
         AsyncCard(
             title: "Portfolio",
             symbol: "chart.pie",
             tint: Tokens.accent,
-            load: { try await APIClient.shared.get("/api/ibkr") as IbkrResponse },
+            state: store.ibkr,
             isEmpty: { $0.positions.isEmpty },
-            emptyText: "No positions"
+            emptyText: "No positions",
+            reload: { await store.load(.ibkr, force: true) }
         ) { data in
             let slices = AllocationSlice.make(from: data.positions)
 
@@ -32,6 +35,7 @@ struct IBKRWidget: View {
                 }
             }
         }
+        .task { await store.load(.ibkr) }
     }
 
     private func flexFooter(asOf: String?) -> String {

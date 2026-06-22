@@ -8,7 +8,7 @@ struct BackendStatusCard: View {
     var body: some View {
         WidgetShell(title: "Sky Service", symbol: "bolt.horizontal.circle", tint: Tokens.warning) {
             HStack(spacing: Tokens.contentSpacing) {
-                CloudAvatar(state: .droopy, size: Tokens.Size.statusCharacter)
+                CloudAvatar(state: .droopy, role: .status)
                 BackendStatusMessage(state: state)
                 Spacer(minLength: Tokens.snug)
                 BackendStatusActions(
@@ -29,7 +29,7 @@ struct IntegrationSetupStatusCard: View {
     var body: some View {
         WidgetShell(title: "Finish Setup", symbol: "slider.horizontal.3", tint: Tokens.warning) {
             HStack(spacing: Tokens.contentSpacing) {
-                CloudAvatar(state: .droopy, size: Tokens.Size.statusCharacter)
+                CloudAvatar(state: .droopy, role: .status)
                 VStack(alignment: .leading, spacing: Tokens.tight) {
                     Text("\(count) \(count == 1 ? "integration needs" : "integrations need") setup")
                         .font(Tokens.Font.bodyRowStrong)

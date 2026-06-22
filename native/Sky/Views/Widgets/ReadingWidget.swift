@@ -1,19 +1,23 @@
 import SwiftUI
 
 struct ReadingWidget: View {
+    @Environment(DashboardStore.self) private var store
+
     var body: some View {
         AsyncCard(
             title: "Reading",
             symbol: "book",
             tint: Tokens.accent,
-            load: { try await APIClient.shared.get("/api/notion/reading") as [ReadingBook] },
+            state: store.reading,
             isEmpty: \.isEmpty,
-            emptyText: "Not reading anything"
+            emptyText: "Not reading anything",
+            reload: { await store.load(.reading, force: true) }
         ) { books in
             VStack(spacing: Tokens.contentSpacing) {
                 ForEach(books) { BookRow(book: $0) }
             }
         }
+        .task { await store.load(.reading) }
     }
 }
 
