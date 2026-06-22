@@ -87,6 +87,67 @@ const { access_token } = await res.json();
 
 ---
 
+## Strava
+
+**Type:** OAuth 2.0 with refresh token — **free public API, no Strava subscription required.**
+
+The subscription (formerly Summit) gates product features, not API access. Reading
+your own activities via OAuth works on any free account.
+
+1. Go to https://www.strava.com/settings/api → create an application ("Sky").
+   - Authorization Callback Domain: `localhost`
+2. Copy Client ID + Secret → `STRAVA_CLIENT_ID`, `STRAVA_CLIENT_SECRET`
+3. Authorize once to mint a refresh token (scope `activity:read`, or
+   `activity:read_all` to include private activities):
+
+```
+https://www.strava.com/oauth/authorize?client_id=${CLIENT_ID}&response_type=code&redirect_uri=http://localhost/exchange_token&approval_prompt=force&scope=activity:read
+```
+
+   Approve, copy the `code` from the redirect URL, then exchange it once:
+
+```bash
+curl -X POST https://www.strava.com/oauth/token \
+  -d client_id=$CLIENT_ID -d client_secret=$CLIENT_SECRET \
+  -d code=$CODE -d grant_type=authorization_code
+```
+
+4. Paste the `refresh_token` from the response → `STRAVA_REFRESH_TOKEN`
+
+The route exchanges the refresh token for an access token on each request, then calls
+`GET https://www.strava.com/api/v3/athlete/activities?per_page=5`. If any of the three
+vars is missing, the route returns `{ error: "Strava not connected" }` (HTTP 200) and
+the widget shows a calm "Connect Strava in settings" placeholder.
+
+---
+
+## Stocks
+
+**Type:** API key (Finnhub, free tier). TwelveData is optional.
+
+1. Go to https://finnhub.io → sign up (free) → copy the API key → `FINNHUB_API_KEY`.
+   - Quotes endpoint: `https://finnhub.io/api/v1/quote?symbol=AAPL&token=$KEY`
+2. **Optional:** https://twelvedata.com → free key → `TWELVEDATA_API_KEY`.
+   - Only used to draw the per-stock sparkline (`time_series`). Without it, quotes
+     still render; the mini-chart is simply omitted.
+
+Symbols are passed by the client as a query param: `/api/stocks?symbols=AAPL,MSFT`.
+The native app stores its list in Settings (no env var for the symbols).
+
+---
+
+## Fund (Israeli mutual fund — Maya/TASE)
+
+**Type:** None — public, key-less JSON API.
+
+The route reads the live price from the same backend `maya.tase.co.il` uses:
+`GET https://mayaapi.tase.co.il/api/fund/details?fundId=<num>`. No account, token, or
+subscription. The only required input is the **fund number**, passed by the client:
+`/api/fair?fund=5140785` (digits only). The native app sets it in Settings
+(`sky.fair.fund`, default `5140785`).
+
+---
+
 ## Google Calendar
 
 **Type:** OAuth 2.0 with refresh token
@@ -121,23 +182,26 @@ const url = oauth2Client.generateAuthUrl({
 
 ## TickTick
 
-**Type:** OAuth 2.0
+> **Reflects the code as built** (`lib/ticktick.ts`). The earlier OAuth
+> `CLIENT_ID/SECRET/REFRESH_TOKEN` flow documented here was never wired up — the
+> implementation uses the env vars below instead.
 
-1. Go to https://developer.ticktick.com → register developer account
-2. Create new app → set redirect URI to `http://localhost:3000/callback`
-3. Copy Client ID + Secret → `TICKTICK_CLIENT_ID`, `TICKTICK_CLIENT_SECRET`
-4. OAuth endpoints:
-   - Auth: `https://ticktick.com/oauth/authorize`
-   - Token: `https://ticktick.com/oauth/token`
-   - Scopes: `tasks:read`
-5. Run one-time token script (same pattern as Spotify/Google)
-6. Paste refresh token → `TICKTICK_REFRESH_TOKEN`
+`lib/ticktick.ts` supports three auth paths; set whichever you use:
 
-Task endpoint after auth:
+**1. MCP token (primary)** → `TICKTICK_MCP_TOKEN`
+- From TickTick Web → Settings → Account → API Token.
+- Calls the TickTick MCP endpoint. This is the simplest path and the one the
+  `.env.local.example` points at.
 
-```
-GET https://api.ticktick.com/api/v2/batch/check/0
-```
+**2. V2 web session (for today's tasks incl. Inbox)** → `TICKTICK_USERNAME` + `TICKTICK_PASSWORD`
+- Signs in to `https://api.ticktick.com/api/v2/user/signon?wc=true&remember=true`
+  with your account credentials, caches the session token ~12h, then reads
+  `GET /api/v2/batch/check/0`.
+- Use this if you need Inbox tasks (the V1 Open API can't see the Inbox).
+
+**3. V1 Open API token** → `TICKTICK_ACCESS_TOKEN`
+- A pre-minted OAuth access token for `https://api.ticktick.com/open/v1`.
+- No Inbox access; lighter-weight than the V2 session path.
 
 Returns full state. Filter tasks client-side by `dueDate` = today and `status = 0`.
 

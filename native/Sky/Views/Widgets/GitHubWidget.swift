@@ -1,31 +1,48 @@
 import SwiftUI
 
 struct GitHubWidget: View {
+    @State private var data: GithubResponse?
+    @State private var errorMessage: String?
+
     var body: some View {
-        AsyncCard(
-            title: "GitHub Activity",
-            symbol: "chevron.left.forwardslash.chevron.right",
-            tint: Theme.accent,
-            load: { try await APIClient.shared.get("/api/github") as GithubResponse },
-            isEmpty: { $0.repos.isEmpty && $0.contributions.isEmpty },
-            emptyText: "No activity"
-        ) { data in
-            VStack(alignment: .leading, spacing: 16) {
-                HStack(alignment: .firstTextBaseline) {
-                    Spacer(minLength: 0)
-                    Text("\(data.totalContributions.formatted(.number.grouping(.automatic))) contributions")
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
-                }
-
-                ContributionHeatmap(days: data.contributions)
-
-                if !data.repos.isEmpty {
-                    VStack(spacing: 8) {
-                        ForEach(data.repos.prefix(3)) { RepoRow(repo: $0) }
+        Card {
+            VStack(alignment: .leading, spacing: Theme.contentSpacing) {
+                CardHeader(title: "GitHub Activity", symbol: "curlybraces", tint: Theme.accent) {
+                    if let data {
+                        Text("\(data.totalContributions.formatted(.number.grouping(.automatic))) contributions")
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
                     }
                 }
+
+                if let errorMessage {
+                    WidgetError(message: errorMessage) { Task { await reload() } }
+                } else if let data {
+                    if data.repos.isEmpty && data.contributions.isEmpty {
+                        EmptyHint(text: "No activity")
+                    } else {
+                        ContributionHeatmap(days: data.contributions)
+
+                        if !data.repos.isEmpty {
+                            VStack(spacing: 8) {
+                                ForEach(data.repos.prefix(3)) { RepoRow(repo: $0) }
+                            }
+                        }
+                    }
+                } else {
+                    WidgetLoading()
+                }
             }
+        }
+        .task { await reload() }
+    }
+
+    private func reload() async {
+        errorMessage = nil
+        do {
+            data = try await APIClient.shared.get("/api/github") as GithubResponse
+        } catch {
+            errorMessage = (error as? APIError)?.errorDescription ?? error.localizedDescription
         }
     }
 }
@@ -35,7 +52,6 @@ struct GitHubWidget: View {
 private struct ContributionHeatmap: View {
     let days: [GithubContributionDay]
 
-    private let cell: CGFloat = 11
     private let gap: CGFloat = 3
     private let labelWidth: CGFloat = 26
 
@@ -107,8 +123,17 @@ private struct ContributionHeatmap: View {
         return labels
     }
 
+    @State private var availableWidth: CGFloat = 0
+
+    private var cell: CGFloat {
+        let cols = weeks
+        guard !cols.isEmpty, availableWidth > 0 else { return 11 }
+        return max(2, (availableWidth - labelWidth - CGFloat(cols.count - 1) * gap) / CGFloat(cols.count))
+    }
+
     var body: some View {
         let cols = weeks
+        let cell = self.cell
         VStack(alignment: .leading, spacing: 6) {
             // Month row
             HStack(alignment: .top, spacing: gap) {
@@ -167,6 +192,12 @@ private struct ContributionHeatmap: View {
             .padding(.top, 4)
             .frame(maxWidth: .infinity, alignment: .center)
         }
+        .background(
+            GeometryReader { geo in
+                Color.clear.preference(key: HeatmapWidthKey.self, value: geo.size.width)
+            }
+        )
+        .onPreferenceChange(HeatmapWidthKey.self) { availableWidth = $0 }
     }
 
     // Matches web getColor(): count thresholds, not level.
@@ -209,10 +240,10 @@ private struct RepoRow: View {
             .padding(.horizontal, 12)
             .padding(.vertical, 8)
             .background(
-                RoundedRectangle(cornerRadius: 12, style: .continuous)
+                RoundedRectangle(cornerRadius: Theme.innerRadius, style: .continuous)
                     .fill(.quaternary.opacity(0.4))
             )
-            .contentShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+            .contentShape(RoundedRectangle(cornerRadius: Theme.innerRadius, style: .continuous))
         }
         .buttonStyle(.plain)
     }
@@ -234,5 +265,14 @@ private struct RepoRow: View {
         let mo = day / 30
         if mo < 12 { return "\(mo)mo ago" }
         return "\(mo / 12)y ago"
+    }
+}
+
+// MARK: - Preference key for heatmap width measurement
+
+private struct HeatmapWidthKey: PreferenceKey {
+    static let defaultValue: CGFloat = 0
+    static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) {
+        value = nextValue()
     }
 }

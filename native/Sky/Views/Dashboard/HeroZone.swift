@@ -32,7 +32,11 @@ struct HeroZone: View {
         }
         .frame(maxWidth: .infinity)
         .frame(minHeight: 220)
+        #if os(macOS)
+        .padding(.top, 36)
+        #else
         .padding(.top, 8)
+        #endif
         .padding(.horizontal, Theme.gap)
         .task(id: state) {
             await fetchGreeting()

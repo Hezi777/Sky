@@ -13,13 +13,14 @@ import SwiftUI
 // `Value` must be Sendable (it crosses the APIClient actor boundary) — all our
 // Codable model structs already are.
 
-struct AsyncCard<Value: Sendable, Content: View>: View {
+struct AsyncCard<Value: Sendable, Accessory: View, Content: View>: View {
     let title: String
     let symbol: String
     var tint: Color = .secondary
     let load: () async throws -> Value
     var isEmpty: (Value) -> Bool = { _ in false }
     var emptyText: String = "Nothing here"
+    @ViewBuilder let accessory: Accessory
     @ViewBuilder let content: (Value) -> Content
 
     @State private var value: Value?
@@ -28,7 +29,9 @@ struct AsyncCard<Value: Sendable, Content: View>: View {
     var body: some View {
         Card {
             VStack(alignment: .leading, spacing: 12) {
-                CardHeader(title: title, symbol: symbol, tint: tint)
+                CardHeader(title: title, symbol: symbol, tint: tint) {
+                    accessory
+                }
 
                 if let errorMessage {
                     WidgetError(message: errorMessage) { Task { await reload() } }
@@ -53,6 +56,24 @@ struct AsyncCard<Value: Sendable, Content: View>: View {
         } catch {
             errorMessage = (error as? APIError)?.errorDescription ?? error.localizedDescription
         }
+    }
+}
+
+extension AsyncCard where Accessory == EmptyView {
+    init(
+        title: String,
+        symbol: String,
+        tint: Color = .secondary,
+        load: @escaping () async throws -> Value,
+        isEmpty: @escaping (Value) -> Bool = { _ in false },
+        emptyText: String = "Nothing here",
+        @ViewBuilder content: @escaping (Value) -> Content
+    ) {
+        self.init(
+            title: title, symbol: symbol, tint: tint,
+            load: load, isEmpty: isEmpty, emptyText: emptyText,
+            accessory: { EmptyView() }, content: content
+        )
     }
 }
 

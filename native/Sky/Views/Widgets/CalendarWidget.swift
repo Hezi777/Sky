@@ -28,7 +28,7 @@ struct CalendarWidget: View {
     var body: some View {
         AsyncCard(
             title: "Calendar",
-            symbol: "calendar",
+            symbol: "calendar.day.timeline.left",
             tint: Theme.accent,
             load: { try await APIClient.shared.get("/api/calendar") as [CalendarEvent] },
             isEmpty: \.isEmpty,
@@ -36,7 +36,7 @@ struct CalendarWidget: View {
         ) { events in
             let now = Date()
             let groups = groupByDay(events, now: now)
-            VStack(alignment: .leading, spacing: 14) {
+            VStack(alignment: .leading, spacing: Theme.contentSpacing) {
                 ForEach(groups) { group in
                     DaySection(group: group, now: now)
                 }
@@ -93,9 +93,8 @@ private struct DaySection: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
             Text(group.label)
-                .font(.caption.weight(.semibold))
+                .font(.caption2.weight(.semibold))
                 .textCase(.uppercase)
-                .tracking(0.6)
                 .foregroundStyle(.secondary)
 
             VStack(spacing: 2) {

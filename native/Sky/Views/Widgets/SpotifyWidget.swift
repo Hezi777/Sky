@@ -65,7 +65,6 @@ private struct NowPlayingBlock: View {
                 }
             }
         }
-        .padding(4)
         .contentShape(Rectangle())
 
         if let url = URL(string: nowPlaying.url) {
@@ -101,7 +100,6 @@ private struct NothingPlayingHint: View {
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
         }
-        .padding(4)
     }
 }
 
@@ -114,9 +112,8 @@ private struct RecentSection: View {
         VStack(alignment: .leading, spacing: 6) {
             Divider()
             Text("Recently played")
-                .font(.caption.weight(.medium))
+                .font(.caption2.weight(.semibold))
                 .textCase(.uppercase)
-                .tracking(0.5)
                 .foregroundStyle(.secondary)
                 .padding(.top, 2)
 

@@ -5,8 +5,23 @@ import SwiftUI
 enum Theme {
     // Spacing
     static let gap: CGFloat = 16
+    /// Gap between cards within a section. Deliberately tighter than `gap` (the
+    /// page margin) so cards read as one connected group, not scattered tiles.
+    static let cardGap: CGFloat = 12
+    /// Gap between whole sections. Larger than `cardGap` so sections read as
+    /// distinct grouped bands (visual hierarchy), not one flat list of tiles.
+    static let sectionGap: CGFloat = 30
     static let cardPadding: CGFloat = 18
     static let cardRadius: CGFloat = 22
+
+    /// Standard spacing inside a card's content VStack.
+    static let contentSpacing: CGFloat = 12
+    /// Spacing between a section label and its content (sub-sections).
+    static let sectionSpacing: CGFloat = 6
+    /// Corner radius for nested containers inside a card (e.g. repo/list rows).
+    static let innerRadius: CGFloat = 12
+    /// Corner radius for media thumbnails (album art, etc.).
+    static let mediaRadius: CGFloat = 8
 
     // Accent — Sky blue, matches the web app's --primary (light/dark via asset).
     static let accent = Color("SkyPrimary")
@@ -46,8 +61,12 @@ struct Card<Content: View>: View {
 
     var body: some View {
         content
-            .frame(maxWidth: .infinity, alignment: .leading)
+            .frame(maxWidth: .infinity, alignment: .topLeading)
             .padding(Theme.cardPadding)
+            // Hug content height: never stretch to match a taller neighbour in an
+            // HStack/grid row. This is what kills the internal voids and the
+            // "Weather layered on top" look — short cards stay short.
+            .fixedSize(horizontal: false, vertical: true)
             .background(
                 RoundedRectangle(cornerRadius: Theme.cardRadius, style: .continuous)
                     .fill(Color("CardBg").opacity(0.92))
@@ -71,10 +90,12 @@ struct CardHeader<Accessory: View>: View {
     @ViewBuilder var accessory: Accessory
 
     var body: some View {
-        HStack(spacing: 8) {
+        HStack(spacing: 7) {
             Image(systemName: symbol)
-                .font(.subheadline.weight(.semibold))
+                .font(.system(size: 13, weight: .medium))
+                .imageScale(.medium)
                 .foregroundStyle(tint)
+                .frame(width: 18, height: 18, alignment: .center)
             Text(title)
                 .font(.subheadline.weight(.semibold))
                 .foregroundStyle(.secondary)

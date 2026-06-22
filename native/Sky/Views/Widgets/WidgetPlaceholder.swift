@@ -8,7 +8,7 @@ struct WidgetPlaceholder: View {
     var body: some View {
         Card {
             VStack(alignment: .leading, spacing: 12) {
-                CardHeader(title: kind.title, symbol: kind.symbol)
+                CardHeader(title: kind.title, symbol: kind.symbol, tint: Theme.accent)
                 HStack {
                     Spacer()
                     Text("Coming soon")
