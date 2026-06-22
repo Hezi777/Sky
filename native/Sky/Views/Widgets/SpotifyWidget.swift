@@ -39,7 +39,7 @@ private struct NowPlayingBlock: View {
                 RoundedRectangle(cornerRadius: Tokens.mediaRadius, style: .continuous)
                     .fill(.fill.tertiary)
             }
-            .frame(width: 56, height: 56)
+            .frame(width: Tokens.Size.artwork, height: Tokens.Size.artwork)
             .clipShape(RoundedRectangle(cornerRadius: Tokens.mediaRadius, style: .continuous))
 
             VStack(alignment: .leading, spacing: Tokens.tight) {
@@ -91,7 +91,7 @@ private struct NothingPlayingHint: View {
             ZStack {
                 RoundedRectangle(cornerRadius: Tokens.mediaRadius, style: .continuous)
                     .fill(.fill.tertiary)
-                    .frame(width: 56, height: 56)
+                    .frame(width: Tokens.Size.artwork, height: Tokens.Size.artwork)
                 Image(systemName: "music.note")
                     .foregroundStyle(.secondary)
                     .font(.title3)
@@ -140,7 +140,7 @@ private struct RecentTrackRow: View {
                 RoundedRectangle(cornerRadius: Tokens.compactRadius, style: .continuous)
                     .fill(.fill.tertiary)
             }
-            .frame(width: 32, height: 32)
+            .frame(width: Tokens.Size.recentArtwork, height: Tokens.Size.recentArtwork)
             .clipShape(RoundedRectangle(cornerRadius: Tokens.compactRadius, style: .continuous))
 
             VStack(alignment: .leading, spacing: Tokens.microSpacing) {
@@ -185,7 +185,7 @@ private struct ProgressBar: View {
                         .frame(width: geo.size.width * progress)
                 }
         }
-        .frame(height: 3)
+        .frame(height: Tokens.Size.eventBar)
         .clipShape(Capsule())
     }
 }
@@ -200,10 +200,10 @@ private struct EqualizerIndicator: View {
             ForEach(0..<3, id: \.self) { i in
                 RoundedRectangle(cornerRadius: Tokens.hairlineRadius)
                     .fill(Tokens.positive)
-                    .frame(width: 2.5, height: isPlaying ? barHeight(i) : 4)
+                    .frame(width: Tokens.Size.hairlineBar, height: isPlaying ? barHeight(i) : Tokens.Size.progressBar)
             }
         }
-        .frame(width: 12, height: 12)
+        .frame(width: Tokens.Size.compactControl, height: Tokens.Size.compactControl)
     }
 
     private func barHeight(_ index: Int) -> CGFloat {

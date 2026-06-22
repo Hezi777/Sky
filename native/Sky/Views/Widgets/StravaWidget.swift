@@ -36,7 +36,7 @@ struct StravaWidget: View {
                 Text("Connect Strava in settings")
                     .font(.footnote)
                     .foregroundStyle(.tertiary)
-                    .frame(maxWidth: .infinity, minHeight: 44)
+                    .frame(maxWidth: .infinity, minHeight: Tokens.Size.emptyStateHeight)
             case .activities(let activities):
                 VStack(spacing: Tokens.contentSpacing) {
                     ForEach(activities) { ActivityRow(activity: $0) }
@@ -59,7 +59,7 @@ private struct ActivityRow: View {
                 Image(systemName: symbol)
                     .font(.subheadline.weight(.semibold))
                     .foregroundStyle(Tokens.accent)
-                    .frame(width: 22)
+                    .frame(width: Tokens.Size.activityIcon)
 
                 VStack(alignment: .leading, spacing: Tokens.extraTight) {
                     Text(activity.name)

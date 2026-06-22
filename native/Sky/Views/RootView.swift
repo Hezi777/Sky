@@ -32,7 +32,7 @@ struct RootView: View {
                 }
         }
         #if os(macOS)
-        .frame(minWidth: 720, minHeight: 560)
+        .frame(minWidth: Tokens.Size.rootMinWidth, minHeight: Tokens.Size.rootMinHeight)
         .enableFullScreen()
         #endif
     }

@@ -62,7 +62,7 @@ private struct WeatherContent: View {
             topRow
             if let hourly, hourly.temperature2m.count > 1 {
                 HourlyTempChart(temps: hourly.temperature2m, times: hourly.time)
-                    .frame(height: 72)
+                    .frame(height: Tokens.Size.weatherChartHeight)
             }
         }
     }

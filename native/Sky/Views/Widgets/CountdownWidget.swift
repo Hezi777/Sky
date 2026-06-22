@@ -159,7 +159,7 @@ private struct TripEditor: View {
                 }
             }
         }
-        .frame(minWidth: 320, minHeight: 250)
+        .frame(minWidth: Tokens.Size.editorMinWidth, minHeight: Tokens.Size.editorMinHeight)
     }
 }
 

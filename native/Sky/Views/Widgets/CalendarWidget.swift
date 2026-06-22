@@ -121,11 +121,11 @@ private struct EventRow: View {
                     }
                 }
             }
-            .frame(width: 50, alignment: .trailing)
+            .frame(width: Tokens.Size.calendarTimeColumn, alignment: .trailing)
 
             RoundedRectangle(cornerRadius: Tokens.tinyRadius, style: .continuous)
                 .fill(accent.opacity(muted ? 0.35 : 1.0))
-                .frame(width: 3, height: 18)
+                .frame(width: Tokens.Size.eventBar, height: Tokens.Size.symbolBox)
                 .padding(.top, Tokens.badgePadding)
 
             VStack(alignment: .leading, spacing: Tokens.extraTight) {

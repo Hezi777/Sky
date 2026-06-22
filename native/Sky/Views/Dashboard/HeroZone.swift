@@ -26,14 +26,14 @@ struct HeroZone: View {
                     .multilineTextAlignment(.center)
                     .foregroundStyle(.white.opacity(0.82))
                     .shadow(color: .black.opacity(0.18), radius: 3, y: 1)
-                    .frame(maxWidth: 420)
+                    .frame(maxWidth: Tokens.Size.heroTextMaxWidth)
                     .transition(.opacity)
             }
             .padding(Tokens.cardPadding)
             .glassSurface()
         }
         .frame(maxWidth: .infinity)
-        .frame(minHeight: 220)
+        .frame(minHeight: Tokens.Size.heroMinHeight)
         #if os(macOS)
         .padding(.top, Tokens.heroTopPadding)
         #else
