@@ -7,7 +7,14 @@ import SwiftUI
 
 struct DashboardView: View {
     @Environment(DashboardConfig.self) private var config
+    @Environment(IntegrationConfigStore.self) private var integrationConfig
+    @Environment(BackendRuntime.self) private var backendRuntime
     @State private var now = Date()
+    let onOpenSettings: () -> Void
+
+    init(onOpenSettings: @escaping () -> Void = {}) {
+        self.onOpenSettings = onOpenSettings
+    }
 
     private var cloudState: CloudState {
         Cloud.state(for: CloudInput(hour: Calendar.current.component(.hour, from: now)))
@@ -24,8 +31,21 @@ struct DashboardView: View {
                     VStack(spacing: Tokens.sectionGap) {
                         HeroZone(state: cloudState)
 
+                        if !backendRuntime.state.isReady {
+                            BackendStatusCard(
+                                state: backendRuntime.state,
+                                onRetry: retryBackend,
+                                onOpenSettings: onOpenSettings
+                            )
+                        } else if !unconfiguredVisibleWidgets.isEmpty {
+                            IntegrationSetupStatusCard(
+                                count: unconfiguredVisibleWidgets.count,
+                                onOpenSettings: onOpenSettings
+                            )
+                        }
+
                         DashboardWidgetLayout {
-                            ForEach(config.visibleWidgets) { kind in
+                            ForEach(renderedWidgets) { kind in
                                 widget(for: kind)
                                     .layoutValue(key: WidgetSpanKey.self, value: kind.span)
                             }
@@ -43,21 +63,44 @@ struct DashboardView: View {
         .onAppear { now = Date() }
     }
 
+    private var renderedWidgets: [WidgetKind] {
+        if backendRuntime.state.isReady { return config.visibleWidgets }
+        return config.visibleWidgets.filter(\.isLocalOnly)
+    }
+
+    private var unconfiguredVisibleWidgets: [WidgetKind] {
+        config.visibleWidgets.filter { kind in
+            guard let integrationID = kind.integrationID else { return false }
+            return !integrationConfig.isConfigured(integrationID)
+        }
+    }
+
+    private func retryBackend() {
+        Task {
+            await backendRuntime.restart(environment: integrationConfig.environmentValues())
+        }
+    }
+
     @ViewBuilder
     private func widget(for kind: WidgetKind) -> some View {
-        switch kind {
-        case .calendar: CalendarWidget()
-        case .tasks: TasksWidget()
-        case .github: GitHubWidget()
-        case .spotify: SpotifyWidget()
-        case .ibkr: IBKRWidget()
-        case .fair: FairWidget()
-        case .reading: ReadingWidget()
-        case .countdown: CountdownWidget()
-        case .stocks: StocksWidget()
-        case .weather: WeatherWidget()
-        case .quote: QuoteWidget()
-        case .strava: StravaWidget()
+        if let integrationID = kind.integrationID,
+           !integrationConfig.isConfigured(integrationID) {
+            WidgetSetupCard(kind: kind)
+        } else {
+            switch kind {
+            case .calendar: CalendarWidget()
+            case .tasks: TasksWidget()
+            case .github: GitHubWidget()
+            case .spotify: SpotifyWidget()
+            case .ibkr: IBKRWidget()
+            case .fair: FairWidget()
+            case .reading: ReadingWidget()
+            case .countdown: CountdownWidget()
+            case .stocks: StocksWidget()
+            case .weather: WeatherWidget()
+            case .quote: QuoteWidget()
+            case .strava: StravaWidget()
+            }
         }
     }
 }

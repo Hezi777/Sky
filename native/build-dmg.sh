@@ -37,6 +37,12 @@ if [ ! -d "$APP_PATH" ]; then
   exit 1
 fi
 
+APP_BACKEND="$APP_PATH/Contents/Resources/SkyBackend"
+if [ ! -x "$APP_BACKEND/node" ] || [ ! -f "$APP_BACKEND/server/server.js" ]; then
+  echo "Error: packaged backend resources are missing from $APP_PATH. Run ./build-mac.sh again."
+  exit 1
+fi
+
 if [ ! -f "$BG" ]; then
   echo "Error: $BG not found."
   exit 1

@@ -4,11 +4,6 @@ import type { PageObjectResponse } from "@notionhq/client/build/src/api-endpoint
 
 export const dynamic = "force-dynamic";
 
-// "Reading Book Tracker" database. The data source id is required by the
-// 2025-09-03 dataSources.query API (mirrors lib/notion.ts which uses
-// notion.dataSources.query rather than databases.query).
-const READING_DATA_SOURCE_ID = "25586eb0-7b69-81a7-8580-000b9894543a";
-
 interface ReadingBook {
   id: string;
   title: string;
@@ -74,15 +69,21 @@ function mapPage(page: PageObjectResponse): ReadingBook {
 }
 
 export async function GET() {
-  if (!process.env.NOTION_TOKEN) {
-    return NextResponse.json({ error: "Notion token not set" }, { status: 200 });
+  const token = process.env.NOTION_TOKEN;
+  const dataSourceId = process.env.NOTION_READING_DATA_SOURCE_ID;
+
+  if (!token || !dataSourceId) {
+    return NextResponse.json(
+      { error: "Notion Reading not configured" },
+      { status: 200 },
+    );
   }
 
   try {
-    const notion = new Client({ auth: process.env.NOTION_TOKEN });
+    const notion = new Client({ auth: token });
 
     const res = await notion.dataSources.query({
-      data_source_id: READING_DATA_SOURCE_ID,
+      data_source_id: dataSourceId,
       filter: {
         property: "Status",
         status: { equals: "Reading" },

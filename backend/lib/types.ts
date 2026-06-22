@@ -5,6 +5,33 @@ export interface ApiError {
   error: string;
 }
 
+// --- Backend status ---------------------------------------------------------
+
+export interface HealthResponse {
+  status: "ok";
+  ready: true;
+  version: string;
+}
+
+export interface IntegrationConfigStatus {
+  configured: boolean;
+  missing: string[];
+}
+
+export interface IntegrationsStatusResponse {
+  integrations: {
+    googleCalendar: IntegrationConfigStatus;
+    tickTick: IntegrationConfigStatus;
+    spotify: IntegrationConfigStatus;
+    strava: IntegrationConfigStatus;
+    stocks: IntegrationConfigStatus;
+    github: IntegrationConfigStatus;
+    notionReading: IntegrationConfigStatus;
+    ibkr: IntegrationConfigStatus;
+    groq: IntegrationConfigStatus;
+  };
+}
+
 // --- Spotify ---------------------------------------------------------------
 
 export interface SpotifyTrack {

@@ -1,10 +1,10 @@
 import Foundation
 
-// Talks to the existing Next.js backend (`app/api/*`). Dev points at localhost;
-// later this base URL becomes the deployed Vercel origin so iPhone works remotely.
+// Talks to the bundled localhost-only Next.js backend (`app/api/*`) on macOS.
 
 enum APIError: LocalizedError {
     case badURL
+    case backendUnavailable
     case http(Int)
     case decoding(Error)
     case transport(Error)
@@ -13,6 +13,7 @@ enum APIError: LocalizedError {
     var errorDescription: String? {
         switch self {
         case .badURL: return "Bad URL"
+        case .backendUnavailable: return "Sky's local service is unavailable"
         case .http(let code): return "HTTP \(code)"
         case .decoding: return "Couldn't read the response"
         case .transport(let e): return e.localizedDescription
@@ -21,33 +22,23 @@ enum APIError: LocalizedError {
     }
 }
 
-enum APIConfig {
-    /// Backend origin. Reads `SKY_API_BASE_URL` from Info.plist (set via build
-    /// settings for a deployed Vercel origin); defaults to localhost for dev.
-    static let baseURL: URL = {
-        if let s = Bundle.main.object(forInfoDictionaryKey: "SKY_API_BASE_URL") as? String,
-           !s.isEmpty, let url = URL(string: s) {
-            return url
-        }
-        return URL(string: "http://localhost:3000")!
-    }()
-
-    /// Optional bearer token for a deployed/protected backend (nil in local dev).
-    static let bearerToken: String? = {
-        let t = Bundle.main.object(forInfoDictionaryKey: "SKY_API_TOKEN") as? String
-        return (t?.isEmpty == false) ? t : nil
-    }()
-}
-
 actor APIClient {
     static let shared = APIClient()
 
     private let session: URLSession
     private let decoder: JSONDecoder
+    private nonisolated(unsafe) var baseURL: URL?
+    private nonisolated let configurationLock = NSLock()
 
     init(session: URLSession = .shared) {
         self.session = session
         self.decoder = JSONDecoder()
+    }
+
+    nonisolated func configure(baseURL: URL?) {
+        configurationLock.withLock {
+            self.baseURL = baseURL
+        }
     }
 
     func get<T: Decodable>(_ path: String, query: [String: String] = [:]) async throws -> T {
@@ -64,8 +55,10 @@ actor APIClient {
         query: [String: String],
         body: B?
     ) async throws -> T {
+        let configuredBaseURL = configurationLock.withLock { baseURL }
+        guard let baseURL = configuredBaseURL else { throw APIError.backendUnavailable }
         guard var comps = URLComponents(
-            url: APIConfig.baseURL.appendingPathComponent(path),
+            url: baseURL.appendingPathComponent(path),
             resolvingAgainstBaseURL: false
         ) else { throw APIError.badURL }
 
@@ -77,9 +70,6 @@ actor APIClient {
         var req = URLRequest(url: url)
         req.httpMethod = method
         req.setValue("application/json", forHTTPHeaderField: "Accept")
-        if let token = APIConfig.bearerToken {
-            req.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
-        }
         if let body {
             req.setValue("application/json", forHTTPHeaderField: "Content-Type")
             req.httpBody = try JSONEncoder().encode(body)
