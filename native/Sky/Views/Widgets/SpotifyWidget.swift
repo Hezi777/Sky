@@ -1,14 +1,17 @@
 import SwiftUI
 
 struct SpotifyWidget: View {
+    @Environment(DashboardStore.self) private var store
+
     var body: some View {
         AsyncCard(
             title: "Spotify",
             symbol: "music.note",
             tint: Tokens.positive,
-            load: { try await APIClient.shared.get("/api/spotify") as SpotifyResponse },
+            state: store.spotify,
             isEmpty: { $0.nowPlaying == nil && $0.recent.isEmpty },
-            emptyText: "Nothing playing"
+            emptyText: "Nothing playing",
+            reload: { await store.load(.spotify, force: true) }
         ) { response in
             VStack(alignment: .leading, spacing: Tokens.contentSpacing) {
                 if let np = response.nowPlaying {
@@ -22,6 +25,7 @@ struct SpotifyWidget: View {
                 }
             }
         }
+        .task { await store.load(.spotify) }
     }
 }
 

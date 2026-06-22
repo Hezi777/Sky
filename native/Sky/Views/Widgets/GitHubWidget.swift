@@ -1,8 +1,7 @@
 import SwiftUI
 
 struct GitHubWidget: View {
-    @State private var data: GithubResponse?
-    @State private var errorMessage: String?
+    @Environment(DashboardStore.self) private var store
 
     var body: some View {
         WidgetShell(
@@ -10,16 +9,17 @@ struct GitHubWidget: View {
             symbol: "curlybraces",
             tint: Tokens.accent,
             accessory: {
-                if let data {
+                if case .loaded(let data) = store.github {
                     Text("\(data.totalContributions.formatted(.number.grouping(.automatic))) contributions")
                         .font(.subheadline)
                         .foregroundStyle(.secondary)
                 }
             }
         ) {
-            if let errorMessage {
-                WidgetError(message: errorMessage) { Task { await reload() } }
-            } else if let data {
+            switch store.github {
+            case .failed(let message):
+                WidgetError(message: message) { Task { await store.load(.github, force: true) } }
+            case .loaded(let data):
                 if data.repos.isEmpty && data.contributions.isEmpty {
                     EmptyHint(text: "No activity")
                 } else {
@@ -31,20 +31,11 @@ struct GitHubWidget: View {
                         }
                     }
                 }
-            } else {
+            case .idle, .loading:
                 WidgetLoading()
             }
         }
-        .task { await reload() }
-    }
-
-    private func reload() async {
-        errorMessage = nil
-        do {
-            data = try await APIClient.shared.get("/api/github") as GithubResponse
-        } catch {
-            errorMessage = (error as? APIError)?.errorDescription ?? error.localizedDescription
-        }
+        .task { await store.load(.github) }
     }
 }
 

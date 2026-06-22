@@ -64,6 +64,7 @@ private struct DashboardRootView: View {
         #endif
         #if os(macOS)
         .frame(minWidth: Tokens.Size.rootMinWidth, minHeight: Tokens.Size.rootMinHeight)
+        .windowToolbarFullScreenVisibility(.onHover)
         .enableFullScreen()
         #endif
     }

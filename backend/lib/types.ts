@@ -147,6 +147,23 @@ export interface GreetingResponse {
   message: string;
 }
 
+export type DashboardSignalPeriod = "morning" | "afternoon" | "evening" | "night";
+export type DashboardSignalLoad = "unknown" | "clear" | "light" | "busy";
+export type DashboardSignalMomentum = "unknown" | "quiet" | "active" | "strong";
+export type DashboardSignalTrend = "unknown" | "down" | "flat" | "up";
+export type DashboardSignalRecency = "unknown" | "recent" | "stale";
+
+export interface DashboardAISignals {
+  period: DashboardSignalPeriod;
+  calendarLoad: DashboardSignalLoad;
+  taskLoad: DashboardSignalLoad;
+  codingMomentum: DashboardSignalMomentum;
+  portfolioTrend: DashboardSignalTrend;
+  musicPlaying?: boolean;
+  exerciseRecency: DashboardSignalRecency;
+  readingActive?: boolean;
+}
+
 export interface ResourceProperties {
   Name: string;
   Description: string;

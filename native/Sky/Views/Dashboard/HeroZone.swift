@@ -4,15 +4,17 @@ import SwiftUI
 
 struct HeroZone: View {
     @Environment(DashboardConfig.self) private var config
+    @Environment(DashboardStore.self) private var dashboardStore
+    @Environment(IntegrationConfigStore.self) private var integrationConfig
     let state: CloudState
 
-    @State private var aiMessage: String?
+    @State private var aiSummary: DashboardSummary?
 
     var body: some View {
         let greeting = Cloud.greeting(for: state, name: config.name)
 
         VStack(spacing: Tokens.snug) {
-            CloudAvatar(state: state, size: 118)
+            CloudAvatar(state: state, role: .hero)
 
             VStack(spacing: Tokens.tight) {
                 Text(greeting.primary)
@@ -21,7 +23,7 @@ struct HeroZone: View {
                     .foregroundStyle(.white)
                     .shadow(color: .black.opacity(0.22), radius: 5, y: 1)
 
-                Text(aiMessage ?? groundedFallback(for: state))
+                Text(aiSummary?.text ?? localSummary.text)
                     .font(.callout)
                     .multilineTextAlignment(.center)
                     .foregroundStyle(.white.opacity(0.82))
@@ -40,68 +42,28 @@ struct HeroZone: View {
         .padding(.top, Tokens.snug)
         #endif
         .padding(.horizontal, Tokens.gap)
-        .task(id: state) {
-            await fetchGreeting()
+        .task(id: dashboardStore.signals) {
+            await refreshOptionalAISummary()
         }
     }
 
-    private func groundedFallback(for state: CloudState) -> String {
-        switch state {
-        case .sleeping:
-            return "Quiet mode. I'll keep things simple."
-        case .stretching:
-            return "Starting light. Here's the basic read."
-        case .happy, .confident:
-            return "Things look solid so far."
-        case .droopy:
-            return "A slower day. That's fine."
-        case .calm:
-            return "A steady day with not much noise."
-        case .hero:
-            return "Here's the day at a glance."
-        }
+    private var localSummary: DashboardSummary {
+        DashboardSummaryService.localSummary(for: dashboardStore.signals)
     }
 
-    private func fetchGreeting() async {
-        // Gather safe, aggregated signals - never send dollar values or raw data.
-        var commits: Int?
-        var portfolioChange: Double?
-        var nowPlaying: String?
-
-        // GitHub: today's commit count
-        if let github: GithubResponse = try? await APIClient.shared.get("/api/github") {
-            let fmt = DateFormatter()
-            fmt.dateFormat = "yyyy-MM-dd"
-            fmt.timeZone = .current
-            let todayStr = fmt.string(from: Date())
-            commits = github.contributions.first(where: { $0.date == todayStr })?.count
+    private func refreshOptionalAISummary() async {
+        aiSummary = nil
+        do {
+            try await Task.sleep(for: .milliseconds(600))
+        } catch {
+            return
         }
-
-        // IBKR: portfolio day-change PERCENT only (no dollar values sent)
-        if let ibkr: IbkrResponse = try? await APIClient.shared.get("/api/ibkr"),
-           let dayPnl = ibkr.summary.dayPnl,
-           ibkr.summary.totalValue > 0 {
-            let base = ibkr.summary.totalValue - dayPnl
-            if base > 0 {
-                portfolioChange = ((dayPnl / base) * 1000).rounded() / 10
-            }
-        }
-
-        // Spotify: only a coarse playback signal - no track metadata.
-        if let spotify: SpotifyResponse = try? await APIClient.shared.get("/api/spotify"),
-           let np = spotify.nowPlaying, np.isPlaying {
-            nowPlaying = "music playing"
-        }
-
-        let request = GreetingRequest(
-            commits: commits,
-            portfolioChange: portfolioChange,
-            nowPlaying: nowPlaying,
-            mood: state.rawValue
+        guard !Task.isCancelled else { return }
+        let summary = await DashboardSummaryService.optionalAISummary(
+            for: dashboardStore.signals,
+            configuration: integrationConfig
         )
-
-        if let resp: GreetingResponse = try? await APIClient.shared.post("/api/ai/greeting", body: request) {
-            withAnimation(.easeOut(duration: 0.3)) { aiMessage = resp.message }
-        }
+        guard !Task.isCancelled, let summary else { return }
+        withAnimation(.easeOut(duration: 0.3)) { aiSummary = summary }
     }
 }

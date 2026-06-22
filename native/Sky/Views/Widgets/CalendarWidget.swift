@@ -9,14 +9,17 @@ private func eventAccent(_ colorId: String?) -> Color {
 }
 
 struct CalendarWidget: View {
+    @Environment(DashboardStore.self) private var store
+
     var body: some View {
         AsyncCard(
             title: "Calendar",
             symbol: "calendar.day.timeline.left",
             tint: Tokens.accent,
-            load: { try await APIClient.shared.get("/api/calendar") as [CalendarEvent] },
+            state: store.calendar,
             isEmpty: \.isEmpty,
-            emptyText: "No upcoming events"
+            emptyText: "No upcoming events",
+            reload: { await store.load(.calendar, force: true) }
         ) { events in
             let now = Date()
             let groups = groupByDay(events, now: now)
@@ -26,6 +29,7 @@ struct CalendarWidget: View {
                 }
             }
         }
+        .task { await store.load(.calendar) }
     }
 }
 

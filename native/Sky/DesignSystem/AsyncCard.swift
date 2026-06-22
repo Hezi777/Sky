@@ -1,56 +1,30 @@
 import SwiftUI
 
-// The standard async widget container. Owns loading / error / empty states so
-// each widget only declares: title, icon, how to fetch, and how to render.
-//
-// Usage:
-//   AsyncCard(title: "Calendar", symbol: "calendar", tint: Tokens.accent,
-//             load: { try await APIClient.shared.get("/api/calendar") as [CalendarEvent] },
-//             isEmpty: \.isEmpty, emptyText: "No upcoming events") { events in
-//       ...render events...
-//   }
-//
-// `Value` must be Sendable (it crosses the APIClient actor boundary) — all our
-// Codable model structs already are.
-
+/// Renders shared DashboardStore state with the same loading/error/empty shell
+/// for every backend-backed widget.
 struct AsyncCard<Value: Sendable, Accessory: View, Content: View>: View {
     let title: String
     let symbol: String
     var tint: Color = .secondary
-    let load: () async throws -> Value
+    let state: DashboardLoadState<Value>
     var isEmpty: (Value) -> Bool = { _ in false }
     var emptyText: String = "Nothing here"
+    let reload: () async -> Void
     @ViewBuilder let accessory: Accessory
     @ViewBuilder let content: (Value) -> Content
-
-    @State private var value: Value?
-    @State private var errorMessage: String?
 
     var body: some View {
         WidgetShell(title: title, symbol: symbol, tint: tint) {
             accessory
         } content: {
-            if let errorMessage {
-                WidgetError(message: errorMessage) { Task { await reload() } }
-            } else if let value {
-                if isEmpty(value) {
-                    EmptyHint(text: emptyText)
-                } else {
-                    content(value)
-                }
-            } else {
+            switch state {
+            case .idle, .loading:
                 WidgetLoading()
+            case .failed(let message):
+                WidgetError(message: message) { Task { await reload() } }
+            case .loaded(let value):
+                if isEmpty(value) { EmptyHint(text: emptyText) } else { content(value) }
             }
-        }
-        .task { await reload() }
-    }
-
-    private func reload() async {
-        errorMessage = nil
-        do {
-            value = try await load()
-        } catch {
-            errorMessage = (error as? APIError)?.errorDescription ?? error.localizedDescription
         }
     }
 }
@@ -60,14 +34,15 @@ extension AsyncCard where Accessory == EmptyView {
         title: String,
         symbol: String,
         tint: Color = .secondary,
-        load: @escaping () async throws -> Value,
+        state: DashboardLoadState<Value>,
         isEmpty: @escaping (Value) -> Bool = { _ in false },
         emptyText: String = "Nothing here",
+        reload: @escaping () async -> Void,
         @ViewBuilder content: @escaping (Value) -> Content
     ) {
         self.init(
-            title: title, symbol: symbol, tint: tint,
-            load: load, isEmpty: isEmpty, emptyText: emptyText,
+            title: title, symbol: symbol, tint: tint, state: state,
+            isEmpty: isEmpty, emptyText: emptyText, reload: reload,
             accessory: { EmptyView() }, content: content
         )
     }

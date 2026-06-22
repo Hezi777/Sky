@@ -5,13 +5,13 @@ import Foundation
 
 // MARK: - Errors
 
-struct APIErrorBody: Codable {
+struct APIErrorBody: Codable, Sendable {
     let error: String
 }
 
 // MARK: - Spotify
 
-struct SpotifyTrack: Codable, Hashable, Identifiable {
+struct SpotifyTrack: Codable, Hashable, Identifiable, Sendable {
     let title: String
     let artist: String
     let albumArt: String?
@@ -19,7 +19,7 @@ struct SpotifyTrack: Codable, Hashable, Identifiable {
     var id: String { url }
 }
 
-struct SpotifyNowPlaying: Codable, Hashable {
+struct SpotifyNowPlaying: Codable, Hashable, Sendable {
     let title: String
     let artist: String
     let albumArt: String?
@@ -29,14 +29,14 @@ struct SpotifyNowPlaying: Codable, Hashable {
     let durationMs: Int
 }
 
-struct SpotifyResponse: Codable {
+struct SpotifyResponse: Codable, Equatable, Sendable {
     let nowPlaying: SpotifyNowPlaying?
     let recent: [SpotifyTrack]
 }
 
 // MARK: - GitHub
 
-struct GithubRepo: Codable, Hashable, Identifiable {
+struct GithubRepo: Codable, Hashable, Identifiable, Sendable {
     let name: String
     let description: String?
     let language: String?
@@ -46,14 +46,14 @@ struct GithubRepo: Codable, Hashable, Identifiable {
     var id: String { url }
 }
 
-struct GithubContributionDay: Codable, Hashable, Identifiable {
+struct GithubContributionDay: Codable, Hashable, Identifiable, Sendable {
     let date: String      // YYYY-MM-DD
     let count: Int
     let level: Int        // 0...4
     var id: String { date }
 }
 
-struct GithubResponse: Codable {
+struct GithubResponse: Codable, Equatable, Sendable {
     let repos: [GithubRepo]
     let contributions: [GithubContributionDay]
     let totalContributions: Int
@@ -75,7 +75,7 @@ typealias NotionNextTask = NotionProject
 
 // MARK: - Google Calendar
 
-struct CalendarEvent: Codable, Hashable, Identifiable {
+struct CalendarEvent: Codable, Hashable, Identifiable, Sendable {
     let id: String
     let title: String
     let start: String     // ISO
@@ -88,11 +88,11 @@ struct CalendarEvent: Codable, Hashable, Identifiable {
 
 // MARK: - TickTick
 
-enum TickTickPriority: String, Codable, Hashable {
+enum TickTickPriority: String, Codable, Hashable, Sendable {
     case none, low, medium, high
 }
 
-struct TickTickTask: Codable, Hashable, Identifiable {
+struct TickTickTask: Codable, Hashable, Identifiable, Sendable {
     let id: String
     let projectId: String
     let title: String
@@ -104,7 +104,7 @@ struct TickTickTask: Codable, Hashable, Identifiable {
 
 // MARK: - IBKR
 
-struct IbkrPosition: Codable, Hashable, Identifiable {
+struct IbkrPosition: Codable, Hashable, Identifiable, Sendable {
     let ticker: String
     let shares: Double
     let avgCost: Double
@@ -114,15 +114,15 @@ struct IbkrPosition: Codable, Hashable, Identifiable {
     var id: String { ticker }
 }
 
-struct IbkrSummary: Codable, Hashable {
+struct IbkrSummary: Codable, Hashable, Sendable {
     let totalValue: Double
     let dayPnl: Double?
     let unrealizedPnl: Double
     let unrealizedPnlPercent: Double
 }
 
-struct IbkrResponse: Codable {
-    enum Source: String, Codable { case gateway, flex }
+struct IbkrResponse: Codable, Equatable, Sendable {
+    enum Source: String, Codable, Sendable { case gateway, flex }
     let source: Source
     let asOf: String?
     let summary: IbkrSummary
@@ -146,7 +146,7 @@ struct GreetingRequest: Codable {
 
 // MARK: - Fair (Israeli mutual fund DCA tracker)
 
-struct FairPrice: Codable {
+struct FairPrice: Codable, Equatable, Sendable {
     let price: Double
     let asOf: String
     let currency: String

@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct FairWidget: View {
+    @Environment(DashboardStore.self) private var store
     // Israeli mutual fund number (Maya/TASE). Editable later via settings.
     @AppStorage("sky.fair.fund") private var fund = "5140785"
 
@@ -9,9 +10,8 @@ struct FairWidget: View {
             title: "Fund",
             symbol: "building.columns",
             tint: Tokens.accent,
-            load: { [fund] in
-                try await APIClient.shared.get("/api/fair", query: ["fund": fund]) as FairPrice
-            }
+            state: store.fair,
+            reload: { await store.load(.fair, force: true, fairFund: fund) }
         ) { fair in
             VStack(alignment: .leading, spacing: Tokens.rowSpacing) {
                 if let name = fair.fundName, !name.isEmpty {
@@ -51,6 +51,7 @@ struct FairWidget: View {
                 .foregroundStyle(.secondary)
             }
         }
+        .task(id: fund) { await store.load(.fair, force: true, fairFund: fund) }
     }
 
     private func symbol(for currency: String) -> String {

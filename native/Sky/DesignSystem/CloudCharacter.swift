@@ -61,16 +61,29 @@ enum Cloud {
     }
 }
 
-/// The cloud avatar image, sized for hero or inline use.
+/// The cloud avatar image. Roles keep every mood asset consistently sized for
+/// its placement and platform.
 struct CloudAvatar: View {
+    enum Role {
+        case hero
+        case status
+
+        var size: CGFloat {
+            switch self {
+            case .hero: Tokens.Size.heroCharacter
+            case .status: Tokens.Size.statusCharacter
+            }
+        }
+    }
+
     let state: CloudState
-    var size: CGFloat = 96
+    let role: Role
 
     var body: some View {
         Image(state.assetName)
             .resizable()
             .scaledToFit()
-            .frame(width: size, height: size)
+            .frame(width: role.size, height: role.size)
             .accessibilityHidden(true)
     }
 }
