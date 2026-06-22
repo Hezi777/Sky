@@ -27,6 +27,7 @@ struct SkyAmbient: View {
                     endPoint: .bottom
                 )
             )
+            .ignoresSafeArea(.container, edges: .top)
             .allowsHitTesting(false)
             .accessibilityHidden(true)
     }

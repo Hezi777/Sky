@@ -13,32 +13,36 @@ struct DashboardSectionSpec: Identifiable {
     var id: String { title }
 
     static let all: [DashboardSectionSpec] = [
+        // Time & Agenda — most actionable, glanceable at start of day
         DashboardSectionSpec(
-            title: "Today",
-            kinds: [.calendar, .tasks, .spotify],
+            title: "Time & Agenda",
+            kinds: [.calendar, .tasks, .countdown],
             maxColumns: 2,
             minimumWidth: 310,
-            maximumWidth: 420
+            maximumWidth: 520
         ),
+        // Finance — portfolio, fund, stocks grouped together
         DashboardSectionSpec(
-            title: "Portfolio",
-            kinds: [.ibkr, .fair],
+            title: "Finance",
+            kinds: [.ibkr, .fair, .stocks],
             maxColumns: 2,
             minimumWidth: 310,
-            maximumWidth: 900
+            maximumWidth: 520
         ),
+        // Activity & Wellness — body and mind
         DashboardSectionSpec(
-            title: "At a glance",
-            kinds: [.quote, .weather, .countdown],
+            title: "Activity",
+            kinds: [.strava, .github, .weather],
             maxColumns: 3,
             minimumWidth: 250,
             maximumWidth: 420
         ),
+        // Ambient — mood, inspiration, leisure
         DashboardSectionSpec(
-            title: "More",
-            kinds: [.stocks, .github, .reading, .strava],
-            maxColumns: 4,
-            minimumWidth: 240,
+            title: "Ambient",
+            kinds: [.spotify, .quote, .reading],
+            maxColumns: 3,
+            minimumWidth: 250,
             maximumWidth: 420
         ),
     ]

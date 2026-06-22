@@ -9,7 +9,7 @@ struct WeatherWidget: View {
     var body: some View {
         Card {
             VStack(alignment: .leading, spacing: 12) {
-                CardHeader(title: "Weather", symbol: "cloud.sun.fill", tint: Theme.accent)
+                CardHeader(title: "Weather", symbol: "cloud.sun", tint: Theme.accent)
 
                 if let err = location.error ?? errorMessage {
                     WidgetError(message: err) {

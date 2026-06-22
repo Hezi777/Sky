@@ -5,7 +5,7 @@ struct IBKRWidget: View {
     var body: some View {
         AsyncCard(
             title: "Portfolio",
-            symbol: "chart.pie.fill",
+            symbol: "chart.pie",
             tint: Theme.accent,
             load: { try await APIClient.shared.get("/api/ibkr") as IbkrResponse },
             isEmpty: { $0.positions.isEmpty },

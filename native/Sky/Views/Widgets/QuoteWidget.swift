@@ -7,7 +7,7 @@ struct QuoteWidget: View {
     var body: some View {
         Card {
             VStack(alignment: .leading, spacing: 12) {
-                CardHeader(title: "Daily Quote", symbol: "quote.bubble.fill", tint: Theme.accent)
+                CardHeader(title: "Daily Quote", symbol: "quote.bubble", tint: Theme.accent)
 
                 if let errorMessage {
                     WidgetError(message: errorMessage) {

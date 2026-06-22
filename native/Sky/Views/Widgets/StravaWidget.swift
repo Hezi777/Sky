@@ -38,7 +38,7 @@ struct StravaWidget: View {
                     .foregroundStyle(.tertiary)
                     .frame(maxWidth: .infinity, minHeight: 44)
             case .activities(let activities):
-                VStack(spacing: 10) {
+                VStack(spacing: Theme.contentSpacing) {
                     ForEach(activities) { ActivityRow(activity: $0) }
                 }
             }

@@ -7,7 +7,7 @@ struct FairWidget: View {
     var body: some View {
         AsyncCard(
             title: "Fund",
-            symbol: "building.columns.fill",
+            symbol: "building.columns",
             tint: Theme.accent,
             load: { [fund] in
                 try await APIClient.shared.get("/api/fair", query: ["fund": fund]) as FairPrice

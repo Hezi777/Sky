@@ -10,12 +10,19 @@ struct RootView: View {
                 #if os(iOS)
                 .navigationBarTitleDisplayMode(.inline)
                 #endif
+                #if os(macOS)
+                .toolbarBackground(.hidden, for: .windowToolbar)
+                #endif
                 .toolbar {
                     ToolbarItem(placement: .primaryAction) {
                         Button {
                             showingSettings = true
                         } label: {
                             Image(systemName: "slider.horizontal.3")
+                                #if os(macOS)
+                                .foregroundStyle(.white)
+                                .shadow(color: .black.opacity(0.3), radius: 2, y: 1)
+                                #endif
                         }
                         .accessibilityLabel("Settings")
                     }

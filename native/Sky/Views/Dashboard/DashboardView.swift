@@ -21,17 +21,17 @@ struct DashboardView: View {
             ZStack(alignment: .top) {
                 SkyAmbient(state: cloudState)
 
-                VStack(spacing: Theme.gap) {
+                VStack(spacing: Theme.sectionGap) {
                     HeroZone(state: cloudState)
 
-                    // Row 1: Calendar (wider) + Tasks & Spotify stacked
-                    row1
-                    // Row 2: IBKR (wider) + Fair
-                    row2
-                    // Row 3: Glance widgets — Quote, Weather, Countdown
-                    row3
-                    // Row 4: Stocks, GitHub, Reading, Strava
-                    row4
+                    // Rows rebalanced by content size so short cards never sit
+                    // stranded beside tall ones. Wide/dense widgets get width;
+                    // small widgets are grouped together.
+                    rowAgenda    // Calendar (wide) + Tasks
+                    rowFinance   // Portfolio (wide) + Fund/Stocks
+                    rowGitHub    // GitHub heatmap — full width (needs the room)
+                    rowSmall     // Weather · Quote · Countdown (small, grouped)
+                    rowSpotify   // Spotify — full width
                 }
                 .frame(maxWidth: 1500)
                 .frame(maxWidth: .infinity)
@@ -45,126 +45,128 @@ struct DashboardView: View {
             }
         )
         .onPreferenceChange(WidthKey.self) { availableWidth = $0 }
+        .ignoresSafeArea(.container, edges: .top)
         .background(Color("BgBase"))
         .onAppear { now = Date() }
     }
 
-    // MARK: - Row 1: Calendar + (Tasks / Spotify)
+    // MARK: - Row: Agenda (Calendar wide + Tasks)
 
     @ViewBuilder
-    private var row1: some View {
+    private var rowAgenda: some View {
         let hasCalendar = config.isVisible(.calendar)
         let hasTasks = config.isVisible(.tasks)
-        let hasSpotify = config.isVisible(.spotify)
 
-        if hasCalendar || hasTasks || hasSpotify {
-            if isWide {
-                HStack(alignment: .top, spacing: Theme.gap) {
-                    if hasCalendar {
-                        CalendarWidget()
-                            .frame(maxWidth: .infinity)
-                    }
-                    if hasTasks || hasSpotify {
-                        VStack(spacing: Theme.gap) {
-                            if hasTasks { TasksWidget() }
-                            if hasSpotify { SpotifyWidget() }
-                        }
+        if hasCalendar || hasTasks {
+            if isWide && hasCalendar && hasTasks {
+                HStack(alignment: .top, spacing: Theme.cardGap) {
+                    CalendarWidget()
                         .frame(maxWidth: .infinity)
-                        .frame(maxWidth: hasCalendar ? 380 : .infinity)
-                    }
+                    TasksWidget()
+                        .frame(maxWidth: .infinity)
+                        .frame(maxWidth: 380)
                 }
             } else {
-                VStack(spacing: Theme.gap) {
+                VStack(spacing: Theme.cardGap) {
                     if hasCalendar { CalendarWidget() }
                     if hasTasks { TasksWidget() }
-                    if hasSpotify { SpotifyWidget() }
                 }
             }
         }
     }
 
-    // MARK: - Row 2: IBKR + Fair
+    // MARK: - Row: Finance (Portfolio wide + Fund/Stocks stacked)
 
     @ViewBuilder
-    private var row2: some View {
+    private var rowFinance: some View {
         let hasIbkr = config.isVisible(.ibkr)
         let hasFair = config.isVisible(.fair)
+        let hasStocks = config.isVisible(.stocks)
 
-        if hasIbkr || hasFair {
-            if isWide {
-                HStack(alignment: .top, spacing: Theme.gap) {
-                    if hasIbkr {
-                        IBKRWidget()
-                            .frame(maxWidth: .infinity)
+        if hasIbkr || hasFair || hasStocks {
+            if isWide && hasIbkr && (hasFair || hasStocks) {
+                HStack(alignment: .top, spacing: Theme.cardGap) {
+                    IBKRWidget()
+                        .frame(maxWidth: .infinity)
+                    VStack(spacing: Theme.cardGap) {
+                        if hasFair { FairWidget() }
+                        if hasStocks { StocksWidget() }
                     }
-                    if hasFair {
-                        FairWidget()
-                            .frame(maxWidth: .infinity)
-                            .frame(maxWidth: hasIbkr ? 360 : .infinity)
-                    }
+                    .frame(maxWidth: .infinity)
+                    .frame(maxWidth: 400)
                 }
             } else {
-                VStack(spacing: Theme.gap) {
+                VStack(spacing: Theme.cardGap) {
                     if hasIbkr { IBKRWidget() }
                     if hasFair { FairWidget() }
+                    if hasStocks { StocksWidget() }
                 }
             }
         }
     }
 
-    // MARK: - Row 3: Quote, Weather, Countdown (compact glance cards)
+    // MARK: - Row: GitHub heatmap (full width; pairs with Strava if shown)
 
     @ViewBuilder
-    private var row3: some View {
-        let glanceWidgets: [WidgetKind] = [.quote, .weather, .countdown]
+    private var rowGitHub: some View {
+        let hasGithub = config.isVisible(.github)
+        let hasStrava = config.isVisible(.strava)
+
+        if isWide && hasGithub && hasStrava {
+            HStack(alignment: .top, spacing: Theme.cardGap) {
+                GitHubWidget()
+                    .frame(maxWidth: .infinity)
+                StravaWidget()
+                    .frame(maxWidth: .infinity)
+                    .frame(maxWidth: 360)
+            }
+        } else if hasGithub || hasStrava {
+            VStack(spacing: Theme.cardGap) {
+                if hasGithub { GitHubWidget() }
+                if hasStrava { StravaWidget() }
+            }
+        }
+    }
+
+    // MARK: - Row: Small widgets, grouped (Weather · Quote · Countdown · Reading)
+
+    @ViewBuilder
+    private var rowSmall: some View {
+        let kinds: [WidgetKind] = [.weather, .quote, .countdown, .reading]
             .filter { config.isVisible($0) }
 
-        if !glanceWidgets.isEmpty {
-            let columns = responsiveColumns(
-                count: glanceWidgets.count,
-                minWidth: 250,
-                maxWidth: 420
-            )
-            LazyVGrid(columns: columns, alignment: .leading, spacing: Theme.gap) {
-                ForEach(glanceWidgets) { kind in
+        if !kinds.isEmpty {
+            let columns = responsiveColumns(count: kinds.count, minWidth: 240)
+            LazyVGrid(columns: columns, alignment: .leading, spacing: Theme.cardGap) {
+                ForEach(kinds) { kind in
                     widget(for: kind)
                 }
             }
         }
     }
 
-    // MARK: - Row 4: Stocks, GitHub, Reading, Strava
+    // MARK: - Row: Spotify (full width)
 
     @ViewBuilder
-    private var row4: some View {
-        let extraWidgets: [WidgetKind] = [.stocks, .github, .reading, .strava]
-            .filter { config.isVisible($0) }
-
-        if !extraWidgets.isEmpty {
-            let columns = responsiveColumns(
-                count: extraWidgets.count,
-                minWidth: 260,
-                maxWidth: 420
-            )
-            LazyVGrid(columns: columns, alignment: .leading, spacing: Theme.gap) {
-                ForEach(extraWidgets) { kind in
-                    widget(for: kind)
-                }
-            }
+    private var rowSpotify: some View {
+        if config.isVisible(.spotify) {
+            SpotifyWidget()
         }
     }
 
     // MARK: - Helpers
 
-    private func responsiveColumns(count: Int, minWidth: CGFloat, maxWidth: CGFloat) -> [GridItem] {
+    private func responsiveColumns(count: Int, minWidth: CGFloat) -> [GridItem] {
         let cols: Int
         if availableWidth < 560 {
             cols = 1
         } else {
             cols = min(count, max(1, Int(availableWidth / minWidth)))
         }
+        // No maximum: flexible columns share the full width evenly, so rows fill
+        // edge-to-edge with no trailing dead space.
         return Array(
-            repeating: GridItem(.flexible(minimum: minWidth, maximum: maxWidth), spacing: Theme.gap),
+            repeating: GridItem(.flexible(minimum: minWidth), spacing: Theme.cardGap),
             count: max(1, cols)
         )
     }

@@ -28,17 +28,17 @@ enum WidgetKind: String, CaseIterable, Codable, Identifiable {
 
     var symbol: String {
         switch self {
-        case .calendar: "calendar"
+        case .calendar: "calendar.day.timeline.left"
         case .tasks: "checklist"
-        case .github: "chevron.left.forwardslash.chevron.right"
+        case .github: "curlybraces"
         case .spotify: "music.note"
-        case .ibkr: "chart.pie.fill"
-        case .fair: "chart.line.uptrend.xyaxis"
-        case .reading: "book.fill"
+        case .ibkr: "chart.pie"
+        case .fair: "building.columns"
+        case .reading: "book"
         case .countdown: "airplane.departure"
-        case .stocks: "chart.bar.fill"
-        case .weather: "cloud.sun.fill"
-        case .quote: "quote.bubble.fill"
+        case .stocks: "chart.line.uptrend.xyaxis"
+        case .weather: "cloud.sun"
+        case .quote: "quote.bubble"
         case .strava: "figure.run"
         }
     }

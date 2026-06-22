@@ -19,6 +19,7 @@ final class WindowAccessorView: NSView {
 
         window.titlebarAppearsTransparent = true
         window.titleVisibility = .hidden
+        window.styleMask.insert(.fullSizeContentView)
         window.isMovableByWindowBackground = true
         window.collectionBehavior.insert(.fullScreenPrimary)
     }
