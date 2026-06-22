@@ -8,12 +8,12 @@ struct FairWidget: View {
         AsyncCard(
             title: "Fund",
             symbol: "building.columns",
-            tint: Theme.accent,
+            tint: Tokens.accent,
             load: { [fund] in
                 try await APIClient.shared.get("/api/fair", query: ["fund": fund]) as FairPrice
             }
         ) { fair in
-            VStack(alignment: .leading, spacing: 10) {
+            VStack(alignment: .leading, spacing: Tokens.rowSpacing) {
                 if let name = fair.fundName, !name.isEmpty {
                     Text(name)
                         .font(.subheadline.weight(.medium))
@@ -21,7 +21,7 @@ struct FairWidget: View {
                         .lineLimit(2)
                 }
 
-                HStack(alignment: .firstTextBaseline, spacing: 2) {
+                HStack(alignment: .firstTextBaseline, spacing: Tokens.extraTight) {
                     Text(symbol(for: fair.currency))
                         .font(.system(.title, design: .rounded).weight(.semibold))
                         .foregroundStyle(.secondary)
@@ -35,15 +35,15 @@ struct FairWidget: View {
                         .foregroundStyle(.tertiary)
                 }
 
-                HStack(spacing: 8) {
+                HStack(spacing: Tokens.snug) {
                     if let asOf = asOfText(fair.asOf) {
                         Label(asOf, systemImage: "clock")
                     }
-                    Spacer(minLength: 8)
+                    Spacer(minLength: Tokens.snug)
                     Text(fair.source)
                         .font(.caption2.weight(.medium))
-                        .padding(.horizontal, 7)
-                        .padding(.vertical, 2)
+                        .padding(.horizontal, Tokens.headerSpacing)
+                        .padding(.vertical, Tokens.extraTight)
                         .background(.secondary.opacity(0.12), in: Capsule())
                         .foregroundStyle(.secondary)
                 }

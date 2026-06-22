@@ -34,7 +34,7 @@ struct StocksWidget: View {
         AsyncCard(
             title: "Stocks",
             symbol: "chart.line.uptrend.xyaxis",
-            tint: Theme.accent,
+            tint: Tokens.accent,
             load: {
                 try await APIClient.shared.get(
                     "/api/stocks", query: ["symbols": query]
@@ -63,7 +63,7 @@ struct StocksWidget: View {
                     .foregroundStyle(.tertiary)
                     .frame(maxWidth: .infinity, minHeight: 44, alignment: .leading)
             case .quotes(let quotes):
-                VStack(spacing: Theme.contentSpacing) {
+                VStack(spacing: Tokens.contentSpacing) {
                     ForEach(quotes) { StockRow(quote: $0) }
                 }
             }
@@ -80,12 +80,12 @@ private struct StockRow: View {
     let quote: StockQuote
 
     private var isUp: Bool { quote.changePercent >= 0 }
-    private var changeColor: Color { isUp ? .green : .red }
+    private var changeColor: Color { isUp ? Tokens.positive : Tokens.negative }
     private var arrowSymbol: String { isUp ? "arrow.up.right" : "arrow.down.right" }
 
     var body: some View {
         Link(destination: URL(string: "https://finance.yahoo.com/quote/\(quote.symbol)") ?? URL(string: "https://finance.yahoo.com")!) {
-            HStack(spacing: 10) {
+            HStack(spacing: Tokens.rowSpacing) {
                 Text(quote.symbol)
                     .font(.subheadline.weight(.semibold))
                     .foregroundStyle(.primary)
@@ -95,7 +95,7 @@ private struct StockRow: View {
                         .frame(width: 56, height: 22)
                 }
 
-                Spacer(minLength: 8)
+                Spacer(minLength: Tokens.snug)
 
                 Text(quote.price, format: .number.precision(.fractionLength(2)))
                     .font(.subheadline.weight(.medium))
@@ -103,7 +103,7 @@ private struct StockRow: View {
                     .monospacedDigit()
                     .contentTransition(.numericText())
 
-                HStack(spacing: 3) {
+                HStack(spacing: Tokens.badgePadding) {
                     Image(systemName: arrowSymbol)
                         .font(.caption2.weight(.bold))
 
@@ -112,8 +112,8 @@ private struct StockRow: View {
                         .monospacedDigit()
                 }
                 .foregroundStyle(changeColor)
-                .padding(.horizontal, 8)
-                .padding(.vertical, 3)
+                .padding(.horizontal, Tokens.snug)
+                .padding(.vertical, Tokens.badgePadding)
                 .background(changeColor.opacity(0.12), in: Capsule())
             }
         }
@@ -174,7 +174,7 @@ private struct TickerEditor: View {
     @State private var draft: String = ""
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 16) {
+        VStack(alignment: .leading, spacing: Tokens.gap) {
             Text("Edit tickers")
                 .font(.headline)
             Text("Comma-separated symbols, e.g. AAPL, MSFT, NVDA")
@@ -192,7 +192,7 @@ private struct TickerEditor: View {
                 .keyboardShortcut(.defaultAction)
             }
         }
-        .padding(24)
+        .padding(Tokens.editorPadding)
         .frame(minWidth: 320)
         .onAppear { draft = tickersCSV }
     }

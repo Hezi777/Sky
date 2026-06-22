@@ -5,37 +5,33 @@ struct QuoteWidget: View {
     @State private var errorMessage: String?
 
     var body: some View {
-        Card {
-            VStack(alignment: .leading, spacing: 12) {
-                CardHeader(title: "Daily Quote", symbol: "quote.bubble", tint: Theme.accent)
-
-                if let errorMessage {
-                    WidgetError(message: errorMessage) {
-                        Task { await fetchQuote() }
-                    }
-                } else if let quote {
-                    VStack(alignment: .leading, spacing: 12) {
-                        HStack(alignment: .top, spacing: 8) {
-                            Image(systemName: "quote.opening")
-                                .font(.title3)
-                                .foregroundStyle(Theme.accent.opacity(0.4))
-
-                            Text(quote.q)
-                                .font(.subheadline.weight(.medium))
-                                .italic()
-                                .foregroundStyle(.primary)
-                                .lineSpacing(3)
-                                .frame(maxWidth: .infinity, alignment: .leading)
-                        }
-
-                        Text("— \(quote.a)")
-                            .font(.caption.weight(.medium))
-                            .foregroundStyle(.tertiary)
-                            .frame(maxWidth: .infinity, alignment: .trailing)
-                    }
-                } else {
-                    WidgetLoading()
+        WidgetShell(title: "Daily Quote", symbol: "quote.bubble", tint: Tokens.accent) {
+            if let errorMessage {
+                WidgetError(message: errorMessage) {
+                    Task { await fetchQuote() }
                 }
+            } else if let quote {
+                VStack(alignment: .leading, spacing: Tokens.contentSpacing) {
+                    HStack(alignment: .top, spacing: Tokens.snug) {
+                        Image(systemName: "quote.opening")
+                            .font(.title3)
+                            .foregroundStyle(Tokens.accent.opacity(0.4))
+
+                        Text(quote.q)
+                            .font(.subheadline.weight(.medium))
+                            .italic()
+                            .foregroundStyle(.primary)
+                            .lineSpacing(Tokens.badgePadding)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                    }
+
+                    Text("— \(quote.a)")
+                        .font(.caption.weight(.medium))
+                        .foregroundStyle(.tertiary)
+                        .frame(maxWidth: .infinity, alignment: .trailing)
+                }
+            } else {
+                WidgetLoading()
             }
         }
         .task { await fetchQuote() }

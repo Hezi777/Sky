@@ -5,12 +5,12 @@ struct ReadingWidget: View {
         AsyncCard(
             title: "Reading",
             symbol: "book",
-            tint: Theme.accent,
+            tint: Tokens.accent,
             load: { try await APIClient.shared.get("/api/notion/reading") as [ReadingBook] },
             isEmpty: \.isEmpty,
             emptyText: "Not reading anything"
         ) { books in
-            VStack(spacing: 12) {
+            VStack(spacing: Tokens.contentSpacing) {
                 ForEach(books) { BookRow(book: $0) }
             }
         }
@@ -21,7 +21,7 @@ private struct BookRow: View {
     let book: ReadingBook
 
     var body: some View {
-        let content = HStack(alignment: .top, spacing: 12) {
+        let content = HStack(alignment: .top, spacing: Tokens.contentSpacing) {
             if let cover = book.cover, let url = URL(string: cover) {
                 AsyncImage(url: url) { phase in
                     switch phase {
@@ -32,10 +32,10 @@ private struct BookRow: View {
                     }
                 }
                 .frame(width: 36, height: 52)
-                .clipShape(RoundedRectangle(cornerRadius: 4, style: .continuous))
+                .clipShape(RoundedRectangle(cornerRadius: Tokens.smallRadius, style: .continuous))
             }
 
-            VStack(alignment: .leading, spacing: 4) {
+            VStack(alignment: .leading, spacing: Tokens.tight) {
                 Text(book.title)
                     .font(.subheadline.weight(.medium))
                     .foregroundStyle(.primary)
@@ -48,17 +48,17 @@ private struct BookRow: View {
                 }
 
                 ProgressBar(progress: book.progress)
-                    .padding(.top, 2)
+                    .padding(.top, Tokens.extraTight)
 
-                HStack(spacing: 4) {
+                HStack(spacing: Tokens.tight) {
                     Text(pageText)
                         .font(.caption2)
                         .foregroundStyle(.tertiary)
                         .monospacedDigit()
-                    Spacer(minLength: 4)
+                    Spacer(minLength: Tokens.tight)
                     Text("\(book.progress)%")
                         .font(.caption2.weight(.medium))
-                        .foregroundStyle(Theme.accent)
+                        .foregroundStyle(Tokens.accent)
                         .monospacedDigit()
                         .contentTransition(.numericText())
                 }
@@ -89,7 +89,7 @@ private struct ProgressBar: View {
             ZStack(alignment: .leading) {
                 Capsule().fill(.quaternary)
                 Capsule()
-                    .fill(Theme.accent)
+                    .fill(Tokens.accent)
                     .frame(width: geo.size.width * fraction)
             }
         }

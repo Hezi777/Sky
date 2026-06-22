@@ -11,10 +11,10 @@ struct HeroZone: View {
     var body: some View {
         let greeting = Cloud.greeting(for: state, name: config.name)
 
-        VStack(spacing: 10) {
+        VStack(spacing: Tokens.snug) {
             CloudAvatar(state: state, size: 118)
 
-            VStack(spacing: 5) {
+            VStack(spacing: Tokens.tight) {
                 Text(greeting.primary)
                     .font(.system(size: 30, weight: .semibold, design: .rounded))
                     .multilineTextAlignment(.center)
@@ -29,15 +29,17 @@ struct HeroZone: View {
                     .frame(maxWidth: 420)
                     .transition(.opacity)
             }
+            .padding(Tokens.cardPadding)
+            .glassSurface()
         }
         .frame(maxWidth: .infinity)
         .frame(minHeight: 220)
         #if os(macOS)
-        .padding(.top, 36)
+        .padding(.top, Tokens.heroTopPadding)
         #else
-        .padding(.top, 8)
+        .padding(.top, Tokens.snug)
         #endif
-        .padding(.horizontal, Theme.gap)
+        .padding(.horizontal, Tokens.gap)
         .task(id: state) {
             await fetchGreeting()
         }

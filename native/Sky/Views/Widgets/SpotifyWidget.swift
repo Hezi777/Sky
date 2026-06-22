@@ -5,12 +5,12 @@ struct SpotifyWidget: View {
         AsyncCard(
             title: "Spotify",
             symbol: "music.note",
-            tint: .green,
+            tint: Tokens.positive,
             load: { try await APIClient.shared.get("/api/spotify") as SpotifyResponse },
             isEmpty: { $0.nowPlaying == nil && $0.recent.isEmpty },
             emptyText: "Nothing playing"
         ) { response in
-            VStack(alignment: .leading, spacing: 12) {
+            VStack(alignment: .leading, spacing: Tokens.contentSpacing) {
                 if let np = response.nowPlaying {
                     NowPlayingBlock(nowPlaying: np)
                 } else {
@@ -31,19 +31,19 @@ private struct NowPlayingBlock: View {
     let nowPlaying: SpotifyNowPlaying
 
     var body: some View {
-        let content = HStack(spacing: 12) {
+        let content = HStack(spacing: Tokens.contentSpacing) {
             AsyncImage(url: nowPlaying.albumArt.flatMap(URL.init)) { image in
                 image.resizable()
                     .aspectRatio(contentMode: .fill)
             } placeholder: {
-                RoundedRectangle(cornerRadius: 8, style: .continuous)
+                RoundedRectangle(cornerRadius: Tokens.mediaRadius, style: .continuous)
                     .fill(.fill.tertiary)
             }
             .frame(width: 56, height: 56)
-            .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+            .clipShape(RoundedRectangle(cornerRadius: Tokens.mediaRadius, style: .continuous))
 
-            VStack(alignment: .leading, spacing: 4) {
-                HStack(spacing: 6) {
+            VStack(alignment: .leading, spacing: Tokens.tight) {
+                HStack(spacing: Tokens.sectionSpacing) {
                     if nowPlaying.isPlaying {
                         EqualizerIndicator(isPlaying: true)
                     }
@@ -87,9 +87,9 @@ private struct NowPlayingBlock: View {
 
 private struct NothingPlayingHint: View {
     var body: some View {
-        HStack(spacing: 12) {
+        HStack(spacing: Tokens.contentSpacing) {
             ZStack {
-                RoundedRectangle(cornerRadius: 8, style: .continuous)
+                RoundedRectangle(cornerRadius: Tokens.mediaRadius, style: .continuous)
                     .fill(.fill.tertiary)
                     .frame(width: 56, height: 56)
                 Image(systemName: "music.note")
@@ -109,15 +109,15 @@ private struct RecentSection: View {
     let tracks: [SpotifyTrack]
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 6) {
+        VStack(alignment: .leading, spacing: Tokens.sectionSpacing) {
             Divider()
             Text("Recently played")
                 .font(.caption2.weight(.semibold))
                 .textCase(.uppercase)
                 .foregroundStyle(.secondary)
-                .padding(.top, 2)
+                .padding(.top, Tokens.extraTight)
 
-            VStack(spacing: 2) {
+            VStack(spacing: Tokens.extraTight) {
                 ForEach(tracks) { track in
                     RecentTrackRow(track: track)
                 }
@@ -132,18 +132,18 @@ private struct RecentTrackRow: View {
     let track: SpotifyTrack
 
     var body: some View {
-        let content = HStack(spacing: 10) {
+        let content = HStack(spacing: Tokens.rowSpacing) {
             AsyncImage(url: track.albumArt.flatMap(URL.init)) { image in
                 image.resizable()
                     .aspectRatio(contentMode: .fill)
             } placeholder: {
-                RoundedRectangle(cornerRadius: 6, style: .continuous)
+                RoundedRectangle(cornerRadius: Tokens.compactRadius, style: .continuous)
                     .fill(.fill.tertiary)
             }
             .frame(width: 32, height: 32)
-            .clipShape(RoundedRectangle(cornerRadius: 6, style: .continuous))
+            .clipShape(RoundedRectangle(cornerRadius: Tokens.compactRadius, style: .continuous))
 
-            VStack(alignment: .leading, spacing: 1) {
+            VStack(alignment: .leading, spacing: Tokens.microSpacing) {
                 Text(track.title)
                     .font(.caption.weight(.medium))
                     .lineLimit(1)
@@ -153,10 +153,10 @@ private struct RecentTrackRow: View {
                     .lineLimit(1)
             }
 
-            Spacer(minLength: 8)
+            Spacer(minLength: Tokens.snug)
         }
-        .padding(.vertical, 3)
-        .padding(.horizontal, 4)
+        .padding(.vertical, Tokens.badgePadding)
+        .padding(.horizontal, Tokens.tight)
         .contentShape(Rectangle())
 
         if let url = URL(string: track.url) {
@@ -181,7 +181,7 @@ private struct ProgressBar: View {
                 .fill(.fill.tertiary)
                 .overlay(alignment: .leading) {
                     Capsule()
-                        .fill(.green)
+                        .fill(Tokens.positive)
                         .frame(width: geo.size.width * progress)
                 }
         }
@@ -196,10 +196,10 @@ private struct EqualizerIndicator: View {
     let isPlaying: Bool
 
     var body: some View {
-        HStack(spacing: 1.5) {
+        HStack(spacing: Tokens.equalizerSpacing) {
             ForEach(0..<3, id: \.self) { i in
-                RoundedRectangle(cornerRadius: 0.5)
-                    .fill(.green)
+                RoundedRectangle(cornerRadius: Tokens.hairlineRadius)
+                    .fill(Tokens.positive)
                     .frame(width: 2.5, height: isPlaying ? barHeight(i) : 4)
             }
         }
