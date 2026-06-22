@@ -120,18 +120,22 @@ struct WidgetError: View {
     var retry: (() -> Void)?
 
     var body: some View {
-        HStack(spacing: Tokens.snug) {
-            Image(systemName: "exclamationmark.triangle.fill")
-                .foregroundStyle(.orange)
-            Text(message).font(.footnote).foregroundStyle(.secondary)
+        VStack(spacing: Tokens.snug) {
+            CloudAvatar(state: .droopy, role: .placeholder)
+            Text(message)
+                .font(Tokens.Font.caption)
+                .foregroundStyle(.tertiary)
+                .multilineTextAlignment(.center)
                 .lineLimit(2)
-            Spacer(minLength: Tokens.tight)
             if let retry {
                 Button("Retry", action: retry)
-                    .font(.footnote)
+                    .font(Tokens.Font.caption)
+                    .foregroundStyle(.secondary)
                     .buttonStyle(.borderless)
             }
         }
-        .frame(maxWidth: .infinity, minHeight: Tokens.Size.emptyStateHeight, alignment: .leading)
+        .frame(maxWidth: .infinity, minHeight: Tokens.Size.emptyStateHeight)
+        .accessibilityElement(children: .contain)
+        .accessibilityLabel(message)
     }
 }

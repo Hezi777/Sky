@@ -67,11 +67,13 @@ struct CloudAvatar: View {
     enum Role {
         case hero
         case status
+        case placeholder
 
         var size: CGFloat {
             switch self {
             case .hero: Tokens.Size.heroCharacter
             case .status: Tokens.Size.statusCharacter
+            case .placeholder: Tokens.Size.placeholderCharacter
             }
         }
     }
