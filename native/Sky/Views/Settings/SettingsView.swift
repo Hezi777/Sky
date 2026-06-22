@@ -4,6 +4,7 @@ import SwiftUI
 
 struct SettingsView: View {
     @Environment(DashboardConfig.self) private var config
+    @Environment(IntegrationConfigStore.self) private var integrationConfig
     @Environment(\.dismiss) private var dismiss
 
     var body: some View {
@@ -13,6 +14,10 @@ struct SettingsView: View {
             Form {
                 Section("Profile") {
                     TextField("Name", text: $config.name)
+                }
+
+                IntegrationSettingsSection(config: integrationConfig) {
+                    dismiss()
                 }
 
                 Section {
@@ -40,6 +45,26 @@ struct SettingsView: View {
                 #endif
             }
         }
+    }
+}
+
+private struct IntegrationSettingsSection: View {
+    let config: IntegrationConfigStore
+    let onRestart: () -> Void
+
+    var body: some View {
+        Section("Integrations") {
+            LabeledContent("Configured", value: "\(configuredCount) of \(config.integrationStatuses.count)")
+            Button("Run Setup Again") {
+                if (try? config.restartOnboarding()) != nil {
+                    onRestart()
+                }
+            }
+        }
+    }
+
+    private var configuredCount: Int {
+        config.integrationStatuses.count(where: \.isConfigured)
     }
 }
 

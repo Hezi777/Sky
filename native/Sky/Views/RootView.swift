@@ -1,11 +1,31 @@
 import SwiftUI
 
+#if os(macOS)
+import AppKit
+#endif
+
 struct RootView: View {
+    @Environment(IntegrationConfigStore.self) private var integrationConfig
+
+    var body: some View {
+        if integrationConfig.isOnboardingComplete {
+            DashboardRootView()
+        } else {
+            OnboardingView(configStore: integrationConfig) {}
+        }
+    }
+}
+
+private struct DashboardRootView: View {
+    @Environment(IntegrationConfigStore.self) private var integrationConfig
+    @Environment(BackendRuntime.self) private var backendRuntime
     @State private var showingSettings = false
 
     var body: some View {
         NavigationStack {
-            DashboardView()
+            DashboardView {
+                showingSettings = true
+            }
                 .navigationTitle("Sky")
                 #if os(iOS)
                 .navigationBarTitleDisplayMode(.inline)
@@ -31,6 +51,17 @@ struct RootView: View {
                     SettingsView()
                 }
         }
+        .task(id: integrationConfig.configurationRevision) {
+            await backendRuntime.start(environment: integrationConfig.environmentValues())
+        }
+        .onDisappear {
+            backendRuntime.stop()
+        }
+        #if os(macOS)
+        .onReceive(NotificationCenter.default.publisher(for: NSApplication.willTerminateNotification)) { _ in
+            backendRuntime.stop()
+        }
+        #endif
         #if os(macOS)
         .frame(minWidth: Tokens.Size.rootMinWidth, minHeight: Tokens.Size.rootMinHeight)
         .enableFullScreen()

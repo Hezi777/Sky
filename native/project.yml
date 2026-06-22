@@ -29,6 +29,10 @@ targets:
       iOS: "26.0"
     sources:
       - path: Sky
+      - path: Resources/SkyBackend
+        type: folder
+        buildPhase: resources
+        destinationFilters: [macOS]
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.hen.sky.native

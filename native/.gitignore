@@ -6,5 +6,10 @@ Sky.xcodeproj/
 .DS_Store
 DerivedData/
 
+# Generated macOS backend sidecar resources
+Resources/SkyBackend/*
+!Resources/SkyBackend/.gitkeep
+Resources/.SkyBackend.tmp.*/
+
 # DMG packaging venv (fixed dmgbuild 1.6.7, not on PyPI)
 .dmgvenv/

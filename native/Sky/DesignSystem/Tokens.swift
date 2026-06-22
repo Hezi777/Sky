@@ -143,6 +143,7 @@ enum Tokens {
         static let calendarTimeColumn: CGFloat = 50
         static let bookCoverHeight: CGFloat = 52
         static let artwork: CGFloat = 56
+        static let statusCharacter: CGFloat = 72
         static let weatherChartHeight: CGFloat = 72
         static let portfolioChart: CGFloat = 108
         static let heroMinHeight: CGFloat = 220

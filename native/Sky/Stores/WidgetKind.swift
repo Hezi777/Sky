@@ -60,6 +60,29 @@ enum WidgetKind: String, CaseIterable, Codable, Identifiable {
         }
     }
 
+    /// Widgets that don't need the bundled backend and remain usable when it is
+    /// starting, unavailable, or intentionally disabled on iOS.
+    var isLocalOnly: Bool {
+        switch self {
+        case .weather, .quote, .countdown: true
+        default: false
+        }
+    }
+
+    var integrationID: String? {
+        switch self {
+        case .calendar: "googleCalendar"
+        case .tasks: "tickTick"
+        case .spotify: "spotify"
+        case .ibkr: "ibkr"
+        case .stocks: "stocks"
+        case .github: "github"
+        case .reading: "notionReading"
+        case .strava: "strava"
+        case .quote, .weather, .countdown, .fair: nil
+        }
+    }
+
     /// Whether the widget is shown by default on first launch.
     var defaultVisible: Bool {
         switch self {
