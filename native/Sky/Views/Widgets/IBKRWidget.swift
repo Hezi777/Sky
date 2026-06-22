@@ -147,6 +147,12 @@ private struct AllocationDonut: View {
             .foregroundStyle(slice.color)
         }
         .chartLegend(.hidden)
+        .accessibilityLabel("Portfolio allocation")
+        .accessibilityValue(
+            slices.map {
+                "\($0.ticker) \($0.fraction.formatted(.percent.precision(.fractionLength(1))))"
+            }.joined(separator: ", ")
+        )
         .chartBackground { _ in
             // Total label centered in the donut hole
             let total = slices.reduce(0) { $0 + $1.value }
@@ -220,6 +226,7 @@ private struct TopMovers: View {
                         .monospacedDigit()
                         .foregroundStyle(position.pnlPercent >= 0 ? Tokens.positive : Tokens.negative)
                 }
+                .accessibilityElement(children: .combine)
             }
         }
     }

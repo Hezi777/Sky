@@ -64,6 +64,9 @@ final class DashboardConfig {
             snap.order.append(kind)
             if !kind.defaultVisible { snap.hidden.insert(kind) }
         }
+        if DashboardSectionSpec.legacyDefaultOrders.contains(snap.order) {
+            snap.order = DashboardSectionSpec.defaultOrder
+        }
         return snap
     }
 }

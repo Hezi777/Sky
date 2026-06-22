@@ -7,8 +7,8 @@ import SwiftUI
 enum WidgetSpan: Equatable {
     /// Flows into the responsive grid alongside its neighbours.
     case regular
-    /// Takes the full row width on its own.
-    case full
+    /// Uses two adjacent columns when available for dense horizontal content.
+    case wide
 }
 
 enum WidgetKind: String, CaseIterable, Codable, Identifiable {
@@ -51,11 +51,11 @@ enum WidgetKind: String, CaseIterable, Codable, Identifiable {
         }
     }
 
-    /// Dashboard layout footprint. `.full` widgets claim the whole row (they need
-    /// the width); `.regular` widgets flow into a responsive grid, in order.
+    /// Dashboard layout footprint. Dense horizontal widgets get two columns;
+    /// compact widgets use one and fill the shortest available column.
     var span: WidgetSpan {
         switch self {
-        case .github, .spotify: .full
+        case .github, .spotify: .wide
         default: .regular
         }
     }

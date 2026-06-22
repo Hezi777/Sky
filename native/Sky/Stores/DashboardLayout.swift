@@ -13,10 +13,10 @@ struct DashboardSectionSpec: Identifiable {
     var id: String { title }
 
     static let all: [DashboardSectionSpec] = [
-        // Time & Agenda — most actionable, glanceable at start of day
+        // Focus — immediate commitments and the context needed to act on them.
         DashboardSectionSpec(
-            title: "Time & Agenda",
-            kinds: [.calendar, .tasks, .countdown],
+            title: "Focus",
+            kinds: [.calendar, .tasks, .weather, .countdown],
             maxColumns: 2,
             minimumWidth: 310,
             maximumWidth: 520
@@ -29,18 +29,18 @@ struct DashboardSectionSpec: Identifiable {
             minimumWidth: 310,
             maximumWidth: 520
         ),
-        // Activity & Wellness — body and mind
+        // Growth — work, movement, and longer-term learning.
         DashboardSectionSpec(
-            title: "Activity",
-            kinds: [.strava, .github, .weather],
+            title: "Growth",
+            kinds: [.github, .strava, .reading],
             maxColumns: 3,
             minimumWidth: 250,
             maximumWidth: 420
         ),
-        // Ambient — mood, inspiration, leisure
+        // Ambient — optional media and inspiration after actionable signals.
         DashboardSectionSpec(
             title: "Ambient",
-            kinds: [.spotify, .quote, .reading],
+            kinds: [.spotify, .quote],
             maxColumns: 3,
             minimumWidth: 250,
             maximumWidth: 420
@@ -50,4 +50,13 @@ struct DashboardSectionSpec: Identifiable {
     static var defaultOrder: [WidgetKind] {
         all.flatMap(\.kinds)
     }
+
+    /// Exact historical defaults eligible for automatic migration. A user order
+    /// with even one deliberate move does not match and remains untouched.
+    static let legacyDefaultOrders: [[WidgetKind]] = [
+        [.calendar, .tasks, .countdown, .ibkr, .fair, .stocks,
+         .strava, .github, .weather, .spotify, .quote, .reading],
+        [.quote, .weather, .countdown, .calendar, .tasks, .spotify,
+         .ibkr, .stocks, .fair, .github, .reading, .strava],
+    ]
 }

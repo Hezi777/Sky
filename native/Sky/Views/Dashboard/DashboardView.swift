@@ -1,9 +1,9 @@
 import SwiftUI
 
 // The dashboard renders `config.visibleWidgets` IN ORDER, so reordering in
-// Settings is reflected here directly. `.regular` widgets flow into a responsive
-// grid; `.full` widgets (GitHub heatmap, Spotify) break out to their own
-// full-width row. Hierarchy comes from size and order — no section headers.
+// Settings is reflected here directly. Widgets flow through a responsive
+// waterfall; dense horizontal widgets use two columns when available. Hierarchy
+// comes from size and order — no section headers.
 
 struct DashboardView: View {
     @Environment(DashboardConfig.self) private var config
@@ -144,8 +144,8 @@ private struct WidgetSpanKey: LayoutValueKey {
     static let defaultValue: WidgetSpan = .regular
 }
 
-/// Places stable `ForEach` children in responsive columns while allowing selected
-/// widgets to span a full row. Layout changes never replace a widget's identity.
+/// Places stable `ForEach` children into the shortest available column range.
+/// Layout changes never replace a widget's identity.
 private struct DashboardWidgetLayout: Layout {
     private struct Placement {
         let index: Int
@@ -179,54 +179,56 @@ private struct DashboardWidgetLayout: Layout {
     }
 
     private func placements(for subviews: Subviews, width: CGFloat) -> (items: [Placement], height: CGFloat) {
+        let estimatedColumns = Int(
+            (width + Tokens.cardGap) / (Tokens.dashboardGridTarget + Tokens.cardGap)
+        )
         let columnCount = width < Tokens.dashboardGridBreakpoint
             ? 1
-            : max(1, Int(width / Tokens.dashboardGridTarget))
+            : min(Tokens.dashboardGridMaxColumns, max(Tokens.dashboardWideColumnSpan, estimatedColumns))
         let columnWidth = max(
             Tokens.dashboardGridMinimum,
             (width - CGFloat(columnCount - 1) * Tokens.cardGap) / CGFloat(columnCount)
         )
 
         var items: [Placement] = []
-        var y: CGFloat = 0
-        var column = 0
-        var rowHeight: CGFloat = 0
-        var hasRows = false
+        var columnHeights = Array(repeating: CGFloat.zero, count: columnCount)
 
         for index in subviews.indices {
             let subview = subviews[index]
-            if subview[WidgetSpanKey.self] == .full {
-                if column > 0 {
-                    y += rowHeight + Tokens.cardGap
-                    column = 0
-                    rowHeight = 0
-                }
-
-                let size = subview.sizeThatFits(ProposedViewSize(width: width, height: nil))
-                items.append(Placement(index: index, origin: CGPoint(x: 0, y: y), size: size))
-                y += size.height + Tokens.cardGap
-                hasRows = true
-                continue
-            }
-
-            let size = subview.sizeThatFits(ProposedViewSize(width: columnWidth, height: nil))
+            let requestedSpan = subview[WidgetSpanKey.self] == .wide
+                ? Tokens.dashboardWideColumnSpan
+                : 1
+            let span = min(requestedSpan, columnCount)
+            let column = shortestRangeStart(span: span, heights: columnHeights)
+            let y = columnHeights[column..<(column + span)].max() ?? 0
+            let itemWidth = CGFloat(span) * columnWidth + CGFloat(span - 1) * Tokens.cardGap
+            let size = subview.sizeThatFits(ProposedViewSize(width: itemWidth, height: nil))
             let x = CGFloat(column) * (columnWidth + Tokens.cardGap)
             items.append(Placement(index: index, origin: CGPoint(x: x, y: y), size: size))
-            rowHeight = max(rowHeight, size.height)
-            column += 1
-            hasRows = true
-
-            if column == columnCount {
-                y += rowHeight + Tokens.cardGap
-                column = 0
-                rowHeight = 0
+            let nextY = y + size.height + Tokens.cardGap
+            for occupiedColumn in column..<(column + span) {
+                columnHeights[occupiedColumn] = nextY
             }
         }
 
-        if column > 0 {
-            y += rowHeight + Tokens.cardGap
-        }
-        return (items, hasRows ? y - Tokens.cardGap : 0)
+        let height = columnHeights.max() ?? 0
+        return (items, height > 0 ? height - Tokens.cardGap : 0)
+    }
+
+    private func shortestRangeStart(span: Int, heights: [CGFloat]) -> Int {
+        guard span < heights.count else { return 0 }
+
+        return (0...(heights.count - span)).min { lhs, rhs in
+            let lhsHeight = heights[lhs..<(lhs + span)].max() ?? 0
+            let rhsHeight = heights[rhs..<(rhs + span)].max() ?? 0
+            if lhsHeight == rhsHeight {
+                let lhsVoid = heights[lhs..<(lhs + span)].reduce(0) { lhsHeight - $1 + $0 }
+                let rhsVoid = heights[rhs..<(rhs + span)].reduce(0) { rhsHeight - $1 + $0 }
+                if lhsVoid == rhsVoid { return lhs < rhs }
+                return lhsVoid < rhsVoid
+            }
+            return lhsHeight < rhsHeight
+        } ?? 0
     }
 
     private func naturalWidth(for subviews: Subviews) -> CGFloat {

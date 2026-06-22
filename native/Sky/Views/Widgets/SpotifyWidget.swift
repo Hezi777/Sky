@@ -45,6 +45,7 @@ private struct NowPlayingBlock: View {
             }
             .frame(width: Tokens.Size.artwork, height: Tokens.Size.artwork)
             .clipShape(RoundedRectangle(cornerRadius: Tokens.mediaRadius, style: .continuous))
+            .accessibilityHidden(true)
 
             VStack(alignment: .leading, spacing: Tokens.tight) {
                 HStack(spacing: Tokens.sectionSpacing) {
@@ -191,6 +192,8 @@ private struct ProgressBar: View {
         }
         .frame(height: Tokens.Size.eventBar)
         .clipShape(Capsule())
+        .accessibilityLabel("Playback progress")
+        .accessibilityValue(progress.formatted(.percent.precision(.fractionLength(0))))
     }
 }
 
