@@ -61,7 +61,7 @@ struct StocksWidget: View {
                 Text("Add a Finnhub API key in settings")
                     .font(.footnote)
                     .foregroundStyle(.tertiary)
-                    .frame(maxWidth: .infinity, minHeight: 44, alignment: .leading)
+                    .frame(maxWidth: .infinity, minHeight: Tokens.Size.emptyStateHeight, alignment: .leading)
             case .quotes(let quotes):
                 VStack(spacing: Tokens.contentSpacing) {
                     ForEach(quotes) { StockRow(quote: $0) }
@@ -92,7 +92,7 @@ private struct StockRow: View {
 
                 if let spark = quote.spark, spark.count > 1 {
                     Sparkline(values: spark, color: changeColor)
-                        .frame(width: 56, height: 22)
+                        .frame(width: Tokens.Size.artwork, height: Tokens.Size.stockSparklineHeight)
                 }
 
                 Spacer(minLength: Tokens.snug)
@@ -193,7 +193,7 @@ private struct TickerEditor: View {
             }
         }
         .padding(Tokens.editorPadding)
-        .frame(minWidth: 320)
+        .frame(minWidth: Tokens.Size.editorMinWidth)
         .onAppear { draft = tickersCSV }
     }
 }

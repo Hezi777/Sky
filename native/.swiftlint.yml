@@ -1,0 +1,31 @@
+only_rules:
+  - custom_rules
+
+excluded:
+  - .build
+  - .build-ios
+  - Sky.xcodeproj
+
+custom_rules:
+  liquid_glass_boundary:
+    included: ".*Sky/.*\\.swift"
+    excluded: ".*Sky/DesignSystem/.*"
+    name: "Liquid Glass boundary"
+    regex: "\\.glassEffect\\s*\\("
+    message: "Use GlassCard or glassSurface(); Liquid Glass belongs in DesignSystem."
+    severity: error
+
+  raw_view_geometry:
+    included: ".*Sky/Views/.*\\.swift"
+    name: "Raw view geometry"
+    regex: "(?s)(?:\\.(?:padding|cornerRadius|frame)\\s*\\([^)]*?(?<![A-Za-z_])[-+]?\\d+(?:\\.\\d+)?|spacing:\\s*(?:CGFloat\\s*\\(\\s*)?[-+]?\\d+(?:\\.\\d+)?)"
+    message: "Use a Tokens spacing, radius, or size value instead of a raw number."
+    severity: error
+
+  raw_color_literal:
+    included: ".*Sky/.*\\.swift"
+    excluded: ".*Sky/DesignSystem/Tokens\\.swift"
+    name: "Raw color literal"
+    regex: "(?:#[0-9A-Fa-f]{3,8}\\b|Color\\s*\\(\\s*red\\s*:)"
+    message: "Define colors in Tokens or Assets.xcassets."
+    severity: error

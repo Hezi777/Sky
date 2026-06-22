@@ -31,7 +31,7 @@ private struct BookRow: View {
                         Rectangle().fill(.quaternary)
                     }
                 }
-                .frame(width: 36, height: 52)
+                .frame(width: Tokens.Size.bookCoverWidth, height: Tokens.Size.bookCoverHeight)
                 .clipShape(RoundedRectangle(cornerRadius: Tokens.smallRadius, style: .continuous))
             }
 
@@ -93,6 +93,6 @@ private struct ProgressBar: View {
                     .frame(width: geo.size.width * fraction)
             }
         }
-        .frame(height: 4)
+        .frame(height: Tokens.Size.progressBar)
     }
 }

@@ -124,6 +124,36 @@ enum Tokens {
 
     static func chartColor(_ index: Int) -> Color { chartPalette[index % chartPalette.count] }
 
+    // MARK: Component sizes
+
+    enum Size {
+        static let hairlineBar: CGFloat = 2.5
+        static let eventBar: CGFloat = 3
+        static let progressBar: CGFloat = 4
+        static let legendDot: CGFloat = 7
+        static let heatmapCell: CGFloat = 11
+        static let compactControl: CGFloat = 12
+        static let symbolBox: CGFloat = 18
+        static let activityIcon: CGFloat = 22
+        static let stockSparklineHeight: CGFloat = 22
+        static let recentArtwork: CGFloat = 32
+        static let bookCoverWidth: CGFloat = 36
+        static let progressRing: CGFloat = 38
+        static let emptyStateHeight: CGFloat = 44
+        static let calendarTimeColumn: CGFloat = 50
+        static let bookCoverHeight: CGFloat = 52
+        static let artwork: CGFloat = 56
+        static let weatherChartHeight: CGFloat = 72
+        static let portfolioChart: CGFloat = 108
+        static let heroMinHeight: CGFloat = 220
+        static let editorMinHeight: CGFloat = 250
+        static let editorMinWidth: CGFloat = 320
+        static let heroTextMaxWidth: CGFloat = 420
+        static let rootMinHeight: CGFloat = 560
+        static let settingsWidth: CGFloat = 420
+        static let rootMinWidth: CGFloat = 720
+    }
+
     // MARK: Type ramp
 
     /// Named font roles from the design spec. Use these instead of `.font(.system(size:))`

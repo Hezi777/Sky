@@ -87,7 +87,7 @@ private struct TaskProgressRing: View {
                 .monospacedDigit()
                 .foregroundStyle(.secondary)
         }
-        .frame(width: 38, height: 38)
+        .frame(width: Tokens.Size.progressRing, height: Tokens.Size.progressRing)
     }
 }
 
@@ -103,7 +103,7 @@ private struct TaskRow: View {
             Button(action: onComplete) {
                 Circle()
                     .strokeBorder(priorityColor, lineWidth: 1.5)
-                    .frame(width: 18, height: 18)
+                    .frame(width: Tokens.Size.symbolBox, height: Tokens.Size.symbolBox)
             }
             .buttonStyle(.plain)
 

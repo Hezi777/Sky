@@ -18,7 +18,7 @@ struct IBKRWidget: View {
 
                 HStack(alignment: .center, spacing: Tokens.contentSpacing) {
                     AllocationDonut(slices: slices)
-                        .frame(width: 108, height: 108)
+                        .frame(width: Tokens.Size.portfolioChart, height: Tokens.Size.portfolioChart)
                     AllocationLegend(slices: slices)
                         .frame(maxWidth: .infinity, alignment: .leading)
                 }
@@ -173,7 +173,7 @@ private struct AllocationLegend: View {
                 HStack(spacing: Tokens.compact) {
                     Circle()
                         .fill(slice.color)
-                        .frame(width: 7, height: 7)
+                        .frame(width: Tokens.Size.legendDot, height: Tokens.Size.legendDot)
                     Text(slice.ticker)
                         .font(.caption2.weight(.medium))
                         .lineLimit(1)

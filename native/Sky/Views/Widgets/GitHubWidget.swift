@@ -138,10 +138,10 @@ private struct ContributionHeatmap: View {
         VStack(alignment: .leading, spacing: Tokens.sectionSpacing) {
             // Month row
             HStack(alignment: .top, spacing: gap) {
-                Color.clear.frame(width: labelWidth, height: 12)
+                Color.clear.frame(width: labelWidth, height: Tokens.Size.compactControl)
                 ForEach(cols.indices, id: \.self) { i in
                     ZStack(alignment: .leading) {
-                        Color.clear.frame(width: cell, height: 12)
+                        Color.clear.frame(width: cell, height: Tokens.Size.compactControl)
                         if let label = monthLabels[i] {
                             Text(label)
                                 .font(.system(size: 9))
@@ -184,7 +184,7 @@ private struct ContributionHeatmap: View {
                 ForEach(Tokens.githubLevels.indices, id: \.self) { i in
                     RoundedRectangle(cornerRadius: Tokens.barRadius, style: .continuous)
                         .fill(Tokens.githubLevels[i])
-                        .frame(width: 11, height: 11)
+                        .frame(width: Tokens.Size.heatmapCell, height: Tokens.Size.heatmapCell)
                 }
                 Text("More")
                     .font(.system(size: 9))

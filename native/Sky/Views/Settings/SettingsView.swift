@@ -29,7 +29,7 @@ struct SettingsView: View {
             .formStyle(.grouped)
             .navigationTitle("Settings")
             #if os(macOS)
-            .frame(width: 420, height: 560)
+            .frame(width: Tokens.Size.settingsWidth, height: Tokens.Size.rootMinHeight)
             #endif
             .toolbar {
                 ToolbarItem(placement: .confirmationAction) {
@@ -51,7 +51,7 @@ private struct WidgetToggleRow: View {
         let visible = config.isVisible(kind)
         HStack(spacing: Tokens.contentSpacing) {
             Image(systemName: kind.symbol)
-                .frame(width: 22)
+                .frame(width: Tokens.Size.activityIcon)
                 .foregroundStyle(visible ? Tokens.accent : .secondary)
             Text(kind.title)
                 .foregroundStyle(visible ? .primary : .secondary)
