@@ -2,6 +2,7 @@ import SwiftUI
 import Charts
 
 struct WeatherWidget: View {
+    @Environment(\.widgetSize) private var size
     @State private var location = LocationProvider()
     @State private var weather: OpenMeteoResponse?
     @State private var errorMessage: String?
@@ -14,6 +15,7 @@ struct WeatherWidget: View {
                 }
             } else if let w = weather {
                 WeatherContent(
+                    size: size,
                     placeName: location.placeName ?? "Current Location",
                     current: w.current,
                     daily: w.daily,
@@ -53,23 +55,57 @@ struct WeatherWidget: View {
 // MARK: - Content
 
 private struct WeatherContent: View {
+    let size: WidgetSize
     let placeName: String
     let current: OpenMeteoCurrent
     let daily: OpenMeteoDaily
     let hourly: OpenMeteoHourly?
 
     var body: some View {
-        VStack(alignment: .leading, spacing: Tokens.contentSpacing) {
-            WeatherSummary(
-                placeName: placeName,
-                current: current,
-                daily: daily
-            )
-            if let hourly, hourly.temperature2m.count > 1 {
-                HourlyTempChart(temps: hourly.temperature2m, times: hourly.time)
-                    .frame(height: Tokens.Size.weatherChartHeight)
+        switch size {
+        case .small:
+            WeatherCompact(current: current)
+        case .medium, .large:
+            VStack(alignment: .leading, spacing: Tokens.contentSpacing) {
+                WeatherSummary(
+                    placeName: placeName,
+                    current: current,
+                    daily: daily
+                )
+                if let hourly, hourly.temperature2m.count > 1 {
+                    HourlyTempChart(temps: hourly.temperature2m, times: hourly.time)
+                        .frame(height: Tokens.Size.weatherChartHeight)
+                }
             }
         }
+    }
+}
+
+/// Small: icon + current temp + condition only.
+private struct WeatherCompact: View {
+    let current: OpenMeteoCurrent
+
+    var body: some View {
+        HStack(spacing: Tokens.snug) {
+            Image(systemName: weatherSymbol(for: current.weatherCode))
+                .font(.title2)
+                .foregroundStyle(Tokens.accent)
+                .symbolRenderingMode(.hierarchical)
+
+            VStack(alignment: .leading, spacing: Tokens.extraTight) {
+                Text("\(Int(current.temperature2m.rounded()))°")
+                    .font(Tokens.Font.primaryValue(size: 36, weight: .thin))
+                    .monospacedDigit()
+                    .contentTransition(.numericText())
+
+                Text(weatherCondition(for: current.weatherCode))
+                    .font(Tokens.Font.caption)
+                    .foregroundStyle(.secondary)
+                    .lineLimit(1)
+            }
+        }
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("\(Int(current.temperature2m.rounded()))°, \(weatherCondition(for: current.weatherCode))")
     }
 }
 
@@ -220,6 +256,24 @@ private func weatherSymbol(for code: Int) -> String {
     case 80...82:     "cloud.heavyrain.fill"
     case 95...99:     "cloud.bolt.fill"
     default:          "cloud.fill"
+    }
+}
+
+// MARK: - WMO weather code -> human condition label
+
+private func weatherCondition(for code: Int) -> String {
+    switch code {
+    case 0:           "Clear"
+    case 1:           "Mostly Clear"
+    case 2:           "Partly Cloudy"
+    case 3:           "Overcast"
+    case 45, 48:      "Foggy"
+    case 51...57:     "Drizzle"
+    case 61...67:     "Rain"
+    case 71...77:     "Snow"
+    case 80...82:     "Showers"
+    case 95...99:     "Thunderstorm"
+    default:          "Cloudy"
     }
 }
 

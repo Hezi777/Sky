@@ -3,6 +3,7 @@ import Charts
 
 struct StocksWidget: View {
     @Environment(DashboardStore.self) private var store
+    @Environment(\.widgetSize) private var size
     @AppStorage("stocks.tickers") private var tickersCSV: String = "AAPL,MSFT,NVDA"
     @State private var isEditing = false
 
@@ -24,29 +25,87 @@ struct StocksWidget: View {
             emptyText: "No tickers — tap the pencil to add some",
             reload: { await store.load(.stocks, force: true, stockSymbols: symbols) },
             accessory: {
-                Button {
-                    isEditing = true
-                } label: {
-                    Image(systemName: "pencil")
-                        .font(.caption.weight(.semibold))
-                        .foregroundStyle(.secondary)
+                if size != .small {
+                    Button {
+                        isEditing = true
+                    } label: {
+                        Image(systemName: "pencil")
+                            .font(.caption.weight(.semibold))
+                            .foregroundStyle(.secondary)
+                    }
+                    .buttonStyle(.borderless)
                 }
-                .buttonStyle(.borderless)
             }
         ) { quotes in
-            VStack(spacing: Tokens.contentSpacing) {
-                ForEach(quotes) { StockRow(quote: $0) }
-            }
+            stocksContent(quotes: quotes)
         }
         .task(id: query) { await store.load(.stocks, force: true, stockSymbols: symbols) }
         .sheet(isPresented: $isEditing) {
             TickerEditor(tickersCSV: $tickersCSV)
         }
     }
+
+    @ViewBuilder
+    private func stocksContent(quotes: [StockQuote]) -> some View {
+        switch size {
+        case .small:
+            if let first = quotes.first {
+                StockHero(quote: first)
+            }
+        case .medium:
+            VStack(spacing: Tokens.contentSpacing) {
+                ForEach(quotes) { StockRow(quote: $0) }
+            }
+        case .large:
+            VStack(spacing: Tokens.contentSpacing) {
+                ForEach(quotes) { StockRow(quote: $0, showSparkline: true) }
+            }
+        }
+    }
+}
+
+/// Small: single ticker hero with symbol, price, and change%.
+private struct StockHero: View {
+    let quote: StockQuote
+
+    private var isUp: Bool { quote.changePercent >= 0 }
+    private var changeColor: Color { isUp ? Tokens.positive : Tokens.negative }
+    private var arrowSymbol: String { isUp ? "arrow.up.right" : "arrow.down.right" }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: Tokens.snug) {
+            Text(quote.symbol)
+                .font(Tokens.Font.bodyRowStrong)
+                .foregroundStyle(.primary)
+
+            Text(quote.price, format: .number.precision(.fractionLength(2)))
+                .font(.system(.title, design: .rounded).weight(.semibold))
+                .monospacedDigit()
+                .contentTransition(.numericText())
+
+            Label(changeText, systemImage: arrowSymbol)
+                .font(Tokens.Font.bodyRow)
+                .monospacedDigit()
+                .foregroundStyle(changeColor)
+        }
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel(quote.symbol)
+        .accessibilityValue(
+            "Price \(quote.price.formatted(.number.precision(.fractionLength(2)))), "
+                + "\(changeText)"
+        )
+    }
+
+    private var changeText: String {
+        (quote.changePercent / 100).formatted(
+            .percent.sign(strategy: .always()).precision(.fractionLength(2))
+        )
+    }
 }
 
 private struct StockRow: View {
     let quote: StockQuote
+    var showSparkline: Bool = false
 
     private var isUp: Bool { quote.changePercent >= 0 }
     private var changeColor: Color { isUp ? Tokens.positive : Tokens.negative }
@@ -68,7 +127,7 @@ private struct StockRow: View {
                         .monospacedDigit()
                 }
 
-                if let spark = quote.spark, spark.count > 1 {
+                if showSparkline, let spark = quote.spark, spark.count > 1 {
                     Sparkline(values: spark, color: changeColor)
                         .frame(maxWidth: Tokens.Size.artwork)
                         .frame(height: Tokens.Size.stockSparklineHeight)

@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct QuoteWidget: View {
+    @Environment(\.widgetSize) private var size
     @State private var quote: ZenQuote?
     @State private var errorMessage: String?
 
@@ -11,7 +12,7 @@ struct QuoteWidget: View {
                     Task { await fetchQuote() }
                 }
             } else if let quote {
-                QuoteContent(text: quote.q, author: quote.a)
+                QuoteContent(text: quote.q, author: quote.a, size: size)
             } else {
                 WidgetLoading()
             }
@@ -39,12 +40,14 @@ struct QuoteWidget: View {
 private struct QuoteContent: View {
     let text: String
     let author: String
+    let size: WidgetSize
 
     var body: some View {
-        VStack(alignment: .leading, spacing: Tokens.contentSpacing) {
-            HStack(alignment: .top, spacing: Tokens.snug) {
+        switch size {
+        case .small:
+            VStack(alignment: .leading, spacing: Tokens.snug) {
                 Image(systemName: "quote.opening")
-                    .font(.title3)
+                    .font(.caption)
                     .foregroundStyle(Tokens.accent.opacity(0.4))
                     .accessibilityHidden(true)
 
@@ -53,15 +56,33 @@ private struct QuoteContent: View {
                     .italic()
                     .foregroundStyle(.primary)
                     .lineSpacing(Tokens.badgePadding)
-                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .lineLimit(4)
             }
+            .accessibilityElement(children: .combine)
 
-            Text("— \(author)")
-                .font(.caption.weight(.medium))
-                .foregroundStyle(.tertiary)
-                .frame(maxWidth: .infinity, alignment: .trailing)
+        default:
+            VStack(alignment: .leading, spacing: Tokens.contentSpacing) {
+                HStack(alignment: .top, spacing: Tokens.snug) {
+                    Image(systemName: "quote.opening")
+                        .font(.title3)
+                        .foregroundStyle(Tokens.accent.opacity(0.4))
+                        .accessibilityHidden(true)
+
+                    Text(text)
+                        .font(Tokens.Font.bodyRow)
+                        .italic()
+                        .foregroundStyle(.primary)
+                        .lineSpacing(Tokens.badgePadding)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                }
+
+                Text("— \(author)")
+                    .font(.caption.weight(.medium))
+                    .foregroundStyle(.tertiary)
+                    .frame(maxWidth: .infinity, alignment: .trailing)
+            }
+            .accessibilityElement(children: .combine)
         }
-        .accessibilityElement(children: .combine)
     }
 }
 

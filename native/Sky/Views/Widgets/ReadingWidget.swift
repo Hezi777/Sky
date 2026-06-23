@@ -2,6 +2,7 @@ import SwiftUI
 
 struct ReadingWidget: View {
     @Environment(DashboardStore.self) private var store
+    @Environment(\.widgetSize) private var size
 
     var body: some View {
         AsyncCard(
@@ -13,11 +14,42 @@ struct ReadingWidget: View {
             emptyText: "Not reading anything",
             reload: { await store.load(.reading, force: true) }
         ) { books in
-            VStack(spacing: Tokens.contentSpacing) {
-                ForEach(books) { BookRow(book: $0) }
+            switch size {
+            case .small:
+                if let book = books.first {
+                    CompactBookRow(book: book)
+                }
+
+            default:
+                VStack(spacing: Tokens.contentSpacing) {
+                    ForEach(books) { BookRow(book: $0) }
+                }
             }
         }
         .task { await store.load(.reading) }
+    }
+}
+
+private struct CompactBookRow: View {
+    let book: ReadingBook
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: Tokens.snug) {
+            Text(book.title)
+                .font(Tokens.Font.bodyRow)
+                .foregroundStyle(.primary)
+                .lineLimit(2)
+
+            ProgressBar(progress: book.progress)
+
+            Text("\(book.progress)%")
+                .font(.caption2.weight(.medium))
+                .foregroundStyle(Tokens.accent)
+                .monospacedDigit()
+                .contentTransition(.numericText())
+        }
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("\(book.title), \(book.progress) percent")
     }
 }
 

@@ -2,6 +2,7 @@ import SwiftUI
 
 struct StravaWidget: View {
     @Environment(DashboardStore.self) private var store
+    @Environment(\.widgetSize) private var size
 
     var body: some View {
         AsyncCard(
@@ -13,11 +14,57 @@ struct StravaWidget: View {
             emptyText: "No recent activities",
             reload: { await store.load(.strava, force: true) }
         ) { activities in
-            VStack(spacing: Tokens.contentSpacing) {
-                ForEach(activities) { ActivityRow(activity: $0) }
+            switch size {
+            case .small:
+                if let activity = activities.first {
+                    CompactActivityRow(activity: activity)
+                }
+
+            default:
+                VStack(spacing: Tokens.contentSpacing) {
+                    ForEach(activities) { ActivityRow(activity: $0) }
+                }
             }
         }
         .task { await store.load(.strava) }
+    }
+}
+
+private struct CompactActivityRow: View {
+    let activity: StravaActivity
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: Tokens.snug) {
+            HStack(spacing: Tokens.snug) {
+                Image(systemName: symbol)
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundStyle(Tokens.accent)
+                Text(activity.name)
+                    .font(Tokens.Font.bodyRow)
+                    .lineLimit(1)
+            }
+
+            Text(distanceText)
+                .font(.caption.weight(.medium))
+                .foregroundStyle(.primary)
+                .monospacedDigit()
+        }
+        .accessibilityElement(children: .combine)
+    }
+
+    private var symbol: String {
+        switch activity.type.lowercased() {
+        case "run": return "figure.run"
+        case "ride": return "figure.outdoor.cycle"
+        case "swim": return "figure.pool.swim"
+        case "walk", "hike": return "figure.walk"
+        default: return "figure.mixed.cardio"
+        }
+    }
+
+    private var distanceText: String {
+        let km = activity.distance / 1000
+        return String(format: "%.1f km", km)
     }
 }
 

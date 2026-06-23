@@ -3,6 +3,7 @@ import Charts
 
 struct IBKRWidget: View {
     @Environment(DashboardStore.self) private var store
+    @Environment(\.widgetSize) private var size
 
     var body: some View {
         AsyncCard(
@@ -14,8 +15,37 @@ struct IBKRWidget: View {
             emptyText: "No positions",
             reload: { await store.load(.ibkr, force: true) }
         ) { data in
-            let slices = AllocationSlice.make(from: data.positions)
+            portfolioContent(data: data)
+        }
+        .task { await store.load(.ibkr) }
+    }
 
+    @ViewBuilder
+    private func portfolioContent(data: IbkrResponse) -> some View {
+        let slices = AllocationSlice.make(from: data.positions)
+
+        switch size {
+        case .medium, .small:
+            // Medium: summary + compact allocation
+            VStack(alignment: .leading, spacing: Tokens.contentSpacing) {
+                PortfolioHeader(summary: data.summary)
+
+                HStack(alignment: .center, spacing: Tokens.contentSpacing) {
+                    AllocationDonut(slices: slices)
+                        .frame(width: Tokens.Size.portfolioChart, height: Tokens.Size.portfolioChart)
+                    AllocationLegend(slices: slices)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                }
+
+                if data.source == .flex {
+                    Text(flexFooter(asOf: data.asOf))
+                        .font(.caption2)
+                        .foregroundStyle(.tertiary)
+                }
+            }
+
+        case .large:
+            // Large: summary + allocation + top movers
             VStack(alignment: .leading, spacing: Tokens.contentSpacing) {
                 PortfolioHeader(summary: data.summary)
 
@@ -35,7 +65,6 @@ struct IBKRWidget: View {
                 }
             }
         }
-        .task { await store.load(.ibkr) }
     }
 
     private func flexFooter(asOf: String?) -> String {

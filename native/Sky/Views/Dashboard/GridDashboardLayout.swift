@@ -2,9 +2,9 @@ import SwiftUI
 
 // MARK: - Layout value keys
 
-/// Carries each child's grid footprint (cols × rows).
-struct WidgetFootprintKey: LayoutValueKey {
-    static let defaultValue = WidgetFootprint.regular
+/// Carries each child's discrete grid size (cols × rows).
+struct WidgetSizeLayoutKey: LayoutValueKey {
+    static let defaultValue: WidgetSize = .small
 }
 
 /// Per-child transient drag offset applied during edit-mode reordering.
@@ -16,15 +16,16 @@ struct WidgetDragOffsetKey: LayoutValueKey {
 // MARK: - Grid layout
 
 /// Fixed-cell 2D grid layout for dashboard widgets. Each child declares a
-/// `WidgetFootprint` (cols × rows); placement uses dense shortest-column
-/// packing. Height is deterministic from the row count — children clip or
-/// scroll internally.
+/// `WidgetSize` (cols × rows via discrete enum); placement uses a dense
+/// 2D occupancy-grid packer that guarantees no overlap.
 struct GridDashboardLayout: Layout {
 
     private struct Placement {
         let index: Int
-        let origin: CGPoint
-        let size: CGSize
+        let col: Int
+        let row: Int
+        let colSpan: Int
+        let rowSpan: Int
         let dragOffset: CGSize
     }
 
@@ -36,7 +37,7 @@ struct GridDashboardLayout: Layout {
         cache: inout ()
     ) -> CGSize {
         let width = proposal.width ?? naturalWidth(for: subviews)
-        let result = placements(for: subviews, width: width)
+        let result = pack(subviews: subviews, width: width)
         return CGSize(width: width, height: result.height)
     }
 
@@ -46,85 +47,135 @@ struct GridDashboardLayout: Layout {
         subviews: Subviews,
         cache: inout ()
     ) -> Void {
-        for placement in placements(for: subviews, width: bounds.width).items {
+        let result = pack(subviews: subviews, width: bounds.width)
+        let columnCount = result.columnCount
+        let cellWidth = max(
+            Tokens.dashboardGridMinimum,
+            (bounds.width - CGFloat(columnCount - 1) * Tokens.cardGap) / CGFloat(columnCount)
+        )
+
+        for placement in result.items {
+            let itemWidth = CGFloat(placement.colSpan) * cellWidth
+                + CGFloat(placement.colSpan - 1) * Tokens.cardGap
+            let itemHeight = CGFloat(placement.rowSpan) * Tokens.dashboardRowUnit
+                + CGFloat(placement.rowSpan - 1) * Tokens.cardGap
+            let x = CGFloat(placement.col) * (cellWidth + Tokens.cardGap)
+            let y = CGFloat(placement.row) * (Tokens.dashboardRowUnit + Tokens.cardGap)
+
             let origin = CGPoint(
-                x: bounds.minX + placement.origin.x + placement.dragOffset.width,
-                y: bounds.minY + placement.origin.y + placement.dragOffset.height
+                x: bounds.minX + x + placement.dragOffset.width,
+                y: bounds.minY + y + placement.dragOffset.height
             )
             subviews[placement.index].place(
                 at: origin,
                 anchor: .topLeading,
-                proposal: ProposedViewSize(placement.size)
+                proposal: ProposedViewSize(width: itemWidth, height: itemHeight)
             )
         }
     }
 
-    // MARK: Packing
+    // MARK: - 2D occupancy-grid packer
 
-    private func placements(
-        for subviews: Subviews,
-        width: CGFloat
-    ) -> (items: [Placement], height: CGFloat) {
+    private struct PackResult {
+        let items: [Placement]
+        let height: CGFloat
+        let columnCount: Int
+    }
+
+    private func pack(subviews: Subviews, width: CGFloat) -> PackResult {
         let estimatedColumns = Int(
             (width + Tokens.cardGap) / (Tokens.dashboardGridTarget + Tokens.cardGap)
         )
-        let columnCount = width < Tokens.dashboardGridBreakpoint
-            ? 1
-            : min(Tokens.dashboardGridMaxColumns, max(1, estimatedColumns))
-        let columnWidth = max(
-            Tokens.dashboardGridMinimum,
-            (width - CGFloat(columnCount - 1) * Tokens.cardGap) / CGFloat(columnCount)
-        )
+        let columnCount: Int
+        if width < Tokens.dashboardGridBreakpoint {
+            columnCount = 1
+        } else {
+            columnCount = min(Tokens.dashboardGridMaxColumns, max(1, estimatedColumns))
+        }
 
+        // 2D boolean occupancy grid, grows rows as needed.
+        var occupied: [[Bool]] = []
         var items: [Placement] = []
-        var columnHeights = Array(repeating: CGFloat.zero, count: columnCount)
+        var maxRowEnd = 0
 
         for index in subviews.indices {
             let subview = subviews[index]
-            let footprint = subview[WidgetFootprintKey.self]
-            let colSpan = min(footprint.cols, columnCount)
-            let column = shortestRangeStart(span: colSpan, heights: columnHeights)
-            let y = columnHeights[column..<(column + colSpan)].max() ?? 0
-
-            let itemWidth = CGFloat(colSpan) * columnWidth + CGFloat(colSpan - 1) * Tokens.cardGap
-            let itemHeight = CGFloat(footprint.rows) * Tokens.dashboardRowUnit
-                + CGFloat(footprint.rows - 1) * Tokens.cardGap
-            let x = CGFloat(column) * (columnWidth + Tokens.cardGap)
-
+            let size = subview[WidgetSizeLayoutKey.self]
+            let colSpan = min(size.cols, columnCount)
+            let rowSpan = size.rows
             let dragOffset = subview[WidgetDragOffsetKey.self]
+
+            // Find first available position row-major.
+            let position = findPosition(
+                colSpan: colSpan,
+                rowSpan: rowSpan,
+                columnCount: columnCount,
+                occupied: &occupied
+            )
+
+            // Mark cells occupied.
+            for r in position.row..<(position.row + rowSpan) {
+                for c in position.col..<(position.col + colSpan) {
+                    occupied[r][c] = true
+                }
+            }
+
             items.append(Placement(
                 index: index,
-                origin: CGPoint(x: x, y: y),
-                size: CGSize(width: itemWidth, height: itemHeight),
+                col: position.col,
+                row: position.row,
+                colSpan: colSpan,
+                rowSpan: rowSpan,
                 dragOffset: dragOffset
             ))
 
-            let nextY = y + itemHeight + Tokens.cardGap
-            for occupiedColumn in column..<(column + colSpan) {
-                columnHeights[occupiedColumn] = nextY
-            }
+            maxRowEnd = max(maxRowEnd, position.row + rowSpan)
         }
 
-        let maxHeight = columnHeights.max() ?? 0
-        return (items, maxHeight > 0 ? maxHeight - Tokens.cardGap : 0)
+        let height: CGFloat
+        if maxRowEnd > 0 {
+            height = CGFloat(maxRowEnd) * Tokens.dashboardRowUnit
+                + CGFloat(maxRowEnd - 1) * Tokens.cardGap
+        } else {
+            height = 0
+        }
+
+        return PackResult(items: items, height: height, columnCount: columnCount)
     }
 
-    // MARK: Shortest-range start (dense packing with void tiebreak)
-
-    private func shortestRangeStart(span: Int, heights: [CGFloat]) -> Int {
-        guard span <= heights.count else { return 0 }
-
-        return (0...(heights.count - span)).min { lhs, rhs in
-            let lhsHeight = heights[lhs..<(lhs + span)].max() ?? 0
-            let rhsHeight = heights[rhs..<(rhs + span)].max() ?? 0
-            if lhsHeight == rhsHeight {
-                let lhsVoid = heights[lhs..<(lhs + span)].reduce(0) { lhsHeight - $1 + $0 }
-                let rhsVoid = heights[rhs..<(rhs + span)].reduce(0) { rhsHeight - $1 + $0 }
-                if lhsVoid == rhsVoid { return lhs < rhs }
-                return lhsVoid < rhsVoid
+    /// Scans the occupancy grid row-major for the first position where a
+    /// `colSpan × rowSpan` block fits. Grows the grid as needed.
+    private func findPosition(
+        colSpan: Int,
+        rowSpan: Int,
+        columnCount: Int,
+        occupied: inout [[Bool]]
+    ) -> (row: Int, col: Int) {
+        var row = 0
+        while true {
+            // Ensure enough rows exist.
+            while occupied.count < row + rowSpan {
+                occupied.append(Array(repeating: false, count: columnCount))
             }
-            return lhsHeight < rhsHeight
-        } ?? 0
+
+            for col in 0...(columnCount - colSpan) {
+                if regionIsFree(row: row, col: col, rowSpan: rowSpan, colSpan: colSpan, occupied: occupied) {
+                    return (row, col)
+                }
+            }
+            row += 1
+        }
+    }
+
+    private func regionIsFree(
+        row: Int, col: Int, rowSpan: Int, colSpan: Int, occupied: [[Bool]]
+    ) -> Bool {
+        for r in row..<(row + rowSpan) {
+            for c in col..<(col + colSpan) {
+                if occupied[r][c] { return false }
+            }
+        }
+        return true
     }
 
     private func naturalWidth(for subviews: Subviews) -> CGFloat {
@@ -137,36 +188,41 @@ struct GridDashboardLayout: Layout {
 #Preview("GridDashboardLayout") {
     ScrollView {
         GridDashboardLayout {
-            // 1×1 regular
+            // small (1×1)
             RoundedRectangle(cornerRadius: Tokens.cardRadius)
                 .fill(.blue.opacity(0.3))
-                .layoutValue(key: WidgetFootprintKey.self, value: .regular)
+                .overlay(Text("small"))
+                .layoutValue(key: WidgetSizeLayoutKey.self, value: .small)
 
-            // 2×1 wide
+            // medium (2×1)
             RoundedRectangle(cornerRadius: Tokens.cardRadius)
                 .fill(.green.opacity(0.3))
-                .layoutValue(key: WidgetFootprintKey.self, value: .wide)
+                .overlay(Text("medium"))
+                .layoutValue(key: WidgetSizeLayoutKey.self, value: .medium)
 
-            // 1×2 tall
+            // small (1×1)
             RoundedRectangle(cornerRadius: Tokens.cardRadius)
                 .fill(.orange.opacity(0.3))
-                .layoutValue(
-                    key: WidgetFootprintKey.self,
-                    value: WidgetFootprint(cols: 1, rows: 2)
-                )
+                .overlay(Text("small"))
+                .layoutValue(key: WidgetSizeLayoutKey.self, value: .small)
 
-            // 2×2 large
+            // large (2×2)
             RoundedRectangle(cornerRadius: Tokens.cardRadius)
                 .fill(.purple.opacity(0.3))
-                .layoutValue(
-                    key: WidgetFootprintKey.self,
-                    value: WidgetFootprint(cols: 2, rows: 2)
-                )
+                .overlay(Text("large"))
+                .layoutValue(key: WidgetSizeLayoutKey.self, value: .large)
 
-            // 1×1 regular (trailing filler)
+            // small (1×1) — filler
             RoundedRectangle(cornerRadius: Tokens.cardRadius)
                 .fill(.red.opacity(0.3))
-                .layoutValue(key: WidgetFootprintKey.self, value: .regular)
+                .overlay(Text("small"))
+                .layoutValue(key: WidgetSizeLayoutKey.self, value: .small)
+
+            // medium (2×1)
+            RoundedRectangle(cornerRadius: Tokens.cardRadius)
+                .fill(.cyan.opacity(0.3))
+                .overlay(Text("medium"))
+                .layoutValue(key: WidgetSizeLayoutKey.self, value: .medium)
         }
     }
     .padding(Tokens.gap)

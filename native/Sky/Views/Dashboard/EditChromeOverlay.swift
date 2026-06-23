@@ -1,7 +1,7 @@
 import SwiftUI
 
 /// Edit-mode chrome overlaid on each widget cell. Shows drag grip, hide button,
-/// and resize handle. Returns `EmptyView` when not editing so widget identity
+/// and size-cycle control. Returns `EmptyView` when not editing so widget identity
 /// and @State are preserved (overlay, not wrapper).
 struct EditChromeOverlay: View {
     let kind: WidgetKind
@@ -27,7 +27,7 @@ struct EditChromeOverlay: View {
             )
             .overlay(alignment: .topLeading) { dragGrip }
             .overlay(alignment: .topTrailing) { hideButton }
-            .overlay(alignment: .bottomTrailing) { resizeHandle }
+            .overlay(alignment: .bottomTrailing) { sizeCycleButton }
             .allowsHitTesting(true)
     }
 
@@ -75,45 +75,29 @@ struct EditChromeOverlay: View {
         .accessibilityLabel("Hide \(kind.title)")
     }
 
-    // MARK: - Resize handle
+    // MARK: - Size cycle button
 
-    private var resizeHandle: some View {
-        Image(systemName: "arrow.down.right.and.arrow.up.left")
-            .font(.system(size: Tokens.Size.compactControl, weight: .medium))
-            .foregroundStyle(.secondary)
+    @ViewBuilder
+    private var sizeCycleButton: some View {
+        if kind.supportedSizes.count > 1 {
+            GlassButton(
+                systemImage: sizeIcon(for: config.size(for: kind)),
+                accessibilityLabel: "Resize \(kind.title)"
+            ) {
+                withAnimation(editAnimation) {
+                    config.cycleSize(kind)
+                }
+            }
             .padding(Tokens.snug)
-            .contentShape(Rectangle())
-            .gesture(resizeGesture)
-            .accessibilityLabel("Resize \(kind.title)")
+        }
     }
 
-    private var resizeGesture: some Gesture {
-        DragGesture(minimumDistance: Tokens.tight)
-            .onChanged { value in
-                editState.resizingKind = kind
-                let currentFootprint = config.footprint(for: kind)
-                let cellWidth = estimatedColumnWidth
-                let cellHeight = Tokens.dashboardRowUnit
-
-                let dCols = Int((value.translation.width / (cellWidth + Tokens.cardGap)).rounded())
-                let dRows = Int((value.translation.height / (cellHeight + Tokens.cardGap)).rounded())
-
-                let newFootprint = WidgetFootprint(
-                    cols: currentFootprint.cols + dCols,
-                    rows: currentFootprint.rows + dRows
-                ).clamped(maxCols: Tokens.dashboardGridMaxColumns)
-
-                editState.previewFootprint = newFootprint
-            }
-            .onEnded { _ in
-                if let preview = editState.previewFootprint {
-                    withAnimation(editAnimation) {
-                        config.setFootprint(kind, cols: preview.cols, rows: preview.rows)
-                    }
-                }
-                editState.resizingKind = nil
-                editState.previewFootprint = nil
-            }
+    private func sizeIcon(for size: WidgetSize) -> String {
+        switch size {
+        case .small: "square"
+        case .medium: "rectangle"
+        case .large: "square.grid.2x2"
+        }
     }
 
     // MARK: - Reorder hit-testing
@@ -149,14 +133,5 @@ struct EditChromeOverlay: View {
         reduceMotion
             ? .easeInOut(duration: 0.15)
             : .spring(duration: 0.35, bounce: 0.15)
-    }
-
-    /// Estimate column width from this card's rect and its current footprint cols.
-    private var estimatedColumnWidth: CGFloat {
-        guard let rect = editState.cellRects[kind] else {
-            return Tokens.dashboardGridTarget
-        }
-        let currentCols = CGFloat(config.footprint(for: kind).cols)
-        return (rect.width - (currentCols - 1) * Tokens.cardGap) / currentCols
     }
 }

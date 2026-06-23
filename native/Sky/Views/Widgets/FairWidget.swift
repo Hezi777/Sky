@@ -4,6 +4,7 @@ import UniformTypeIdentifiers
 struct FairWidget: View {
     @Environment(DashboardStore.self) private var store
     @Environment(FairStore.self) private var fairStore
+    @Environment(\.widgetSize) private var size
 
     @State private var showingAdd = false
     @State private var showingSettings = false
@@ -27,20 +28,40 @@ struct FairWidget: View {
 
     var body: some View {
         WidgetShell(title: "Fund", symbol: "building.columns", tint: Tokens.accent) {
-            toolbarButtons
+            if size != .small {
+                toolbarButtons
+            }
         } content: {
-            if showingSettings {
+            if showingSettings, size != .small {
                 settingsForm
-            } else if showingAdd {
+            } else if showingAdd, size != .small {
                 addTransactionForm
             } else if fairStore.config.contributions.isEmpty {
-                emptyState
+                if size == .small {
+                    smallEmptyState
+                } else {
+                    emptyState
+                }
             } else {
-                mainContent
+                sizedContent
             }
         }
         .task(id: fairStore.config.fundNumber) {
             await store.load(.fair, force: true, fairFund: fairStore.config.fundNumber)
+        }
+    }
+
+    // MARK: - Size-aware content
+
+    @ViewBuilder
+    private var sizedContent: some View {
+        switch size {
+        case .small:
+            smallContent
+        case .medium:
+            mediumContent
+        case .large:
+            largeContent
         }
     }
 
@@ -66,6 +87,53 @@ struct FairWidget: View {
         }
     }
 
+    // MARK: - Small content
+
+    private var smallContent: some View {
+        VStack(alignment: .leading, spacing: Tokens.snug) {
+            if let price = effectivePrice {
+                let currentValue = fairStore.value(at: price)
+                Text(currentValue, format: .currency(code: "ILS").precision(.fractionLength(0)))
+                    .font(.system(.title, design: .rounded).weight(.semibold))
+                    .monospacedDigit()
+                    .contentTransition(.numericText(value: currentValue))
+                    .animation(.snappy, value: currentValue)
+                    .accessibilityLabel("Current value")
+
+                if let pct = fairStore.gainPercent(at: price) {
+                    let gainVal = fairStore.gain(at: price)
+                    HStack(spacing: Tokens.extraTight) {
+                        Image(systemName: gainVal >= 0 ? "arrow.up.right" : "arrow.down.right")
+                            .font(.caption2.weight(.semibold))
+                        Text(pct / 100, format: .percent.precision(.fractionLength(2)))
+                            .font(Tokens.Font.bodyRowStrong)
+                            .monospacedDigit()
+                    }
+                    .foregroundStyle(gainVal >= 0 ? Tokens.positive : Tokens.negative)
+                    .accessibilityElement(children: .combine)
+                    .accessibilityLabel("Gain \(changeLabel(gainVal: gainVal, pct: pct))")
+                }
+
+                if let unitPrice = effectivePrice {
+                    Text(unitPrice, format: .currency(code: liveFair?.currency ?? "ILS").precision(.fractionLength(2)))
+                        .font(Tokens.Font.caption)
+                        .foregroundStyle(.secondary)
+                        .monospacedDigit()
+                }
+            } else {
+                Text("—")
+                    .font(.system(.title, design: .rounded).weight(.semibold))
+                    .foregroundStyle(.tertiary)
+            }
+        }
+    }
+
+    private var smallEmptyState: some View {
+        Text("No contributions yet")
+            .font(Tokens.Font.caption)
+            .foregroundStyle(.secondary)
+    }
+
     // MARK: - Empty state
 
     private var emptyState: some View {
@@ -84,9 +152,9 @@ struct FairWidget: View {
         }
     }
 
-    // MARK: - Main content
+    // MARK: - Medium content
 
-    private var mainContent: some View {
+    private var mediumContent: some View {
         VStack(alignment: .leading, spacing: Tokens.contentSpacing) {
             // Fund subtitle
             Text("\(fairStore.config.fundName) · \(fairStore.config.fundNumber)")
@@ -94,62 +162,94 @@ struct FairWidget: View {
                 .foregroundStyle(.secondary)
 
             // Value headline
-            if let price = effectivePrice {
-                let currentValue = fairStore.value(at: price)
-                Text(currentValue, format: .currency(code: "ILS").precision(.fractionLength(0)))
-                    .font(.system(.title, design: .rounded).weight(.semibold))
-                    .monospacedDigit()
-                    .contentTransition(.numericText(value: currentValue))
-                    .animation(.snappy, value: currentValue)
-                    .accessibilityLabel("Current value")
-                    .accessibilityValue(
-                        currentValue.formatted(.currency(code: "ILS").precision(.fractionLength(0)))
-                    )
-            } else {
-                Text("—")
-                    .font(.system(.title, design: .rounded).weight(.semibold))
-                    .foregroundStyle(.tertiary)
-            }
+            valueHeadline
 
             // Invested + gain row
-            HStack(spacing: Tokens.rowSpacing) {
-                VStack(alignment: .leading, spacing: Tokens.microSpacing) {
-                    Text("Invested")
-                        .font(.caption2)
-                        .foregroundStyle(.secondary)
-                    Text(fairStore.invested, format: .currency(code: "ILS").precision(.fractionLength(0)))
-                        .font(Tokens.Font.bodyRowStrong)
-                        .monospacedDigit()
-                }
+            investedGainRow
 
-                if let price = effectivePrice, let pct = fairStore.gainPercent(at: price) {
-                    let gainVal = fairStore.gain(at: price)
-                    VStack(alignment: .leading, spacing: Tokens.microSpacing) {
-                        Text("Gain")
-                            .font(.caption2)
-                            .foregroundStyle(.secondary)
-                        HStack(spacing: Tokens.extraTight) {
-                            Image(systemName: gainVal >= 0 ? "arrow.up.right" : "arrow.down.right")
-                                .font(.caption2.weight(.semibold))
-                            Text(pct / 100, format: .percent.precision(.fractionLength(2)))
-                                .font(Tokens.Font.bodyRowStrong)
-                                .monospacedDigit()
-                        }
-                        .foregroundStyle(gainVal >= 0 ? Tokens.positive : Tokens.negative)
-                        .accessibilityElement(children: .ignore)
-                        .accessibilityLabel("Gain")
-                        .accessibilityValue(
-                            "\(gainVal >= 0 ? "plus" : "minus") \(abs(pct).formatted(.number.precision(.fractionLength(2)))) percent"
-                        )
-                    }
-                }
-            }
+            priceLine
+        }
+    }
+
+    // MARK: - Large content
+
+    private var largeContent: some View {
+        VStack(alignment: .leading, spacing: Tokens.contentSpacing) {
+            // Fund subtitle
+            Text("\(fairStore.config.fundName) · \(fairStore.config.fundNumber)")
+                .font(Tokens.Font.caption)
+                .foregroundStyle(.secondary)
+
+            // Value headline
+            valueHeadline
+
+            // Invested + gain row
+            investedGainRow
 
             priceLine
 
             // Contributions list
             contributionsList
         }
+    }
+
+    // MARK: - Shared sub-views
+
+    @ViewBuilder
+    private var valueHeadline: some View {
+        if let price = effectivePrice {
+            let currentValue = fairStore.value(at: price)
+            Text(currentValue, format: .currency(code: "ILS").precision(.fractionLength(0)))
+                .font(.system(.title, design: .rounded).weight(.semibold))
+                .monospacedDigit()
+                .contentTransition(.numericText(value: currentValue))
+                .animation(.snappy, value: currentValue)
+                .accessibilityLabel("Current value")
+                .accessibilityValue(
+                    currentValue.formatted(.currency(code: "ILS").precision(.fractionLength(0)))
+                )
+        } else {
+            Text("—")
+                .font(.system(.title, design: .rounded).weight(.semibold))
+                .foregroundStyle(.tertiary)
+        }
+    }
+
+    private var investedGainRow: some View {
+        HStack(spacing: Tokens.rowSpacing) {
+            VStack(alignment: .leading, spacing: Tokens.microSpacing) {
+                Text("Invested")
+                    .font(.caption2)
+                    .foregroundStyle(.secondary)
+                Text(fairStore.invested, format: .currency(code: "ILS").precision(.fractionLength(0)))
+                    .font(Tokens.Font.bodyRowStrong)
+                    .monospacedDigit()
+            }
+
+            if let price = effectivePrice, let pct = fairStore.gainPercent(at: price) {
+                let gainVal = fairStore.gain(at: price)
+                VStack(alignment: .leading, spacing: Tokens.microSpacing) {
+                    Text("Gain")
+                        .font(.caption2)
+                        .foregroundStyle(.secondary)
+                    HStack(spacing: Tokens.extraTight) {
+                        Image(systemName: gainVal >= 0 ? "arrow.up.right" : "arrow.down.right")
+                            .font(.caption2.weight(.semibold))
+                        Text(pct / 100, format: .percent.precision(.fractionLength(2)))
+                            .font(Tokens.Font.bodyRowStrong)
+                            .monospacedDigit()
+                    }
+                    .foregroundStyle(gainVal >= 0 ? Tokens.positive : Tokens.negative)
+                    .accessibilityElement(children: .ignore)
+                    .accessibilityLabel("Gain")
+                    .accessibilityValue(changeLabel(gainVal: gainVal, pct: pct))
+                }
+            }
+        }
+    }
+
+    private func changeLabel(gainVal: Double, pct: Double) -> String {
+        "\(gainVal >= 0 ? "plus" : "minus") \(abs(pct).formatted(.number.precision(.fractionLength(2)))) percent"
     }
 
     // MARK: - Price line

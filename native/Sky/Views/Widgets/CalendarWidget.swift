@@ -10,6 +10,7 @@ private func eventAccent(_ colorId: String?) -> Color {
 
 struct CalendarWidget: View {
     @Environment(DashboardStore.self) private var store
+    @Environment(\.widgetSize) private var size
 
     var body: some View {
         AsyncCard(
@@ -21,7 +22,31 @@ struct CalendarWidget: View {
             emptyText: "No upcoming events",
             reload: { await store.load(.calendar, force: true) }
         ) { events in
-            let now = Date()
+            CalendarContent(events: events, size: size)
+        }
+        .task { await store.load(.calendar) }
+    }
+}
+
+// MARK: - Size-aware content
+
+private struct CalendarContent: View {
+    let events: [CalendarEvent]
+    let size: WidgetSize
+
+    var body: some View {
+        let now = Date()
+        switch size {
+        case .small:
+            CalendarCompact(events: events, now: now)
+        case .medium:
+            let groups = groupByDay(events, now: now)
+            VStack(alignment: .leading, spacing: Tokens.contentSpacing) {
+                ForEach(groups.prefix(2)) { group in
+                    DaySection(group: group, now: now, maxEvents: 3)
+                }
+            }
+        case .large:
             let groups = groupByDay(events, now: now)
             VStack(alignment: .leading, spacing: Tokens.contentSpacing) {
                 ForEach(groups) { group in
@@ -29,7 +54,54 @@ struct CalendarWidget: View {
                 }
             }
         }
-        .task { await store.load(.calendar) }
+    }
+}
+
+/// Small: single next event (title + time) or "N events today" summary.
+private struct CalendarCompact: View {
+    let events: [CalendarEvent]
+    let now: Date
+
+    private var nextEvent: CalendarEvent? {
+        events.first { event in
+            guard let start = ISO8601DateFormatter.parse(event.start) else { return false }
+            if event.allDay { return Calendar.current.isDateInToday(start) }
+            return start > now
+        }
+    }
+
+    private var todayCount: Int {
+        events.filter { event in
+            guard let start = ISO8601DateFormatter.parse(event.start) else { return false }
+            return Calendar.current.isDateInToday(start)
+        }.count
+    }
+
+    var body: some View {
+        if let event = nextEvent {
+            VStack(alignment: .leading, spacing: Tokens.tight) {
+                Text(event.title)
+                    .font(Tokens.Font.bodyRowStrong)
+                    .lineLimit(2)
+
+                if event.allDay {
+                    Text("All day")
+                        .font(Tokens.Font.caption)
+                        .foregroundStyle(.secondary)
+                } else if let date = ISO8601DateFormatter.parse(event.start) {
+                    Text(date.formatted(date: .omitted, time: .shortened))
+                        .font(Tokens.Font.caption)
+                        .foregroundStyle(.secondary)
+                        .monospacedDigit()
+                }
+            }
+            .accessibilityElement(children: .combine)
+        } else {
+            Text("\(todayCount) events today")
+                .font(Tokens.Font.bodyRow)
+                .foregroundStyle(.secondary)
+                .accessibilityLabel("\(todayCount) events today")
+        }
     }
 }
 
@@ -77,6 +149,12 @@ private func groupByDay(_ events: [CalendarEvent], now: Date) -> [DayGroup] {
 private struct DaySection: View {
     let group: DayGroup
     let now: Date
+    var maxEvents: Int?
+
+    private var visibleEvents: [CalendarEvent] {
+        if let max = maxEvents { return Array(group.events.prefix(max)) }
+        return group.events
+    }
 
     var body: some View {
         VStack(alignment: .leading, spacing: Tokens.sectionSpacing) {
@@ -86,7 +164,7 @@ private struct DaySection: View {
                 .foregroundStyle(.secondary)
 
             VStack(spacing: Tokens.extraTight) {
-                ForEach(group.events) { event in
+                ForEach(visibleEvents) { event in
                     EventRow(event: event, now: now)
                 }
             }

@@ -2,6 +2,7 @@ import SwiftUI
 
 struct SpotifyWidget: View {
     @Environment(DashboardStore.self) private var store
+    @Environment(\.widgetSize) private var size
 
     var body: some View {
         AsyncCard(

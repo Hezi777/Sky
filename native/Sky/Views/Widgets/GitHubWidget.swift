@@ -2,6 +2,7 @@ import SwiftUI
 
 struct GitHubWidget: View {
     @Environment(DashboardStore.self) private var store
+    @Environment(\.widgetSize) private var size
 
     var body: some View {
         WidgetShell(
@@ -23,13 +24,7 @@ struct GitHubWidget: View {
                 if data.repos.isEmpty && data.contributions.isEmpty {
                     EmptyHint(text: "No activity")
                 } else {
-                    ContributionHeatmap(days: data.contributions)
-
-                    if !data.repos.isEmpty {
-                        VStack(spacing: Tokens.snug) {
-                            ForEach(data.repos.prefix(3)) { RepoRow(repo: $0) }
-                        }
-                    }
+                    GitHubContent(data: data, size: size)
                 }
             case .idle, .loading:
                 WidgetLoading()
@@ -39,10 +34,38 @@ struct GitHubWidget: View {
     }
 }
 
+// MARK: - Size-aware content
+
+private struct GitHubContent: View {
+    let data: GithubResponse
+    let size: WidgetSize
+
+    var body: some View {
+        switch size {
+        case .medium:
+            // Compact: full-year grid that fills the tile; no month/legend chrome.
+            ContributionHeatmap(days: data.contributions, compact: true)
+        default:
+            // Large: full grid with month labels + legend, then top repos.
+            VStack(alignment: .leading, spacing: Tokens.contentSpacing) {
+                ContributionHeatmap(days: data.contributions, compact: false)
+                if !data.repos.isEmpty {
+                    VStack(spacing: Tokens.snug) {
+                        ForEach(data.repos.prefix(2)) { RepoRow(repo: $0) }
+                    }
+                }
+            }
+        }
+    }
+}
+
 // MARK: - Heatmap (replicates git-hub-calendar.tsx)
 
 private struct ContributionHeatmap: View {
     let days: [GithubContributionDay]
+    /// Compact mode (medium tile): grid only — no month labels or legend — so
+    /// the 7-row grid fills the tile.
+    var compact: Bool
 
     private static let dayLabels = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
 
@@ -97,11 +120,11 @@ private struct ContributionHeatmap: View {
     }()
 
     /// Month label per column where a new month begins.
-    private var monthLabels: [Int: String] {
+    private func monthLabels(for columns: [[Date]]) -> [Int: String] {
         let cal = calendar
         var labels: [Int: String] = [:]
         var seenMonth = ""
-        for (index, week) in weeks.enumerated() {
+        for (index, week) in columns.enumerated() {
             let firstOfMonth = week.first { cal.component(.day, from: $0) == 1 }
             guard let labelDate = firstOfMonth ?? (index == 0 ? week.first : nil) else { continue }
             let key = "\(cal.component(.year, from: labelDate))-\(cal.component(.month, from: labelDate))"
@@ -112,41 +135,46 @@ private struct ContributionHeatmap: View {
         return labels
     }
 
-    @State private var availableWidth: CGFloat = 0
+    @State private var availableSize: CGSize = .zero
 
-    private var gap: CGFloat {
-        availableWidth < 500 ? Tokens.microSpacing : Tokens.badgePadding
-    }
+    private let gap: CGFloat = Tokens.microSpacing
+    private var labelWidth: CGFloat { compact ? 0 : 24 }
+    private var monthRowHeight: CGFloat { compact ? 0 : Tokens.Size.compactControl }
 
-    private var labelWidth: CGFloat {
-        availableWidth < 500 ? 0 : 26
-    }
-
-    private var cell: CGFloat {
-        let cols = weeks
-        guard !cols.isEmpty, availableWidth > 0 else { return 11 }
-        let availableForCells = availableWidth - labelWidth - CGFloat(cols.count) * gap
-        return min(
-            Tokens.Size.heatmapCell,
-            max(2, availableForCells / CGFloat(cols.count))
-        )
+    /// Cell edge that fills the available width across all weeks AND fits 7 rows
+    /// (plus optional month row) into the available height. min of both, never
+    /// overflowing the tile.
+    private func cell(columnCount: Int) -> CGFloat {
+        guard columnCount > 0, availableSize.width > 0, availableSize.height > 0 else {
+            return Tokens.Size.heatmapCell
+        }
+        let widthFill = (availableSize.width - labelWidth - CGFloat(columnCount - 1) * gap)
+            / CGFloat(columnCount)
+        // 7 day rows (6 inter-row gaps) + month row + the section spacing above it.
+        let gridHeight = availableSize.height - monthRowHeight
+            - (compact ? 0 : Tokens.sectionSpacing)
+        let heightFit = (gridHeight - CGFloat(6) * gap) / 7
+        return max(2, min(widthFill, heightFit))
     }
 
     var body: some View {
         let cols = weeks
-        let cell = self.cell
+        let cell = cell(columnCount: cols.count)
+        let labels = compact ? [:] : monthLabels(for: cols)
         VStack(alignment: .leading, spacing: Tokens.sectionSpacing) {
-            // Month row
-            HStack(alignment: .top, spacing: gap) {
-                Color.clear.frame(width: labelWidth, height: Tokens.Size.compactControl)
-                ForEach(cols.indices, id: \.self) { i in
-                    ZStack(alignment: .leading) {
-                        Color.clear.frame(width: cell, height: Tokens.Size.compactControl)
-                        if let label = monthLabels[i] {
-                            Text(label)
-                                .font(Tokens.Font.microLabel)
-                                .foregroundStyle(.secondary)
-                                .fixedSize()
+            if !compact {
+                // Month row
+                HStack(alignment: .top, spacing: gap) {
+                    Color.clear.frame(width: labelWidth, height: monthRowHeight)
+                    ForEach(cols.indices, id: \.self) { i in
+                        ZStack(alignment: .leading) {
+                            Color.clear.frame(width: cell, height: monthRowHeight)
+                            if let label = labels[i] {
+                                Text(label)
+                                    .font(Tokens.Font.microLabel)
+                                    .foregroundStyle(.secondary)
+                                    .fixedSize()
+                            }
                         }
                     }
                 }
@@ -177,30 +205,15 @@ private struct ContributionHeatmap: View {
                     }
                 }
             }
-
-            // Legend
-            HStack(spacing: Tokens.tight) {
-                Text("Less")
-                    .font(Tokens.Font.microLabel)
-                    .foregroundStyle(.secondary)
-                ForEach(Tokens.githubLevels.indices, id: \.self) { i in
-                    RoundedRectangle(cornerRadius: Tokens.barRadius, style: .continuous)
-                        .fill(Tokens.githubLevels[i])
-                        .frame(width: Tokens.Size.heatmapCell, height: Tokens.Size.heatmapCell)
-                }
-                Text("More")
-                    .font(Tokens.Font.microLabel)
-                    .foregroundStyle(.secondary)
-            }
-            .padding(.top, Tokens.tight)
-            .frame(maxWidth: .infinity, alignment: .center)
+            .frame(maxWidth: .infinity, alignment: .leading)
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
         .background(
             GeometryReader { geo in
-                Color.clear.preference(key: HeatmapWidthKey.self, value: geo.size.width)
+                Color.clear.preference(key: HeatmapSizeKey.self, value: geo.size)
             }
         )
-        .onPreferenceChange(HeatmapWidthKey.self) { availableWidth = $0 }
+        .onPreferenceChange(HeatmapSizeKey.self) { availableSize = $0 }
         .accessibilityElement(children: .ignore)
         .accessibilityLabel("Contribution history")
         .accessibilityValue("\(days.reduce(0) { $0 + $1.count }) contributions in the past year")
@@ -276,9 +289,9 @@ private struct RepoRow: View {
 
 // MARK: - Preference key for heatmap width measurement
 
-private struct HeatmapWidthKey: PreferenceKey {
-    static let defaultValue: CGFloat = 0
-    static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) {
+private struct HeatmapSizeKey: PreferenceKey {
+    static let defaultValue: CGSize = .zero
+    static func reduce(value: inout CGSize, nextValue: () -> CGSize) {
         value = nextValue()
     }
 }

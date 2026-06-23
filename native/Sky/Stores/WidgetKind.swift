@@ -3,14 +3,6 @@ import SwiftUI
 // Every toggleable dashboard widget. The cloud/greeting hero is always shown and
 // is not part of this list.
 
-/// How much horizontal room a widget claims in the dashboard flow.
-enum WidgetSpan: Equatable {
-    /// Flows into the responsive grid alongside its neighbours.
-    case regular
-    /// Uses two adjacent columns when available for dense horizontal content.
-    case wide
-}
-
 enum WidgetKind: String, CaseIterable, Codable, Identifiable {
     case quote, weather, countdown, calendar, tasks, spotify
     case ibkr, stocks, fair, github, reading, strava
@@ -51,12 +43,22 @@ enum WidgetKind: String, CaseIterable, Codable, Identifiable {
         }
     }
 
-    /// Dashboard layout footprint. Dense horizontal widgets get two columns;
-    /// compact widgets use one and fill the shortest available column.
-    var span: WidgetSpan {
+    /// Sizes this widget supports in the discrete grid.
+    var supportedSizes: [WidgetSize] {
         switch self {
-        case .github, .spotify: .wide
-        default: .regular
+        case .quote, .countdown, .weather: [.small, .medium]
+        case .calendar, .tasks, .fair, .stocks: [.small, .medium, .large]
+        case .ibkr, .github: [.medium, .large]
+        case .spotify: [.medium]
+        case .reading, .strava: [.small, .medium]
+        }
+    }
+
+    /// Default size for fresh installs; always within `supportedSizes`.
+    var defaultSize: WidgetSize {
+        switch self {
+        case .ibkr, .github, .spotify, .calendar, .fair: .medium
+        default: .small
         }
     }
 
@@ -66,14 +68,6 @@ enum WidgetKind: String, CaseIterable, Codable, Identifiable {
         switch self {
         case .weather, .quote, .countdown: true
         default: false
-        }
-    }
-
-    /// Default grid footprint derived from the existing span.
-    var defaultFootprint: WidgetFootprint {
-        switch span {
-        case .wide: .wide
-        case .regular: .regular
         }
     }
 

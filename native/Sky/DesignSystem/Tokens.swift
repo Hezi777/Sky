@@ -51,15 +51,17 @@ enum Tokens {
     // MARK: Dashboard layout
 
     static let dashboardMaxWidth: CGFloat = 1500
-    static let dashboardGridBreakpoint: CGFloat = 560
-    static let dashboardGridTarget: CGFloat = 300
-    static let dashboardGridMinimum: CGFloat = 220
-    static let dashboardGridMaxColumns = 4
-    static let dashboardWideColumnSpan = 2
-    /// Height of one grid row unit. Calibrated to match a single regular card
-    /// (~compact widget like Quote or Countdown). Cards spanning multiple rows
-    /// get `rows * dashboardRowUnit + (rows-1) * cardGap` total height.
-    static let dashboardRowUnit: CGFloat = 160
+    static let dashboardGridBreakpoint: CGFloat = 480
+    // Narrow columns so a 1×1 "small" tile reads near-square (Apple-like): a
+    // ~210pt column against the ~190pt row unit. Medium (2 cols) ≈ 2:1, large
+    // (2×2) ≈ square — matching the WidgetFamily proportions.
+    static let dashboardGridTarget: CGFloat = 210
+    static let dashboardGridMinimum: CGFloat = 180
+    static let dashboardGridMaxColumns = 6
+    /// Height of one grid row unit. Sized so a single-column tile is roughly
+    /// square against `dashboardGridTarget`. Tiles spanning multiple rows get
+    /// `rows * dashboardRowUnit + (rows-1) * cardGap` total height.
+    static let dashboardRowUnit: CGFloat = 190
 
     // MARK: Radius
 

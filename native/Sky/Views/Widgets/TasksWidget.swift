@@ -2,6 +2,7 @@ import SwiftUI
 
 struct TasksWidget: View {
     @Environment(DashboardStore.self) private var store
+    @Environment(\.widgetSize) private var size
     @State private var completed: Set<String> = []
 
     // Keep completed tasks in the list (so the total is stable) but filter them
@@ -9,6 +10,15 @@ struct TasksWidget: View {
     private var visible: [TickTickTask] {
         guard case .loaded(let tasks) = store.tasks else { return [] }
         return tasks.filter { !completed.contains($0.id) }
+    }
+
+    /// Max visible tasks based on widget size.
+    private var maxVisibleTasks: Int {
+        switch size {
+        case .small: 0
+        case .medium: 4
+        case .large: 10
+        }
     }
 
     var body: some View {
@@ -23,14 +33,18 @@ struct TasksWidget: View {
             case .loaded(let tasks):
                 if tasks.isEmpty {
                     EmptyHint(text: "All clear today")
+                } else if size == .small {
+                    // Small: remaining count only (ring in header is the glanceable element)
+                    EmptyView()
                 } else if visible.isEmpty {
                     EmptyHint(text: "All done — nice work")
                 } else {
+                    let limit = maxVisibleTasks
                     VStack(spacing: Tokens.zeroSpacing) {
-                        ForEach(Array(visible.prefix(6).enumerated()), id: \.element.id) { index, task in
+                        ForEach(Array(visible.prefix(limit).enumerated()), id: \.element.id) { index, task in
                             TaskRow(
                                 task: task,
-                                showsDivider: index < min(visible.count, 6) - 1
+                                showsDivider: index < min(visible.count, limit) - 1
                             ) { complete(task) }
                         }
                     }

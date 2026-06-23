@@ -67,9 +67,16 @@ struct DashboardView: View {
                             ForEach(renderedWidgets) { kind in
                                 widget(for: kind)
                                     .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+                                    // Hard-clamp every card to its exact tile height so a
+                                    // content-tall widget can't render past its cell and
+                                    // overlap the card below. Width stays flexible (the grid
+                                    // sets it); height is fully determined by the size's rows.
+                                    .frame(height: tileHeight(for: config.size(for: kind)))
+                                    .clipped()
+                                    .environment(\.widgetSize, config.size(for: kind))
                                     .layoutValue(
-                                        key: WidgetFootprintKey.self,
-                                        value: effectiveFootprint(for: kind)
+                                        key: WidgetSizeLayoutKey.self,
+                                        value: config.size(for: kind)
                                     )
                                     .layoutValue(
                                         key: WidgetDragOffsetKey.self,
@@ -89,17 +96,8 @@ struct DashboardView: View {
                                     .accessibilityActions {
                                         Button("Move up") { config.moveUp(kind) }
                                         Button("Move down") { config.moveDown(kind) }
-                                        Button("Wider") {
-                                            config.adjustFootprint(kind, dCols: 1, dRows: 0)
-                                        }
-                                        Button("Narrower") {
-                                            config.adjustFootprint(kind, dCols: -1, dRows: 0)
-                                        }
-                                        Button("Taller") {
-                                            config.adjustFootprint(kind, dCols: 0, dRows: 1)
-                                        }
-                                        Button("Shorter") {
-                                            config.adjustFootprint(kind, dCols: 0, dRows: -1)
+                                        if kind.supportedSizes.count > 1 {
+                                            Button("Resize") { config.cycleSize(kind) }
                                         }
                                     }
                             }
@@ -136,17 +134,15 @@ struct DashboardView: View {
         }
     }
 
-    // MARK: - Footprint resolution
-
-    /// Returns the live preview footprint during resize, otherwise the persisted one.
-    private func effectiveFootprint(for kind: WidgetKind) -> WidgetFootprint {
-        if editState.resizingKind == kind, let preview = editState.previewFootprint {
-            return preview
-        }
-        return config.footprint(for: kind)
-    }
-
     // MARK: - Rendered widgets
+
+    /// Exact pixel height of a tile for the given size. Matches
+    /// `GridDashboardLayout`'s row math so the clamped card and the reserved
+    /// cell are identical — no overflow, no overlap.
+    private func tileHeight(for size: WidgetSize) -> CGFloat {
+        CGFloat(size.rows) * Tokens.dashboardRowUnit
+            + CGFloat(size.rows - 1) * Tokens.cardGap
+    }
 
     private var renderedWidgets: [WidgetKind] {
         if backendRuntime.state.isReady { return config.visibleWidgets }

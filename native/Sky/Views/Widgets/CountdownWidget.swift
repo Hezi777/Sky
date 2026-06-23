@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct CountdownWidget: View {
+    @Environment(\.widgetSize) private var size
     @State private var trips: [Trip] = Trip.loadAll()
     @State private var showEditor = false
     @State private var editingTrip: Trip?
@@ -33,7 +34,7 @@ struct CountdownWidget: View {
             }
         ) {
             if let trip = nextTrip {
-                TripCountdownView(trip: trip) {
+                TripCountdownView(trip: trip, size: size) {
                     editingTrip = trip
                     showEditor = true
                 }
@@ -61,6 +62,7 @@ struct CountdownWidget: View {
 
 private struct TripCountdownView: View {
     let trip: Trip
+    let size: WidgetSize
     let onEdit: () -> Void
 
     private var daysRemaining: Int {
@@ -69,46 +71,64 @@ private struct TripCountdownView: View {
     }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: Tokens.snug) {
-            HStack(alignment: .firstTextBaseline, spacing: Tokens.tight) {
+        switch size {
+        case .small:
+            VStack(alignment: .leading, spacing: Tokens.tight) {
+                Text("\(daysRemaining)")
+                    .font(Tokens.Font.primaryValue(size: 48, weight: .ultraLight))
+                    .foregroundStyle(Tokens.accent)
+                    .contentTransition(.numericText())
+
                 Text(trip.destination)
-                    .font(.headline)
+                    .font(Tokens.Font.bodyRowStrong)
                     .lineLimit(1)
-                Spacer(minLength: Tokens.snug)
-                Button {
-                    onEdit()
-                } label: {
-                    Image(systemName: "pencil")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                }
-                .buttonStyle(.borderless)
-                .accessibilityLabel("Edit \(trip.destination)")
-                .help("Edit trip")
-            }
-
-            VStack(alignment: .leading, spacing: Tokens.snug) {
-                HStack(alignment: .firstTextBaseline, spacing: Tokens.sectionSpacing) {
-                    Text("\(daysRemaining)")
-                        .font(Tokens.Font.primaryValue(size: 54, weight: .ultraLight))
-                        .foregroundStyle(Tokens.accent)
-                        .contentTransition(.numericText())
-                    Text(daysRemaining == 1 ? "day" : "days")
-                        .font(.title3.weight(.light))
-                        .foregroundStyle(.secondary)
-                }
-
-                Label {
-                    Text(trip.date.formatted(.dateTime.month(.wide).day().year()))
-                } icon: {
-                    Image(systemName: "calendar")
-                        .foregroundStyle(Tokens.accent)
-                }
-                .font(.caption)
-                .foregroundStyle(.tertiary)
+                    .foregroundStyle(.primary)
             }
             .accessibilityElement(children: .combine)
             .accessibilityLabel("\(daysRemaining) days until \(trip.destination)")
+
+        case .medium, .large:
+            VStack(alignment: .leading, spacing: Tokens.snug) {
+                HStack(alignment: .firstTextBaseline, spacing: Tokens.tight) {
+                    Text(trip.destination)
+                        .font(.headline)
+                        .lineLimit(1)
+                    Spacer(minLength: Tokens.snug)
+                    Button {
+                        onEdit()
+                    } label: {
+                        Image(systemName: "pencil")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                    .buttonStyle(.borderless)
+                    .accessibilityLabel("Edit \(trip.destination)")
+                    .help("Edit trip")
+                }
+
+                VStack(alignment: .leading, spacing: Tokens.snug) {
+                    HStack(alignment: .firstTextBaseline, spacing: Tokens.sectionSpacing) {
+                        Text("\(daysRemaining)")
+                            .font(Tokens.Font.primaryValue(size: 54, weight: .ultraLight))
+                            .foregroundStyle(Tokens.accent)
+                            .contentTransition(.numericText())
+                        Text(daysRemaining == 1 ? "day" : "days")
+                            .font(.title3.weight(.light))
+                            .foregroundStyle(.secondary)
+                    }
+
+                    Label {
+                        Text(trip.date.formatted(.dateTime.month(.wide).day().year()))
+                    } icon: {
+                        Image(systemName: "calendar")
+                            .foregroundStyle(Tokens.accent)
+                    }
+                    .font(.caption)
+                    .foregroundStyle(.tertiary)
+                }
+                .accessibilityElement(children: .combine)
+                .accessibilityLabel("\(daysRemaining) days until \(trip.destination)")
+            }
         }
     }
 }
