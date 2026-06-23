@@ -56,6 +56,10 @@ enum Tokens {
     static let dashboardGridMinimum: CGFloat = 220
     static let dashboardGridMaxColumns = 4
     static let dashboardWideColumnSpan = 2
+    /// Height of one grid row unit. Calibrated to match a single regular card
+    /// (~compact widget like Quote or Countdown). Cards spanning multiple rows
+    /// get `rows * dashboardRowUnit + (rows-1) * cardGap` total height.
+    static let dashboardRowUnit: CGFloat = 160
 
     // MARK: Radius
 

@@ -69,6 +69,14 @@ enum WidgetKind: String, CaseIterable, Codable, Identifiable {
         }
     }
 
+    /// Default grid footprint derived from the existing span.
+    var defaultFootprint: WidgetFootprint {
+        switch span {
+        case .wide: .wide
+        case .regular: .regular
+        }
+    }
+
     var integrationID: String? {
         switch self {
         case .calendar: "googleCalendar"

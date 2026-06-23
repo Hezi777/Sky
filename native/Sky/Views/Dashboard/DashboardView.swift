@@ -1,15 +1,28 @@
 import SwiftUI
 
-// The dashboard renders `config.visibleWidgets` IN ORDER, so reordering in
-// Settings is reflected here directly. Widgets flow through a responsive
-// waterfall; dense horizontal widgets use two columns when available. Hierarchy
-// comes from size and order — no section headers.
+// The dashboard renders `config.visibleWidgets` IN ORDER through a fixed-cell
+// grid layout. Widgets flow as direct ForEach children keyed by WidgetKind —
+// edit chrome is an overlay, never a wrapper, so widget @State is preserved.
+
+// MARK: - Cell rect preference key
+
+/// Collects each widget cell's frame (in the "dashboard" coordinate space)
+/// for edit-mode hit-testing during drag-to-reorder.
+private struct CellRectKey: PreferenceKey {
+    static let defaultValue: [WidgetKind: CGRect] = [:]
+    static func reduce(value: inout [WidgetKind: CGRect], nextValue: () -> [WidgetKind: CGRect]) {
+        value.merge(nextValue()) { _, new in new }
+    }
+}
+
+// MARK: - Dashboard view
 
 struct DashboardView: View {
     @Environment(DashboardConfig.self) private var config
     @Environment(IntegrationConfigStore.self) private var integrationConfig
     @Environment(BackendRuntime.self) private var backendRuntime
     @Environment(DashboardStore.self) private var dashboardStore
+    @Environment(DashboardEditState.self) private var editState
     @State private var now = Date()
     let onOpenSettings: () -> Void
 
@@ -33,8 +46,6 @@ struct DashboardView: View {
             ZStack(alignment: .top) {
                 SkyAmbient(state: cloudState)
 
-                // One container so the hero's Liquid Glass blends as a single
-                // surface with anything else glassed in the dashboard chrome.
                 GlassEffectContainer {
                     VStack(spacing: Tokens.sectionGap) {
                         HeroZone(state: cloudState)
@@ -52,11 +63,50 @@ struct DashboardView: View {
                             )
                         }
 
-                        DashboardWidgetLayout {
+                        GridDashboardLayout {
                             ForEach(renderedWidgets) { kind in
                                 widget(for: kind)
-                                    .layoutValue(key: WidgetSpanKey.self, value: kind.span)
+                                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+                                    .layoutValue(
+                                        key: WidgetFootprintKey.self,
+                                        value: effectiveFootprint(for: kind)
+                                    )
+                                    .layoutValue(
+                                        key: WidgetDragOffsetKey.self,
+                                        value: editState.draggedKind == kind
+                                            ? editState.dragTranslation : .zero
+                                    )
+                                    .overlay { EditChromeOverlay(kind: kind) }
+                                    .background {
+                                        GeometryReader { proxy in
+                                            Color.clear.preference(
+                                                key: CellRectKey.self,
+                                                value: [kind: proxy.frame(in: .named("dashboard"))]
+                                            )
+                                        }
+                                    }
+                                    .zIndex(editState.draggedKind == kind ? 1 : 0)
+                                    .accessibilityActions {
+                                        Button("Move up") { config.moveUp(kind) }
+                                        Button("Move down") { config.moveDown(kind) }
+                                        Button("Wider") {
+                                            config.adjustFootprint(kind, dCols: 1, dRows: 0)
+                                        }
+                                        Button("Narrower") {
+                                            config.adjustFootprint(kind, dCols: -1, dRows: 0)
+                                        }
+                                        Button("Taller") {
+                                            config.adjustFootprint(kind, dCols: 0, dRows: 1)
+                                        }
+                                        Button("Shorter") {
+                                            config.adjustFootprint(kind, dCols: 0, dRows: -1)
+                                        }
+                                    }
                             }
+                        }
+                        .coordinateSpace(.named("dashboard"))
+                        .onPreferenceChange(CellRectKey.self) { rects in
+                            editState.cellRects = rects
                         }
                     }
                     .frame(maxWidth: Tokens.dashboardMaxWidth)
@@ -85,6 +135,18 @@ struct DashboardView: View {
             now = Date()
         }
     }
+
+    // MARK: - Footprint resolution
+
+    /// Returns the live preview footprint during resize, otherwise the persisted one.
+    private func effectiveFootprint(for kind: WidgetKind) -> WidgetFootprint {
+        if editState.resizingKind == kind, let preview = editState.previewFootprint {
+            return preview
+        }
+        return config.footprint(for: kind)
+    }
+
+    // MARK: - Rendered widgets
 
     private var renderedWidgets: [WidgetKind] {
         if backendRuntime.state.isReady { return config.visibleWidgets }
@@ -135,103 +197,5 @@ struct DashboardView: View {
             case .strava: StravaWidget()
             }
         }
-    }
-}
-
-// MARK: - Responsive widget flow
-
-private struct WidgetSpanKey: LayoutValueKey {
-    static let defaultValue: WidgetSpan = .regular
-}
-
-/// Places stable `ForEach` children into the shortest available column range.
-/// Layout changes never replace a widget's identity.
-private struct DashboardWidgetLayout: Layout {
-    private struct Placement {
-        let index: Int
-        let origin: CGPoint
-        let size: CGSize
-    }
-
-    func sizeThatFits(
-        proposal: ProposedViewSize,
-        subviews: Subviews,
-        cache: inout ()
-    ) -> CGSize {
-        let width = proposal.width ?? naturalWidth(for: subviews)
-        let result = placements(for: subviews, width: width)
-        return CGSize(width: width, height: result.height)
-    }
-
-    func placeSubviews(
-        in bounds: CGRect,
-        proposal: ProposedViewSize,
-        subviews: Subviews,
-        cache: inout ()
-    ) {
-        for placement in placements(for: subviews, width: bounds.width).items {
-            subviews[placement.index].place(
-                at: CGPoint(x: bounds.minX + placement.origin.x, y: bounds.minY + placement.origin.y),
-                anchor: .topLeading,
-                proposal: ProposedViewSize(placement.size)
-            )
-        }
-    }
-
-    private func placements(for subviews: Subviews, width: CGFloat) -> (items: [Placement], height: CGFloat) {
-        let estimatedColumns = Int(
-            (width + Tokens.cardGap) / (Tokens.dashboardGridTarget + Tokens.cardGap)
-        )
-        let columnCount = width < Tokens.dashboardGridBreakpoint
-            ? 1
-            : min(Tokens.dashboardGridMaxColumns, max(Tokens.dashboardWideColumnSpan, estimatedColumns))
-        let columnWidth = max(
-            Tokens.dashboardGridMinimum,
-            (width - CGFloat(columnCount - 1) * Tokens.cardGap) / CGFloat(columnCount)
-        )
-
-        var items: [Placement] = []
-        var columnHeights = Array(repeating: CGFloat.zero, count: columnCount)
-
-        for index in subviews.indices {
-            let subview = subviews[index]
-            let requestedSpan = subview[WidgetSpanKey.self] == .wide
-                ? Tokens.dashboardWideColumnSpan
-                : 1
-            let span = min(requestedSpan, columnCount)
-            let column = shortestRangeStart(span: span, heights: columnHeights)
-            let y = columnHeights[column..<(column + span)].max() ?? 0
-            let itemWidth = CGFloat(span) * columnWidth + CGFloat(span - 1) * Tokens.cardGap
-            let size = subview.sizeThatFits(ProposedViewSize(width: itemWidth, height: nil))
-            let x = CGFloat(column) * (columnWidth + Tokens.cardGap)
-            items.append(Placement(index: index, origin: CGPoint(x: x, y: y), size: size))
-            let nextY = y + size.height + Tokens.cardGap
-            for occupiedColumn in column..<(column + span) {
-                columnHeights[occupiedColumn] = nextY
-            }
-        }
-
-        let height = columnHeights.max() ?? 0
-        return (items, height > 0 ? height - Tokens.cardGap : 0)
-    }
-
-    private func shortestRangeStart(span: Int, heights: [CGFloat]) -> Int {
-        guard span < heights.count else { return 0 }
-
-        return (0...(heights.count - span)).min { lhs, rhs in
-            let lhsHeight = heights[lhs..<(lhs + span)].max() ?? 0
-            let rhsHeight = heights[rhs..<(rhs + span)].max() ?? 0
-            if lhsHeight == rhsHeight {
-                let lhsVoid = heights[lhs..<(lhs + span)].reduce(0) { lhsHeight - $1 + $0 }
-                let rhsVoid = heights[rhs..<(rhs + span)].reduce(0) { rhsHeight - $1 + $0 }
-                if lhsVoid == rhsVoid { return lhs < rhs }
-                return lhsVoid < rhsVoid
-            }
-            return lhsHeight < rhsHeight
-        } ?? 0
-    }
-
-    private func naturalWidth(for subviews: Subviews) -> CGFloat {
-        subviews.map { $0.sizeThatFits(.unspecified).width }.max() ?? Tokens.dashboardGridMinimum
     }
 }

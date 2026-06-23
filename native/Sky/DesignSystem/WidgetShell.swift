@@ -16,11 +16,8 @@ struct Card<Content: View>: View {
 
     var body: some View {
         content
-            .frame(maxWidth: .infinity, alignment: .topLeading)
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
             .padding(Tokens.cardPadding)
-            // Hug content height: never stretch to match a taller neighbour in an
-            // HStack/grid row. Short cards stay short — kills internal voids.
-            .fixedSize(horizontal: false, vertical: true)
             .background(
                 RoundedRectangle(cornerRadius: Tokens.cardRadius, style: .continuous)
                     .fill(Tokens.cardFill)
