@@ -79,3 +79,5 @@ Sky/
 - Secrets are server-side only (`backend/.env.local`); never shipped to clients. The
   native `SKY_API_TOKEN` is a client header convention only — no backend middleware
   validates it today.
+
+> `legacy-web/` was removed from the working tree. It remains in git history and is recoverable with `git checkout <commit-before-removal> -- legacy-web`.

@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="./public/assets/cloud/cloud-hero.png" width="120" height="120" alt="Sky cloud character" />
+  <img src="./native/Sky/Assets.xcassets/cloud-hero.imageset/cloud-hero.png" width="120" height="120" alt="Sky cloud character" />
 </p>
 
 <h1 align="center"><b>Sky - Sof Kol Yom</b></h1>
@@ -61,17 +61,15 @@ See [`docs/integrations.md`](./docs/integrations.md) for auth setup per service.
 
 ## Screenshots
 
-| Light | Dark |
+The dashboard shifts palette through the day.
+
+| Morning |
+|---|
+| ![Dashboard, morning](docs/screenshots/dashboard-morning.png) |
+
+| Afternoon | Evening |
 |---|---|
-| ![Dashboard light](docs/screenshots/dashboard-light.png) | ![Dashboard dark](docs/screenshots/dashboard-dark.png) |
-
-| Full dashboard (light) |
-|---|
-| ![Full dashboard light](docs/screenshots/dashboard-full-light.png) |
-
-| Full dashboard (dark) |
-|---|
-| ![Full dashboard dark](docs/screenshots/dashboard-full-dark.png) |
+| ![Dashboard, afternoon](docs/screenshots/dashboard-afternoon.png) | ![Dashboard, evening](docs/screenshots/dashboard-evening.png) |
 
 ## Tech Stack
 

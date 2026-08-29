@@ -90,3 +90,5 @@ inputs; each surface keeps its own copy.
   server) and was stopped so backend could rebind to `:3000`.
 - Generated/ignored dirs (`node_modules/`, `.next/`, `electron-dist/`, `release/`,
   `tools/`, `native/.build/`) were left in place; they regenerate per-folder.
+
+> `legacy-web/` was removed from the working tree. It remains in git history and is recoverable with `git checkout <commit-before-removal> -- legacy-web`.
