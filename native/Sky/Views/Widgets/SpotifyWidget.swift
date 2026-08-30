@@ -21,12 +21,27 @@ struct SpotifyWidget: View {
                     NothingPlayingHint()
                 }
 
-                if !response.recent.isEmpty {
-                    RecentSection(tracks: Array(response.recent.prefix(3)))
+                if !response.recent.isEmpty, recentCount > 0 {
+                    RecentSection(tracks: Array(response.recent.prefix(recentCount)))
                 }
             }
         }
         .task { await store.load(.spotify) }
+    }
+
+    /// How many recent tracks actually fit.
+    ///
+    /// `size` was read here but never used, so every tile drew three rows —
+    /// and a medium tile is only one row unit tall, so the now-playing block
+    /// plus a three-row list overflowed and was cut mid-track by the hard
+    /// height clamp in DashboardView. Only the two-row large tile has room for
+    /// the full list.
+    private var recentCount: Int {
+        switch size {
+        case .large: 3
+        case .medium: 1
+        default: 0
+        }
     }
 }
 
@@ -63,7 +78,7 @@ private struct NowPlayingBlock: View {
                     .lineLimit(1)
 
                 if nowPlaying.isPlaying && nowPlaying.durationMs > 0 {
-                    ProgressBar(progress: progressFraction)
+                    WidgetProgressBar(progress: progressFraction, tint: Tokens.positive)
                 } else if !nowPlaying.isPlaying {
                     Text("Paused")
                         .font(.caption)
@@ -117,15 +132,12 @@ private struct RecentSection: View {
     var body: some View {
         VStack(alignment: .leading, spacing: Tokens.sectionSpacing) {
             Divider()
-            Text("Recently played")
-                .font(.caption2.weight(.semibold))
-                .textCase(.uppercase)
-                .foregroundStyle(.secondary)
-                .padding(.top, Tokens.extraTight)
 
-            VStack(spacing: Tokens.extraTight) {
-                ForEach(tracks) { track in
-                    RecentTrackRow(track: track)
+            WidgetSectionHeader(title: "Recently played")
+
+            VStack(spacing: Tokens.zeroSpacing) {
+                ForEach(Array(tracks.enumerated()), id: \.element.id) { index, track in
+                    RecentTrackRow(track: track, showsDivider: index < tracks.count - 1)
                 }
             }
         }
@@ -136,65 +148,34 @@ private struct RecentSection: View {
 
 private struct RecentTrackRow: View {
     let track: SpotifyTrack
+    var showsDivider: Bool = true
 
     var body: some View {
-        let content = HStack(spacing: Tokens.rowSpacing) {
-            AsyncImage(url: track.albumArt.flatMap(URL.init)) { image in
-                image.resizable()
-                    .aspectRatio(contentMode: .fill)
-            } placeholder: {
-                RoundedRectangle(cornerRadius: Tokens.compactRadius, style: .continuous)
-                    .fill(.fill.tertiary)
+        let row = WidgetRow(
+            title: track.title,
+            subtitle: track.artist,
+            showsDivider: showsDivider,
+            leading: {
+                AsyncImage(url: track.albumArt.flatMap(URL.init)) { image in
+                    image.resizable()
+                        .aspectRatio(contentMode: .fill)
+                } placeholder: {
+                    RoundedRectangle(cornerRadius: Tokens.mediaRadius, style: .continuous)
+                        .fill(.fill.tertiary)
+                }
+                .frame(width: Tokens.Size.recentArtwork, height: Tokens.Size.recentArtwork)
+                .clipShape(RoundedRectangle(cornerRadius: Tokens.mediaRadius, style: .continuous))
             }
-            .frame(width: Tokens.Size.recentArtwork, height: Tokens.Size.recentArtwork)
-            .clipShape(RoundedRectangle(cornerRadius: Tokens.compactRadius, style: .continuous))
-
-            VStack(alignment: .leading, spacing: Tokens.microSpacing) {
-                Text(track.title)
-                    .font(.caption.weight(.medium))
-                    .lineLimit(1)
-                Text(track.artist)
-                    .font(.caption2)
-                    .foregroundStyle(.secondary)
-                    .lineLimit(1)
-            }
-
-            Spacer(minLength: Tokens.snug)
-        }
-        .padding(.vertical, Tokens.badgePadding)
-        .padding(.horizontal, Tokens.tight)
-        .contentShape(Rectangle())
+        )
 
         if let url = URL(string: track.url) {
             Link(destination: url) {
-                content
+                row
             }
             .buttonStyle(.plain)
         } else {
-            content
+            row
         }
-    }
-}
-
-// MARK: - Progress bar
-
-private struct ProgressBar: View {
-    let progress: Double
-
-    var body: some View {
-        GeometryReader { geo in
-            Capsule()
-                .fill(.fill.tertiary)
-                .overlay(alignment: .leading) {
-                    Capsule()
-                        .fill(Tokens.positive)
-                        .frame(width: geo.size.width * progress)
-                }
-        }
-        .frame(height: Tokens.Size.eventBar)
-        .clipShape(Capsule())
-        .accessibilityLabel("Playback progress")
-        .accessibilityValue(progress.formatted(.percent.precision(.fractionLength(0))))
     }
 }
 
@@ -216,9 +197,9 @@ private struct EqualizerIndicator: View {
 
     private func barHeight(_ index: Int) -> CGFloat {
         switch index {
-        case 0: return 8
-        case 1: return 12
-        default: return 6
+        case 0: return Tokens.snug
+        case 1: return Tokens.Size.compactControl
+        default: return Tokens.sectionSpacing
         }
     }
 }

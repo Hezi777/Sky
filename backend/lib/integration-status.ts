@@ -53,11 +53,6 @@ export function getIntegrationsStatus(
         "SPOTIFY_CLIENT_SECRET",
         "SPOTIFY_REFRESH_TOKEN",
       ]),
-      strava: required(env, [
-        "STRAVA_CLIENT_ID",
-        "STRAVA_CLIENT_SECRET",
-        "STRAVA_REFRESH_TOKEN",
-      ]),
       stocks: required(env, ["FINNHUB_API_KEY"]),
       github: required(env, ["GITHUB_PAT"]),
       notionReading: required(env, [

@@ -8,7 +8,7 @@ struct RootView: View {
     @Environment(IntegrationConfigStore.self) private var integrationConfig
 
     var body: some View {
-        if integrationConfig.isOnboardingComplete {
+        if DemoMode.isEnabled || integrationConfig.isOnboardingComplete {
             DashboardRootView()
         } else {
             OnboardingView(configStore: integrationConfig) {}
@@ -20,6 +20,7 @@ private struct DashboardRootView: View {
     @Environment(IntegrationConfigStore.self) private var integrationConfig
     @Environment(DashboardConfig.self) private var config
     @Environment(BackendRuntime.self) private var backendRuntime
+    @Environment(DashboardStore.self) private var dashboardStore
     @State private var showingSettings = false
     @State private var editState = DashboardEditState()
     @State private var showingHiddenWidgets = false
@@ -57,7 +58,12 @@ private struct DashboardRootView: View {
         }
         .environment(editState)
         .task(id: integrationConfig.configurationRevision) {
-            await backendRuntime.start(environment: integrationConfig.environmentValues())
+            if DemoMode.isEnabled {
+                backendRuntime.enableDemo()
+                dashboardStore.loadDemoFixtures()
+            } else {
+                await backendRuntime.start(environment: integrationConfig.environmentValues())
+            }
         }
         .onDisappear {
             backendRuntime.stop()

@@ -9,7 +9,7 @@ struct WeatherWidget: View {
 
     var body: some View {
         WidgetShell(title: "Weather", symbol: "cloud.sun", tint: Tokens.accent) {
-            if let err = location.error ?? errorMessage {
+            if !DemoMode.isEnabled, let err = location.error ?? errorMessage {
                 WidgetError(message: err) {
                     Task { await fetchWeather() }
                 }
@@ -26,6 +26,11 @@ struct WeatherWidget: View {
             }
         }
         .task {
+            if DemoMode.isEnabled {
+                location.placeName = DemoFixtures.weatherPlaceName
+                weather = DemoFixtures.weather
+                return
+            }
             location.start()
             await fetchWeather()
         }
@@ -73,8 +78,24 @@ private struct WeatherContent: View {
                     daily: daily
                 )
                 if let hourly, hourly.temperature2m.count > 1 {
-                    HourlyTempChart(temps: hourly.temperature2m, times: hourly.time)
-                        .frame(height: Tokens.Size.weatherChartHeight)
+                    // Medium shares one row with the summary, so the curve drops
+                    // its axes rather than being cropped by the card. Large has
+                    // room for the full chart.
+                    HourlyTempChart(
+                        temps: hourly.temperature2m,
+                        times: hourly.time,
+                        density: size == .large ? .full : .sparkline
+                    )
+                    // Large lets the curve take the height the summary doesn't
+                    // need, so the tile doesn't end in dead space.
+                    .frame(
+                        minHeight: size == .large
+                            ? Tokens.Size.weatherChartExpandedHeight
+                            : Tokens.Size.weatherChartHeight,
+                        maxHeight: size == .large
+                            ? .infinity
+                            : Tokens.Size.weatherChartHeight
+                    )
                 }
             }
         }
@@ -88,7 +109,7 @@ private struct WeatherCompact: View {
     var body: some View {
         HStack(spacing: Tokens.snug) {
             Image(systemName: weatherSymbol(for: current.weatherCode))
-                .font(.title2)
+                .font(Tokens.Font.primaryValue(size: 22, weight: .regular))
                 .foregroundStyle(Tokens.accent)
                 .symbolRenderingMode(.hierarchical)
 
@@ -118,7 +139,7 @@ private struct WeatherSummary: View {
         HStack(alignment: .top, spacing: Tokens.wideSpacing) {
             VStack(alignment: .leading, spacing: Tokens.tight) {
                 Text(placeName)
-                    .font(.caption)
+                    .font(Tokens.Font.caption)
                     .foregroundStyle(.secondary)
                     .lineLimit(1)
 
@@ -132,7 +153,7 @@ private struct WeatherSummary: View {
                 } icon: {
                     Image(systemName: "thermometer.variable")
                 }
-                .font(.caption)
+                .font(Tokens.Font.caption)
                 .foregroundStyle(.secondary)
             }
 
@@ -140,7 +161,7 @@ private struct WeatherSummary: View {
 
             VStack(alignment: .trailing, spacing: Tokens.snug) {
                 Image(systemName: weatherSymbol(for: current.weatherCode))
-                    .font(.largeTitle)
+                    .font(Tokens.Font.primaryValue(size: 34, weight: .regular))
                     .foregroundStyle(Tokens.accent)
                     .symbolRenderingMode(.hierarchical)
 
@@ -162,9 +183,8 @@ private struct WeatherSummary: View {
                                 .foregroundStyle(Tokens.chartColor(2))
                         }
                     }
-                    .font(.caption.weight(.medium))
+                    .font(Tokens.Font.rowTrailingValue)
                     .foregroundStyle(.secondary)
-                    .monospacedDigit()
                 }
             }
         }
@@ -177,58 +197,40 @@ private struct WeatherSummary: View {
 private struct HourlyTempChart: View {
     let temps: [Double]
     let times: [String]
+    var density: SkyChart.Density = .full
+
+    private var points: [SkyChartPoint] {
+        temps.enumerated().map { index, temp in
+            SkyChartPoint(
+                index: index,
+                value: temp,
+                label: index < times.count ? hourLabel(times[index]) : ""
+            )
+        }
+    }
+
+    /// The warmest hour ahead — the answer to "when does today peak?".
+    ///
+    /// Only marked when it lands well inside the window. A rule drawn on the
+    /// first or last point sits on the frame edge, where it reads as a border
+    /// rather than as a reading, and its label collides with the axis.
+    private var peak: SkyChartPoint? {
+        guard let peak = points.max(by: { $0.value < $1.value }) else { return nil }
+        let margin = max(Int(Double(points.count) * 0.15), 1)
+        let isInterior = peak.index >= margin && peak.index < points.count - margin
+        return isInterior ? peak : nil
+    }
 
     var body: some View {
-        let points = Array(temps.enumerated())
-        let lo = temps.min() ?? 0
-        let hi = temps.max() ?? 1
-        let padding = max((hi - lo) * 0.15, 0.5)
-
-        Chart(points, id: \.offset) { index, temp in
-            AreaMark(
-                x: .value("Hour", index),
-                yStart: .value("lo", lo - padding),
-                yEnd: .value("Temp", temp)
-            )
-            .interpolationMethod(.catmullRom)
-            .foregroundStyle(
-                .linearGradient(
-                    colors: [Tokens.accent.opacity(0.18), Tokens.accent.opacity(0.0)],
-                    startPoint: .top, endPoint: .bottom
-                )
-            )
-
-            LineMark(x: .value("Hour", index), y: .value("Temp", temp))
-                .interpolationMethod(.catmullRom)
-                .foregroundStyle(Tokens.accent)
-                .lineStyle(StrokeStyle(lineWidth: 1.5, lineCap: .round))
-        }
-        .chartYScale(domain: (lo - padding)...(hi + padding))
-        .chartXAxis {
-            AxisMarks(values: .stride(by: 6)) { value in
-                AxisValueLabel {
-                    if let idx = value.as(Int.self), idx < times.count {
-                        Text(hourLabel(times[idx]))
-                            .font(.caption2)
-                            .foregroundStyle(.tertiary)
-                    }
-                }
-            }
-        }
-        .chartYAxis {
-            AxisMarks(position: .trailing, values: .automatic(desiredCount: 3)) { value in
-                AxisValueLabel {
-                    if let v = value.as(Double.self) {
-                        Text("\(Int(v.rounded()))°")
-                            .font(.caption2)
-                            .foregroundStyle(.tertiary)
-                    }
-                }
-                AxisGridLine(stroke: StrokeStyle(lineWidth: 0.5, dash: [3, 3]))
-                    .foregroundStyle(.quaternary)
-            }
-        }
-        .chartLegend(.hidden)
+        SkyChart(
+            points: points,
+            tint: Tokens.accent,
+            density: density,
+            referenceIndex: peak?.index,
+            referenceLabel: peak?.label ?? "",
+            format: { "\(Int($0.rounded()))°" },
+            accessibilityDescription: "Hourly temperature, next 24 hours"
+        )
     }
 
     private func hourLabel(_ isoTime: String) -> String {
@@ -279,13 +281,13 @@ private func weatherCondition(for code: Int) -> String {
 
 // MARK: - API Models
 
-private struct OpenMeteoResponse: Codable, Sendable {
+struct OpenMeteoResponse: Codable, Sendable {
     let current: OpenMeteoCurrent
     let daily: OpenMeteoDaily
     let hourly: OpenMeteoHourly?
 }
 
-private struct OpenMeteoHourly: Codable, Sendable {
+struct OpenMeteoHourly: Codable, Sendable {
     let time: [String]
     let temperature2m: [Double]
 
@@ -295,7 +297,7 @@ private struct OpenMeteoHourly: Codable, Sendable {
     }
 }
 
-private struct OpenMeteoCurrent: Codable, Sendable {
+struct OpenMeteoCurrent: Codable, Sendable {
     let temperature2m: Double
     let weatherCode: Int
     let apparentTemperature: Double
@@ -307,7 +309,7 @@ private struct OpenMeteoCurrent: Codable, Sendable {
     }
 }
 
-private struct OpenMeteoDaily: Codable, Sendable {
+struct OpenMeteoDaily: Codable, Sendable {
     let temperature2mMax: [Double]
     let temperature2mMin: [Double]
 

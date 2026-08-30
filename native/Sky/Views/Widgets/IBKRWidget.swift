@@ -26,16 +26,10 @@ struct IBKRWidget: View {
 
         switch size {
         case .medium, .small:
-            // Medium: summary + compact allocation
             VStack(alignment: .leading, spacing: Tokens.contentSpacing) {
                 PortfolioHeader(summary: data.summary)
 
-                HStack(alignment: .center, spacing: Tokens.contentSpacing) {
-                    AllocationDonut(slices: slices)
-                        .frame(width: Tokens.Size.portfolioChart, height: Tokens.Size.portfolioChart)
-                    AllocationLegend(slices: slices)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                }
+                AllocationView(slices: slices)
 
                 if data.source == .flex {
                     Text(flexFooter(asOf: data.asOf))
@@ -45,16 +39,10 @@ struct IBKRWidget: View {
             }
 
         case .large:
-            // Large: summary + allocation + top movers
             VStack(alignment: .leading, spacing: Tokens.contentSpacing) {
                 PortfolioHeader(summary: data.summary)
 
-                HStack(alignment: .center, spacing: Tokens.contentSpacing) {
-                    AllocationDonut(slices: slices)
-                        .frame(width: Tokens.Size.portfolioChart, height: Tokens.Size.portfolioChart)
-                    AllocationLegend(slices: slices)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                }
+                AllocationView(slices: slices)
 
                 TopMovers(positions: data.positions)
 
@@ -83,47 +71,32 @@ private struct PortfolioHeader: View {
     var body: some View {
         VStack(alignment: .leading, spacing: Tokens.sectionSpacing) {
             Text(summary.totalValue, format: .currency(code: "USD").precision(.fractionLength(0)))
-                .font(.system(.title, design: .rounded).weight(.semibold))
-                .monospacedDigit()
+                .font(.system(.title, design: .rounded).weight(.semibold).monospacedDigit())
                 .contentTransition(.numericText(value: summary.totalValue))
                 .animation(.snappy, value: summary.totalValue)
 
             HStack(spacing: Tokens.rowSpacing) {
                 if let dayPnl = summary.dayPnl {
-                    PnlBadge(
-                        label: "Day P&L",
-                        value: dayPnl,
-                        format: .currency(code: "USD").precision(.fractionLength(0))
+                    WidgetMetric(
+                        label: "DAY P&L",
+                        value: dayPnl.formatted(
+                            .currency(code: "USD")
+                            .precision(.fractionLength(0))
+                            .sign(strategy: .always())
+                        ),
+                        tint: dayPnl >= 0 ? Tokens.positive : Tokens.negative
                     )
                 }
-                PnlBadge(
-                    label: "Unrealized",
-                    value: summary.unrealizedPnlPercent / 100,
-                    format: .percent.precision(.fractionLength(2))
+                WidgetMetric(
+                    label: "UNREALIZED",
+                    value: (summary.unrealizedPnlPercent / 100).formatted(
+                        .percent
+                        .sign(strategy: .always())
+                        .precision(.fractionLength(2))
+                    ),
+                    tint: summary.unrealizedPnlPercent >= 0 ? Tokens.positive : Tokens.negative
                 )
             }
-        }
-    }
-}
-
-private struct PnlBadge<F: FormatStyle>: View where F.FormatInput == Double, F.FormatOutput == String {
-    let label: String
-    let value: Double
-    let format: F
-
-    private var gain: Bool { value >= 0 }
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: Tokens.microSpacing) {
-            Text(label)
-                .font(.caption2)
-                .foregroundStyle(.secondary)
-            Text(value, format: format)
-                .font(.subheadline.weight(.semibold))
-                .monospacedDigit()
-                .contentTransition(.numericText(value: value))
-                .animation(.snappy, value: value)
-                .foregroundStyle(gain ? Tokens.positive : Tokens.negative)
         }
     }
 }
@@ -162,20 +135,56 @@ private struct AllocationSlice: Identifiable {
     }
 }
 
+/// Donut plus its legend, sharing one hover selection.
+///
+/// The legend is the interactive surface rather than the donut: pointing at a
+/// sector would mean either a drag gesture — which the editable grid already
+/// owns for moving widgets — or aiming at a thin wedge. A legend row is a wide,
+/// honest target, and it is the thing already carrying the ticker name.
+private struct AllocationView: View {
+    let slices: [AllocationSlice]
+
+    @State private var highlighted: AllocationSlice.ID?
+
+    private var selected: AllocationSlice? {
+        slices.first { $0.id == highlighted }
+    }
+
+    var body: some View {
+        HStack(alignment: .center, spacing: Tokens.contentSpacing) {
+            AllocationDonut(slices: slices, highlighted: highlighted, selected: selected)
+                .frame(width: Tokens.Size.portfolioChart, height: Tokens.Size.portfolioChart)
+
+            AllocationLegend(slices: slices, highlighted: $highlighted)
+                .frame(maxWidth: .infinity, alignment: .leading)
+        }
+        .animation(Tokens.Chart.scrubAnimation, value: highlighted)
+    }
+}
+
 private struct AllocationDonut: View {
     let slices: [AllocationSlice]
+    let highlighted: AllocationSlice.ID?
+    let selected: AllocationSlice?
+
+    private var total: Double {
+        slices.reduce(0) { $0 + $1.value }
+    }
 
     var body: some View {
         Chart(slices) { slice in
             SectorMark(
                 angle: .value("Value", slice.value),
-                innerRadius: .ratio(0.65),
-                angularInset: Tokens.extraTight
+                innerRadius: .ratio(Tokens.Chart.donutInnerRatio),
+                angularInset: Tokens.Chart.donutInset
             )
             .cornerRadius(Tokens.barRadius)
             .foregroundStyle(slice.color)
+            .opacity(highlighted == nil || highlighted == slice.id ? 1 : Tokens.Chart.unselectedOpacity)
         }
         .chartLegend(.hidden)
+        .animation(Tokens.Chart.dataChangeAnimation, value: slices.map(\.value))
+        .accessibilityElement(children: .ignore)
         .accessibilityLabel("Portfolio allocation")
         .accessibilityValue(
             slices.map {
@@ -183,30 +192,35 @@ private struct AllocationDonut: View {
             }.joined(separator: ", ")
         )
         .chartBackground { _ in
-            // Total label centered in the donut hole
-            let total = slices.reduce(0) { $0 + $1.value }
+            // The hole reads the pointed-at holding, and falls back to the total.
+            // Text stays in ink tokens — the colored sector carries identity.
             VStack(spacing: Tokens.microSpacing) {
-                Text("Total")
-                    .font(.system(size: 8, weight: .medium))
+                Text(selected?.ticker ?? "Total")
+                    .font(Tokens.Font.microLabel)
                     .foregroundStyle(.tertiary)
-                Text(total, format: .currency(code: "USD").precision(.fractionLength(0)))
-                    .font(.system(size: 11, weight: .semibold, design: .rounded))
-                    .monospacedDigit()
-                    .foregroundStyle(.secondary)
+                    .lineLimit(1)
+                Text(
+                    selected?.value ?? total,
+                    format: .currency(code: "USD").precision(.fractionLength(0))
+                )
+                .font(Tokens.Font.metricValue)
+                .foregroundStyle(selected == nil ? .secondary : .primary)
+                .contentTransition(.numericText())
+                .lineLimit(1)
+                .minimumScaleFactor(0.7)
             }
+            .padding(.horizontal, Tokens.tight)
         }
     }
 }
 
 private struct AllocationLegend: View {
     let slices: [AllocationSlice]
+    @Binding var highlighted: AllocationSlice.ID?
 
     var body: some View {
         VStack(alignment: .leading, spacing: Tokens.sectionSpacing) {
-            Text("Allocation")
-                .font(.caption2.weight(.semibold))
-                .textCase(.uppercase)
-                .foregroundStyle(.secondary)
+            WidgetSectionHeader(title: "Allocation")
 
             ForEach(slices) { slice in
                 HStack(spacing: Tokens.compact) {
@@ -218,9 +232,14 @@ private struct AllocationLegend: View {
                         .lineLimit(1)
                     Spacer(minLength: Tokens.sectionSpacing)
                     Text(slice.fraction, format: .percent.precision(.fractionLength(1)))
-                        .font(.caption2)
-                        .monospacedDigit()
+                        .font(Tokens.Font.rowTrailingValue)
                         .foregroundStyle(.secondary)
+                }
+                // The row, not the swatch, is the target.
+                .contentShape(Rectangle())
+                .opacity(highlighted == nil || highlighted == slice.id ? 1 : Tokens.Chart.unselectedOpacity)
+                .onHover { isHovering in
+                    highlighted = isHovering ? slice.id : (highlighted == slice.id ? nil : highlighted)
                 }
             }
         }
@@ -239,23 +258,20 @@ private struct TopMovers: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: Tokens.compact) {
-            Text("Top movers")
-                .font(.caption2.weight(.semibold))
-                .textCase(.uppercase)
-                .foregroundStyle(.secondary)
+            WidgetSectionHeader(title: "Top movers")
 
             ForEach(movers) { position in
-                HStack(spacing: Tokens.compact) {
-                    Text(position.ticker)
-                        .font(.caption2.weight(.semibold))
-                        .lineLimit(1)
-                    Spacer(minLength: Tokens.tight)
-                    Text(position.pnlPercent / 100, format: .percent.precision(.fractionLength(1)))
-                        .font(.caption2.weight(.semibold))
-                        .monospacedDigit()
-                        .foregroundStyle(position.pnlPercent >= 0 ? Tokens.positive : Tokens.negative)
-                }
-                .accessibilityElement(children: .combine)
+                WidgetRow(title: position.ticker, showsDivider: false, trailing: {
+                    Text(
+                        (position.pnlPercent / 100).formatted(
+                            .percent
+                            .sign(strategy: .always())
+                            .precision(.fractionLength(1))
+                        )
+                    )
+                    .font(Tokens.Font.rowTrailingValue)
+                    .foregroundStyle(position.pnlPercent >= 0 ? Tokens.positive : Tokens.negative)
+                })
             }
         }
     }

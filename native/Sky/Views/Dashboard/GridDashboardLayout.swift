@@ -98,6 +98,23 @@ struct GridDashboardLayout: Layout {
         var items: [Placement] = []
         var maxRowEnd = 0
 
+        /*
+          Reading-order cursor.
+
+          The packer used to scan from row 0 for every widget, which made it a
+          *dense* packer: a later small widget would backfill a gap left in an
+          earlier row and so appear before widgets that precede it in
+          `config.visibleWidgets`. That is how the ambient Daily Quote — last in
+          the default order — ended up sitting in the first row next to
+          Calendar, and it contradicts DashboardView's contract that widgets
+          render in order.
+
+          Holding a cursor at the previous widget's row means a widget can share
+          a row with its neighbours but can never climb above one that comes
+          before it. Reading order is preserved; side-by-side packing is not.
+        */
+        var cursorRow = 0
+
         for index in subviews.indices {
             let subview = subviews[index]
             let size = subview[WidgetSizeLayoutKey.self]
@@ -110,8 +127,10 @@ struct GridDashboardLayout: Layout {
                 colSpan: colSpan,
                 rowSpan: rowSpan,
                 columnCount: columnCount,
+                startRow: cursorRow,
                 occupied: &occupied
             )
+            cursorRow = position.row
 
             // Mark cells occupied.
             for r in position.row..<(position.row + rowSpan) {
@@ -132,6 +151,62 @@ struct GridDashboardLayout: Layout {
             maxRowEnd = max(maxRowEnd, position.row + rowSpan)
         }
 
+        /*
+          Flush the right edge.
+
+          In-order packing leaves whatever columns a row could not fill sitting
+          empty at its right end — the default layout ends row one a column
+          short and row three three columns short, so the dashboard reads as a
+          ragged block rather than a grid. (The old dense packer hid this by
+          pulling a later widget forward, which is what broke reading order.)
+
+          Leftover columns are handed out round-robin starting with the widest
+          card in the row, so relative emphasis survives and the row still ends
+          flush. Rows containing a multi-row card, or cells owned by a card that
+          began on an earlier row, are left alone — widening there could overlap
+          something already placed.
+        */
+        var itemsByRow: [Int: [Int]] = [:]
+        for (offset, placement) in items.enumerated() {
+            itemsByRow[placement.row, default: []].append(offset)
+        }
+
+        for row in itemsByRow.keys.sorted() {
+            guard let rowItems = itemsByRow[row], !rowItems.isEmpty else { continue }
+            guard rowItems.allSatisfy({ items[$0].rowSpan == 1 }) else { continue }
+
+            let ownedColumns = rowItems.reduce(0) { $0 + items[$1].colSpan }
+            let occupiedColumns = (0..<columnCount).filter { occupied[row][$0] }.count
+            // A mismatch means a taller card from an earlier row overlaps here.
+            guard ownedColumns == occupiedColumns else { continue }
+
+            let leftover = columnCount - ownedColumns
+            guard leftover > 0 else { continue }
+
+            var extra = Array(repeating: 0, count: rowItems.count)
+            let widestFirst = rowItems.indices.sorted {
+                items[rowItems[$0]].colSpan > items[rowItems[$1]].colSpan
+            }
+            for step in 0..<leftover {
+                extra[widestFirst[step % widestFirst.count]] += 1
+            }
+
+            var column = 0
+            for (offset, index) in rowItems.enumerated() {
+                let placement = items[index]
+                let span = placement.colSpan + extra[offset]
+                items[index] = Placement(
+                    index: placement.index,
+                    col: column,
+                    row: placement.row,
+                    colSpan: span,
+                    rowSpan: placement.rowSpan,
+                    dragOffset: placement.dragOffset
+                )
+                column += span
+            }
+        }
+
         let height: CGFloat
         if maxRowEnd > 0 {
             height = CGFloat(maxRowEnd) * Tokens.dashboardRowUnit
@@ -143,15 +218,18 @@ struct GridDashboardLayout: Layout {
         return PackResult(items: items, height: height, columnCount: columnCount)
     }
 
-    /// Scans the occupancy grid row-major for the first position where a
-    /// `colSpan × rowSpan` block fits. Grows the grid as needed.
+    /// Scans the occupancy grid row-major for the first position at or below
+    /// `startRow` where a `colSpan × rowSpan` block fits. Grows the grid as
+    /// needed. `startRow` is what keeps placement in reading order — scanning
+    /// from 0 instead lets later widgets backfill earlier gaps.
     private func findPosition(
         colSpan: Int,
         rowSpan: Int,
         columnCount: Int,
+        startRow: Int,
         occupied: inout [[Bool]]
     ) -> (row: Int, col: Int) {
-        var row = 0
+        var row = startRow
         while true {
             // Ensure enough rows exist.
             while occupied.count < row + rowSpan {

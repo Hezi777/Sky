@@ -1,6 +1,6 @@
 import Foundation
 
-// Codable models for the three new widget endpoints (stocks, reading, strava).
+// Codable models for the new widget endpoints (stocks, reading).
 // All Sendable so they can cross the APIClient actor boundary, matching
 // APIModels.swift conventions (camelCase keys, no CodingKeys needed).
 
@@ -28,15 +28,4 @@ struct ReadingBook: Codable, Hashable, Identifiable, Sendable {
     let progress: Int
     let cover: String?
     let url: String
-}
-
-// MARK: - Strava (/api/strava)
-
-struct StravaActivity: Codable, Hashable, Identifiable, Sendable {
-    let id: Int
-    let name: String
-    let type: String
-    let distance: Double   // meters
-    let movingTime: Int    // seconds
-    let startDate: String  // ISO
 }

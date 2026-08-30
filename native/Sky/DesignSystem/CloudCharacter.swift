@@ -35,7 +35,6 @@ struct CloudInput {
     var hour: Int
     var githubCommits: Int = 0
     var tasksCompleted: Int = 0
-    var daysSinceActivity: Int? = nil
     var portfolioChangePercent: Double? = nil
 }
 
@@ -46,7 +45,6 @@ enum Cloud {
         if h >= 6 && h < 9 { return .stretching }
         if input.githubCommits > 3 || input.tasksCompleted > 5 { return .happy }
         if let p = input.portfolioChangePercent, p > 1 { return .confident }
-        if let d = input.daysSinceActivity, d >= 2 { return .droopy }
         if h >= 18 && h < 22 { return .calm }
         return .hero
     }

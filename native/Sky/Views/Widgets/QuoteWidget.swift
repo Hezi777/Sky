@@ -17,7 +17,13 @@ struct QuoteWidget: View {
                 WidgetLoading()
             }
         }
-        .task { await fetchQuote() }
+        .task {
+            if DemoMode.isEnabled {
+                quote = DemoFixtures.quote
+            } else {
+                await fetchQuote()
+            }
+        }
     }
 
     private func fetchQuote() async {
@@ -47,7 +53,7 @@ private struct QuoteContent: View {
         case .small:
             VStack(alignment: .leading, spacing: Tokens.snug) {
                 Image(systemName: "quote.opening")
-                    .font(.caption)
+                    .font(Tokens.Font.caption)
                     .foregroundStyle(Tokens.accent.opacity(0.4))
                     .accessibilityHidden(true)
 
@@ -64,7 +70,7 @@ private struct QuoteContent: View {
             VStack(alignment: .leading, spacing: Tokens.contentSpacing) {
                 HStack(alignment: .top, spacing: Tokens.snug) {
                     Image(systemName: "quote.opening")
-                        .font(.title3)
+                        .font(Tokens.Font.bodyRowStrong)
                         .foregroundStyle(Tokens.accent.opacity(0.4))
                         .accessibilityHidden(true)
 
@@ -77,7 +83,7 @@ private struct QuoteContent: View {
                 }
 
                 Text("— \(author)")
-                    .font(.caption.weight(.medium))
+                    .font(Tokens.Font.rowTrailingValue)
                     .foregroundStyle(.tertiary)
                     .frame(maxWidth: .infinity, alignment: .trailing)
             }
@@ -88,7 +94,7 @@ private struct QuoteContent: View {
 
 // MARK: - API Model
 
-private struct ZenQuote: Codable, Sendable {
+struct ZenQuote: Codable, Sendable {
     let q: String
     let a: String
 }

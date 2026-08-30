@@ -138,8 +138,15 @@ enum Tokens {
         static let hairlineBar: CGFloat = 2.5
         static let eventBar: CGFloat = 3
         static let progressBar: CGFloat = 4
+        static let progressBarHeight: CGFloat = 6
         static let legendDot: CGFloat = 7
+        /// Short stroke keying a series in a tooltip row. A filled box at tooltip
+        /// density is data-weight ink doing a label's job.
+        static let legendLineKey: CGFloat = 10
         static let heatmapCell: CGFloat = 11
+        /// Minimum pointer/focus target for a chart mark. The painted mark is
+        /// smaller than this on purpose; the hit area is what the reader aims at.
+        static let chartHitTarget: CGFloat = 24
         static let compactControl: CGFloat = 12
         static let symbolBox: CGFloat = 18
         static let activityIcon: CGFloat = 22
@@ -162,7 +169,13 @@ enum Tokens {
         static let placeholderCharacter: CGFloat = 48
         static let skyAmbientHeight: CGFloat = 400
         #endif
-        static let weatherChartHeight: CGFloat = 72
+        /// Medium weather tile: one row has to carry the summary and the curve,
+        /// so the curve runs axis-less at this height. Taller than this and the
+        /// card clips the chart instead of shrinking it.
+        static let weatherChartHeight: CGFloat = 44
+        /// Large weather tile: room for the plot plus the x-axis band beneath it.
+        /// Sizing this to the plot alone is what crops axis labels.
+        static let weatherChartExpandedHeight: CGFloat = 110
         static let portfolioChart: CGFloat = 108
         #if os(macOS)
         static let heroMinHeight: CGFloat = 270
@@ -195,10 +208,57 @@ enum Tokens {
         /// Micro data labels (heatmap weekday/month, chart ticks).
         static let microLabel: SwiftUI.Font = .system(size: 9)
 
+        /// Numeric values inside widgets (P&L, invested, gain).
+        static let metricValue: SwiftUI.Font = .subheadline.weight(.semibold).monospacedDigit()
+        /// Trailing numeric value in a row (price, amount).
+        static let rowTrailingValue: SwiftUI.Font = .caption.weight(.medium).monospacedDigit()
+        /// Row subtitle / secondary line.
+        static let rowSubtitle: SwiftUI.Font = .caption
+        /// Small badge label.
+        static let badge: SwiftUI.Font = .caption2.weight(.semibold)
+
         /// Large rounded, monospaced-digit "primary value" display (28–54pt).
         /// Variable by design — temperature, countdown days, P&L all differ.
         static func primaryValue(size: CGFloat, weight: SwiftUI.Font.Weight = .semibold) -> SwiftUI.Font {
             .system(size: size, weight: weight, design: .rounded).monospacedDigit()
         }
+    }
+
+    // MARK: Chart
+
+    /// Shared chart geometry and style tokens.
+    ///
+    /// Mark specs follow the house data-viz rules: 2pt lines, a ~10% area wash
+    /// (never a saturated block), solid hairline grid (dashed grid reads as a
+    /// threshold when it is only a grid), and markers carrying a surface-colored
+    /// ring so they stay legible where they cross the line.
+    enum Chart {
+        static let lineWidth: CGFloat = 2
+        /// Area fill is a wash under the line, not a block. Fades to nothing.
+        static let areaOpacityTop: Double = 0.10
+        static let areaOpacityBottom: Double = 0.0
+        static let donutInnerRatio: Double = 0.65
+        /// Surface gap separating touching sectors — the separator is negative
+        /// space, never a stroke drawn around the mark.
+        static let donutInset: CGFloat = 2
+        static let ringWidth: CGFloat = 4
+        static let ringTrackOpacity: Double = 0.12
+        static let gridWidth: CGFloat = 0.5
+        static let axisFont: SwiftUI.Font = .caption2
+
+        /// Diameter of an end/selection marker. Floor is 8pt so it stays findable.
+        static let markerSize: CGFloat = 8
+        /// Surface-colored ring around a marker, so it reads where it overlaps.
+        static let markerRingWidth: CGFloat = 2
+        /// Vertical hairline that tracks the pointer and snaps to the nearest x.
+        static let crosshairWidth: CGFloat = 1
+        static let crosshairOpacity: Double = 0.35
+        /// Headroom above/below a series so the curve never touches the frame.
+        static let domainPaddingFraction: Double = 0.15
+        static let minimumDomainPadding: Double = 0.5
+        /// Emphasis for the de-emphasized remainder when one mark is selected.
+        static let unselectedOpacity: Double = 0.35
+        static let dataChangeAnimation: SwiftUI.Animation = .easeOut(duration: 0.35)
+        static let scrubAnimation: SwiftUI.Animation = .easeOut(duration: 0.12)
     }
 }

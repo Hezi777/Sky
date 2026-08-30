@@ -11,8 +11,6 @@ struct DashboardSignals: Equatable, Sendable {
     var portfolioDayChangePercent: Double?
     var isMusicPlaying: Bool?
     var activeReadingProgressPercent: Int?
-    var recentExerciseMinutes: Int?
-    var daysSinceExercise: Int?
 
     init(
         generatedAt: Date = Date(),
@@ -22,9 +20,7 @@ struct DashboardSignals: Equatable, Sendable {
         commitsToday: Int? = nil,
         portfolioDayChangePercent: Double? = nil,
         isMusicPlaying: Bool? = nil,
-        activeReadingProgressPercent: Int? = nil,
-        recentExerciseMinutes: Int? = nil,
-        daysSinceExercise: Int? = nil
+        activeReadingProgressPercent: Int? = nil
     ) {
         self.generatedAt = generatedAt
         self.upcomingEventCount = upcomingEventCount
@@ -34,8 +30,6 @@ struct DashboardSignals: Equatable, Sendable {
         self.portfolioDayChangePercent = portfolioDayChangePercent
         self.isMusicPlaying = isMusicPlaying
         self.activeReadingProgressPercent = activeReadingProgressPercent
-        self.recentExerciseMinutes = recentExerciseMinutes
-        self.daysSinceExercise = daysSinceExercise
     }
 }
 
@@ -70,9 +64,6 @@ enum DashboardSummaryEngine {
             let direction = change > 0 ? "up" : "down"
             text = schedule.map { "Markets are \(direction) today, with \($0)." }
                 ?? "Markets are \(direction) today; the rest of the dashboard looks steady."
-        } else if let days = signals.daysSinceExercise, days >= 2 {
-            text = schedule.map { "\($0), and it has been a few days since your last workout." }
-                ?? "It has been a few days since your last workout, so a little movement may help."
         } else if let schedule {
             text = "You have \(schedule), and the rest of the day looks steady."
         } else if signals.isMusicPlaying == true {
@@ -137,7 +128,6 @@ private struct DashboardAIProjection: Encodable {
     enum Load: String, Encodable { case unknown, clear, light, busy }
     enum Momentum: String, Encodable { case unknown, quiet, active, strong }
     enum Trend: String, Encodable { case unknown, down, flat, up }
-    enum Recency: String, Encodable { case unknown, recent, stale }
 
     let period: Period
     let calendarLoad: Load
@@ -145,7 +135,6 @@ private struct DashboardAIProjection: Encodable {
     let codingMomentum: Momentum
     let portfolioTrend: Trend
     let musicPlaying: Bool?
-    let exerciseRecency: Recency
     let readingActive: Bool?
 
     init(signals: DashboardSignals, calendar: Calendar = .current) {
@@ -162,7 +151,6 @@ private struct DashboardAIProjection: Encodable {
         codingMomentum = Self.momentum(signals.commitsToday)
         portfolioTrend = Self.trend(signals.portfolioDayChangePercent)
         musicPlaying = signals.isMusicPlaying
-        exerciseRecency = Self.recency(signals.daysSinceExercise)
         readingActive = signals.activeReadingProgressPercent.map { $0 > 0 && $0 < 100 }
     }
 
@@ -185,11 +173,6 @@ private struct DashboardAIProjection: Encodable {
         if percent > 0.25 { return .up }
         if percent < -0.25 { return .down }
         return .flat
-    }
-
-    private static func recency(_ days: Int?) -> Recency {
-        guard let days else { return .unknown }
-        return days >= 2 ? .stale : .recent
     }
 }
 

@@ -34,26 +34,103 @@ struct TasksWidget: View {
                 if tasks.isEmpty {
                     EmptyHint(text: "All clear today")
                 } else if size == .small {
-                    // Small: remaining count only (ring in header is the glanceable element)
-                    EmptyView()
+                    smallContent(tasks: tasks)
                 } else if visible.isEmpty {
                     EmptyHint(text: "All done — nice work")
                 } else {
-                    let limit = maxVisibleTasks
-                    VStack(spacing: Tokens.zeroSpacing) {
-                        ForEach(Array(visible.prefix(limit).enumerated()), id: \.element.id) { index, task in
-                            TaskRow(
-                                task: task,
-                                showsDivider: index < min(visible.count, limit) - 1
-                            ) { complete(task) }
-                        }
-                    }
+                    taskList
                 }
             case .idle, .loading:
                 WidgetLoading()
             }
         }
         .task { await store.load(.tasks) }
+    }
+
+    // MARK: - Small: centered progress ring with "N left" label
+
+    @ViewBuilder
+    private func smallContent(tasks: [TickTickTask]) -> some View {
+        let remaining = tasks.count - completed.count
+        VStack(spacing: Tokens.snug) {
+            TaskProgressRing(completed: completed.count, total: tasks.count)
+
+            Text("\(remaining) left")
+                .font(Tokens.Font.caption)
+                .foregroundStyle(.secondary)
+                .monospacedDigit()
+        }
+        .frame(maxWidth: .infinity, alignment: .center)
+    }
+
+    // MARK: - Medium / Large: task rows
+
+    @ViewBuilder
+    private var taskList: some View {
+        let limit = maxVisibleTasks
+        VStack(spacing: Tokens.zeroSpacing) {
+            ForEach(Array(visible.prefix(limit).enumerated()), id: \.element.id) { index, task in
+                let isLast = index >= min(visible.count, limit) - 1
+                taskRow(task: task, showsDivider: !isLast)
+            }
+        }
+    }
+
+    @ViewBuilder
+    private func taskRow(task: TickTickTask, showsDivider: Bool) -> some View {
+        WidgetRow(
+            title: task.title,
+            subtitle: taskSubtitle(task),
+            showsDivider: showsDivider,
+            leading: {
+                Button { complete(task) } label: {
+                    Circle()
+                        .strokeBorder(priorityColor(task.priority), lineWidth: Tokens.Chart.lineWidth)
+                        .frame(
+                            width: Tokens.Size.symbolBox,
+                            height: Tokens.Size.symbolBox
+                        )
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel("Complete \(task.title)")
+                .help("Mark task complete")
+            },
+            trailing: {
+                taskTrailing(task)
+            }
+        )
+    }
+
+    @ViewBuilder
+    private func taskTrailing(_ task: TickTickTask) -> some View {
+        if let dueDate = task.dueDate, let date = ISO8601DateFormatter.parse(dueDate) {
+            Text(date.formatted(date: .omitted, time: .shortened))
+                .font(Tokens.Font.rowTrailingValue)
+                .foregroundStyle(.secondary)
+                .monospacedDigit()
+        } else if !task.tags.isEmpty, let tag = task.tags.first {
+            WidgetBadge(text: tag)
+        }
+    }
+
+    private func taskSubtitle(_ task: TickTickTask) -> String? {
+        var parts: [String] = []
+        if task.subtaskCount > 0 {
+            parts.append("\(task.subtaskCount) subtasks")
+        }
+        if task.tags.count > 1 {
+            parts.append(task.tags.dropFirst().prefix(1).joined(separator: ", "))
+        }
+        return parts.isEmpty ? nil : parts.joined(separator: " · ")
+    }
+
+    private func priorityColor(_ priority: TickTickPriority) -> Color {
+        switch priority {
+        case .none: Tokens.neutral
+        case .low: Tokens.info
+        case .medium: Tokens.caution
+        case .high: Tokens.negative
+        }
     }
 
     private func complete(_ task: TickTickTask) {
@@ -76,19 +153,17 @@ private struct TaskProgressRing: View {
         let fraction = total > 0 ? Double(completed) / Double(total) : 0
 
         ZStack {
-            // Background track
             Circle()
-                .strokeBorder(Color.secondary.opacity(0.12), lineWidth: 4)
+                .strokeBorder(Color.secondary.opacity(Tokens.Chart.ringTrackOpacity), lineWidth: Tokens.Chart.ringWidth)
 
-            // Progress arc
             Circle()
                 .trim(from: 0, to: fraction)
-                .stroke(Tokens.accent, style: StrokeStyle(lineWidth: 4, lineCap: .round))
+                .stroke(Tokens.accent, style: StrokeStyle(lineWidth: Tokens.Chart.ringWidth, lineCap: .round))
                 .rotationEffect(.degrees(-90))
                 .animation(.easeOut(duration: 0.4), value: fraction)
 
             Text("\(completed)/\(total)")
-                .font(.system(size: 9, weight: .bold, design: .rounded))
+                .font(Tokens.Font.microLabel.weight(.bold))
                 .monospacedDigit()
                 .foregroundStyle(.secondary)
         }
@@ -96,96 +171,5 @@ private struct TaskProgressRing: View {
         .accessibilityElement(children: .ignore)
         .accessibilityLabel("Task progress")
         .accessibilityValue("\(completed) of \(total) complete")
-    }
-}
-
-// MARK: - Task row
-
-private struct TaskRow: View {
-    let task: TickTickTask
-    let showsDivider: Bool
-    let onComplete: () -> Void
-
-    var body: some View {
-        HStack(spacing: Tokens.rowSpacing) {
-            // Priority circle (tap to complete)
-            Button(action: onComplete) {
-                Circle()
-                    .strokeBorder(priorityColor, lineWidth: 1.5)
-                    .frame(width: Tokens.Size.symbolBox, height: Tokens.Size.symbolBox)
-            }
-            .buttonStyle(.plain)
-            .accessibilityLabel("Complete \(task.title)")
-            .help("Mark task complete")
-
-            // Title
-            Text(task.title)
-                .font(Tokens.Font.bodyRow)
-                .lineLimit(1)
-                .frame(maxWidth: .infinity, alignment: .leading)
-
-            // Metadata: subtasks, tags, due time
-            TaskMetadata(task: task)
-        }
-        .padding(.vertical, Tokens.snug)
-        .overlay(alignment: .bottom) {
-            if showsDivider {
-                Divider()
-            }
-        }
-    }
-
-    private var priorityColor: Color {
-        switch task.priority {
-        case .none: return Tokens.neutral
-        case .low: return Tokens.info
-        case .medium: return Tokens.caution
-        case .high: return Tokens.negative
-        }
-    }
-}
-
-// MARK: - Task metadata (subtasks, tags, due time)
-
-private struct TaskMetadata: View {
-    let task: TickTickTask
-
-    var body: some View {
-        let hasContent = task.subtaskCount > 0 || !task.tags.isEmpty || task.dueDate != nil
-        if hasContent {
-            HStack(spacing: Tokens.snug) {
-                if task.subtaskCount > 0 {
-                    Label {
-                        Text("\(task.subtaskCount)")
-                            .monospacedDigit()
-                    } icon: {
-                        Image(systemName: "list.bullet")
-                    }
-                    .font(.caption2)
-                    .foregroundStyle(.secondary)
-                }
-
-                ForEach(task.tags.prefix(2), id: \.self) { tag in
-                    Text(tag)
-                        .font(.caption2)
-                        .foregroundStyle(.secondary)
-                        .padding(.horizontal, Tokens.sectionSpacing)
-                        .padding(.vertical, Tokens.extraTight)
-                        .background(.fill.tertiary, in: Capsule())
-                        .lineLimit(1)
-                }
-
-                if let dueDate = task.dueDate, let date = ISO8601DateFormatter.parse(dueDate) {
-                    Label {
-                        Text(date.formatted(date: .omitted, time: .shortened))
-                            .monospacedDigit()
-                    } icon: {
-                        Image(systemName: "clock")
-                    }
-                    .font(.caption2.weight(.medium))
-                    .foregroundStyle(Tokens.accent.opacity(0.8))
-                }
-            }
-        }
     }
 }

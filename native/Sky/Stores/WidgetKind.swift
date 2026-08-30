@@ -5,7 +5,7 @@ import SwiftUI
 
 enum WidgetKind: String, CaseIterable, Codable, Identifiable {
     case quote, weather, countdown, calendar, tasks, spotify
-    case ibkr, stocks, fair, github, reading, strava
+    case ibkr, stocks, fair, github, reading
 
     var id: String { rawValue }
 
@@ -22,7 +22,6 @@ enum WidgetKind: String, CaseIterable, Codable, Identifiable {
         case .stocks: "Stocks"
         case .weather: "Weather"
         case .quote: "Daily Quote"
-        case .strava: "Strava"
         }
     }
 
@@ -39,18 +38,19 @@ enum WidgetKind: String, CaseIterable, Codable, Identifiable {
         case .stocks: "chart.line.uptrend.xyaxis"
         case .weather: "cloud.sun"
         case .quote: "quote.bubble"
-        case .strava: "figure.run"
         }
     }
 
     /// Sizes this widget supports in the discrete grid.
     var supportedSizes: [WidgetSize] {
         switch self {
-        case .quote, .countdown, .weather: [.small, .medium]
-        case .calendar, .tasks, .fair, .stocks: [.small, .medium, .large]
+        case .quote, .countdown: [.small, .medium]
+        // Weather earns a large tile: the 24-hour curve only gets axes and a
+        // scrub readout when there is room for the axis band under the plot.
+        case .calendar, .tasks, .fair, .stocks, .weather: [.small, .medium, .large]
         case .ibkr, .github: [.medium, .large]
         case .spotify: [.medium]
-        case .reading, .strava: [.small, .medium]
+        case .reading: [.small, .medium]
         }
     }
 
@@ -80,7 +80,6 @@ enum WidgetKind: String, CaseIterable, Codable, Identifiable {
         case .stocks: "stocks"
         case .github: "github"
         case .reading: "notionReading"
-        case .strava: "strava"
         case .quote, .weather, .countdown, .fair: nil
         }
     }
@@ -90,7 +89,7 @@ enum WidgetKind: String, CaseIterable, Codable, Identifiable {
         switch self {
         case .calendar, .tasks, .github, .spotify, .ibkr, .fair: true
         case .weather, .countdown, .quote: true
-        case .reading, .stocks, .strava: false
+        case .reading, .stocks: false
         }
     }
 }

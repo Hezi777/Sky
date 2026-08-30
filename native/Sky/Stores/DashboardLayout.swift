@@ -29,10 +29,10 @@ struct DashboardSectionSpec: Identifiable {
             minimumWidth: 310,
             maximumWidth: 520
         ),
-        // Growth — work, movement, and longer-term learning.
+        // Growth — work and longer-term learning.
         DashboardSectionSpec(
             title: "Growth",
-            kinds: [.github, .strava, .reading],
+            kinds: [.github, .reading],
             maxColumns: 3,
             minimumWidth: 250,
             maximumWidth: 420
@@ -55,8 +55,8 @@ struct DashboardSectionSpec: Identifiable {
     /// with even one deliberate move does not match and remains untouched.
     static let legacyDefaultOrders: [[WidgetKind]] = [
         [.calendar, .tasks, .countdown, .ibkr, .fair, .stocks,
-         .strava, .github, .weather, .spotify, .quote, .reading],
+         .github, .weather, .spotify, .quote, .reading],
         [.quote, .weather, .countdown, .calendar, .tasks, .spotify,
-         .ibkr, .stocks, .fair, .github, .reading, .strava],
+         .ibkr, .stocks, .fair, .github, .reading],
     ]
 }

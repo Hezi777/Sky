@@ -2,7 +2,7 @@ import SwiftUI
 
 struct CountdownWidget: View {
     @Environment(\.widgetSize) private var size
-    @State private var trips: [Trip] = Trip.loadAll()
+    @State private var trips: [Trip] = DemoMode.isEnabled ? [DemoFixtures.trip] : Trip.loadAll()
     @State private var showEditor = false
     @State private var editingTrip: Trip?
 
@@ -25,7 +25,7 @@ struct CountdownWidget: View {
                     showEditor = true
                 } label: {
                     Image(systemName: "plus")
-                        .font(.caption.weight(.semibold))
+                        .font(Tokens.Font.badge)
                         .foregroundStyle(.secondary)
                 }
                 .buttonStyle(.borderless)
@@ -91,14 +91,14 @@ private struct TripCountdownView: View {
             VStack(alignment: .leading, spacing: Tokens.snug) {
                 HStack(alignment: .firstTextBaseline, spacing: Tokens.tight) {
                     Text(trip.destination)
-                        .font(.headline)
+                        .font(Tokens.Font.bodyRowStrong)
                         .lineLimit(1)
                     Spacer(minLength: Tokens.snug)
                     Button {
                         onEdit()
                     } label: {
                         Image(systemName: "pencil")
-                            .font(.caption)
+                            .font(Tokens.Font.caption)
                             .foregroundStyle(.secondary)
                     }
                     .buttonStyle(.borderless)
@@ -113,7 +113,7 @@ private struct TripCountdownView: View {
                             .foregroundStyle(Tokens.accent)
                             .contentTransition(.numericText())
                         Text(daysRemaining == 1 ? "day" : "days")
-                            .font(.title3.weight(.light))
+                            .font(Tokens.Font.bodyRow)
                             .foregroundStyle(.secondary)
                     }
 
@@ -123,7 +123,7 @@ private struct TripCountdownView: View {
                         Image(systemName: "calendar")
                             .foregroundStyle(Tokens.accent)
                     }
-                    .font(.caption)
+                    .font(Tokens.Font.caption)
                     .foregroundStyle(.tertiary)
                 }
                 .accessibilityElement(children: .combine)
@@ -207,6 +207,7 @@ struct Trip: Codable, Identifiable, Sendable {
     private static let key = "sky_trips"
 
     static func loadAll() -> [Trip] {
+        if DemoMode.isEnabled { return [DemoFixtures.trip] }
         guard let data = UserDefaults.standard.data(forKey: key),
               let trips = try? JSONDecoder().decode([Trip].self, from: data) else {
             return defaultTrips
@@ -215,6 +216,7 @@ struct Trip: Codable, Identifiable, Sendable {
     }
 
     static func saveAll(_ trips: [Trip]) {
+        guard !DemoMode.isEnabled else { return }
         if let data = try? JSONEncoder().encode(trips) {
             UserDefaults.standard.set(data, forKey: key)
         }

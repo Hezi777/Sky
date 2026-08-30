@@ -11,7 +11,7 @@ struct HeroZone: View {
     @State private var aiSummary: DashboardSummary?
 
     var body: some View {
-        let greeting = Cloud.greeting(for: state, name: config.name)
+        let greeting = demoGreeting ?? Cloud.greeting(for: state, name: config.name)
 
         VStack(spacing: Tokens.snug) {
             CloudAvatar(state: state, role: .hero)
@@ -49,6 +49,16 @@ struct HeroZone: View {
 
     private var localSummary: DashboardSummary {
         DashboardSummaryService.localSummary(for: dashboardStore.signals)
+    }
+
+    /// Capture variants are named by time of day, so their visible greeting
+    /// should say that time explicitly rather than falling back to "Hey".
+    private var demoGreeting: CloudGreeting? {
+        guard DemoMode.isEnabled, let hour = DemoMode.hourOverride else { return nil }
+        return CloudGreeting(
+            primary: "\(Cloud.greetingWord(hour: hour)), \(config.name)",
+            secondary: "Welcome to Sky."
+        )
     }
 
     private func refreshOptionalAISummary() async {

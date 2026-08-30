@@ -23,7 +23,6 @@ export interface IntegrationsStatusResponse {
     googleCalendar: IntegrationConfigStatus;
     tickTick: IntegrationConfigStatus;
     spotify: IntegrationConfigStatus;
-    strava: IntegrationConfigStatus;
     stocks: IntegrationConfigStatus;
     github: IntegrationConfigStatus;
     notionReading: IntegrationConfigStatus;

@@ -22,6 +22,9 @@ struct SkyApp: App {
                 .environment(dashboardStore)
                 .environment(fairStore)
                 .preferredColorScheme(appearance.colorScheme)
+                #if os(macOS)
+                .background(DemoWindowSizer())
+                #endif
         }
         #if os(macOS)
         .defaultSize(width: 1040, height: 920)

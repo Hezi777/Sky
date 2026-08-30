@@ -87,40 +87,6 @@ const { access_token } = await res.json();
 
 ---
 
-## Strava
-
-**Type:** OAuth 2.0 with refresh token — **free public API, no Strava subscription required.**
-
-The subscription (formerly Summit) gates product features, not API access. Reading
-your own activities via OAuth works on any free account.
-
-1. Go to https://www.strava.com/settings/api → create an application ("Sky").
-   - Authorization Callback Domain: `localhost`
-2. Copy Client ID + Secret → `STRAVA_CLIENT_ID`, `STRAVA_CLIENT_SECRET`
-3. Authorize once to mint a refresh token (scope `activity:read`, or
-   `activity:read_all` to include private activities):
-
-```
-https://www.strava.com/oauth/authorize?client_id=${CLIENT_ID}&response_type=code&redirect_uri=http://localhost/exchange_token&approval_prompt=force&scope=activity:read
-```
-
-   Approve, copy the `code` from the redirect URL, then exchange it once:
-
-```bash
-curl -X POST https://www.strava.com/oauth/token \
-  -d client_id=$CLIENT_ID -d client_secret=$CLIENT_SECRET \
-  -d code=$CODE -d grant_type=authorization_code
-```
-
-4. Paste the `refresh_token` from the response → `STRAVA_REFRESH_TOKEN`
-
-The route exchanges the refresh token for an access token on each request, then calls
-`GET https://www.strava.com/api/v3/athlete/activities?per_page=5`. If any of the three
-vars is missing, the route returns `{ error: "Strava not connected" }` (HTTP 200) and
-the widget shows a calm "Connect Strava in settings" placeholder.
-
----
-
 ## Stocks
 
 **Type:** API key (Finnhub, free tier). TwelveData is optional.

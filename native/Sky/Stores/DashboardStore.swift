@@ -28,7 +28,6 @@ final class DashboardStore {
     private(set) var fair: DashboardLoadState<FairPrice> = .idle
     private(set) var reading: DashboardLoadState<[ReadingBook]> = .idle
     private(set) var stocks: DashboardLoadState<[StockQuote]> = .idle
-    private(set) var strava: DashboardLoadState<[StravaActivity]> = .idle
     private var completedTaskCount = 0
     private var loadingKinds: Set<WidgetKind> = []
 
@@ -78,8 +77,6 @@ final class DashboardStore {
             case .stocks:
                 let symbols = stockSymbols ?? storedStockSymbols
                 stocks = .loaded(try await fetchStocks(symbols: symbols))
-            case .strava:
-                strava = .loaded(try await fetchStrava())
             case .quote, .weather, .countdown:
                 break
             }
@@ -88,6 +85,20 @@ final class DashboardStore {
             setFailure(error, for: kind)
             rebuildSnapshot()
         }
+    }
+
+    /// Populates every backend-backed slot with fabricated `DemoFixtures` data,
+    /// with no network call and no read of any real-account state. Only used
+    /// when `DemoMode.isEnabled`.
+    func loadDemoFixtures() {
+        calendar = .loaded(DemoFixtures.calendar)
+        tasks = .loaded(DemoFixtures.tasks)
+        github = .loaded(DemoFixtures.github)
+        spotify = .loaded(DemoFixtures.spotify)
+        ibkr = .loaded(DemoFixtures.ibkr)
+        reading = .loaded(DemoFixtures.reading)
+        stocks = .loaded(DemoFixtures.stocks)
+        rebuildSnapshot(now: DemoMode.adjustedNow)
     }
 
     func completeTask(_ task: TickTickTask) async -> Bool {
@@ -129,7 +140,6 @@ final class DashboardStore {
         case .fair: return fair.needsLoad
         case .reading: return reading.needsLoad
         case .stocks: return stocks.needsLoad
-        case .strava: return strava.needsLoad
         case .quote, .weather, .countdown: return false
         }
     }
@@ -144,7 +154,6 @@ final class DashboardStore {
         case .fair: fair = .loading
         case .reading: reading = .loading
         case .stocks: stocks = .loading
-        case .strava: strava = .loading
         case .quote, .weather, .countdown: break
         }
     }
@@ -160,7 +169,6 @@ final class DashboardStore {
         case .fair: fair = .failed(message)
         case .reading: reading = .failed(message)
         case .stocks: stocks = .failed(message)
-        case .strava: strava = .failed(message)
         case .quote, .weather, .countdown: break
         }
     }
@@ -173,14 +181,6 @@ final class DashboardStore {
         switch payload {
         case .quotes(let quotes): return quotes
         case .notConfigured(let message): throw APIError.server(message)
-        }
-    }
-
-    private func fetchStrava() async throws -> [StravaActivity] {
-        let payload: StravaPayload = try await APIClient.shared.get("/api/strava")
-        switch payload {
-        case .activities(let activities): return activities
-        case .notConnected(let message): throw APIError.server(message)
         }
     }
 
@@ -205,10 +205,6 @@ final class DashboardStore {
             value.max(by: { $0.progress < $1.progress })?.progress
         } else { nil }
 
-        let exercise: (minutes: Int?, daysSince: Int?) = if case .loaded(let value) = strava {
-            Self.exerciseSignals(activities: value, now: now)
-        } else { (nil, nil) }
-
         snapshot = DashboardSnapshot(signals: DashboardSignals(
             generatedAt: now,
             upcomingEventCount: events,
@@ -217,9 +213,7 @@ final class DashboardStore {
             commitsToday: commitsToday,
             portfolioDayChangePercent: portfolioChange,
             isMusicPlaying: musicPlaying,
-            activeReadingProgressPercent: readingProgress,
-            recentExerciseMinutes: exercise.minutes,
-            daysSinceExercise: exercise.daysSince
+            activeReadingProgressPercent: readingProgress
         ))
     }
 
@@ -227,20 +221,6 @@ final class DashboardStore {
         let priorValue = totalValue - dayPnl
         guard priorValue > 0 else { return nil }
         return ((dayPnl / priorValue) * 1_000).rounded() / 10
-    }
-
-    private static func exerciseSignals(
-        activities: [StravaActivity],
-        now: Date
-    ) -> (minutes: Int?, daysSince: Int?) {
-        let dated = activities.compactMap { activity in
-            ISO8601DateFormatter.parse(activity.startDate).map { ($0, activity.movingTime) }
-        }
-        guard let latest = dated.max(by: { $0.0 < $1.0 }) else { return (0, nil) }
-        let cutoff = Calendar.current.date(byAdding: .day, value: -7, to: now) ?? now
-        let minutes = dated.filter { $0.0 >= cutoff }.reduce(0) { $0 + $1.1 } / 60
-        let days = max(0, Calendar.current.dateComponents([.day], from: latest.0, to: now).day ?? 0)
-        return (minutes, days)
     }
 
     private static let dayKey: DateFormatter = {
@@ -274,20 +254,6 @@ private enum StockPayload: Decodable, Sendable {
             self = .quotes(quotes)
         } else {
             self = .notConfigured(try container.decode(APIErrorBody.self).error)
-        }
-    }
-}
-
-private enum StravaPayload: Decodable, Sendable {
-    case activities([StravaActivity])
-    case notConnected(String)
-
-    init(from decoder: Decoder) throws {
-        let container = try decoder.singleValueContainer()
-        if let activities = try? container.decode([StravaActivity].self) {
-            self = .activities(activities)
-        } else {
-            self = .notConnected(try container.decode(APIErrorBody.self).error)
         }
     }
 }

@@ -40,24 +40,15 @@ private struct CalendarContent: View {
         case .small:
             CalendarCompact(events: events, now: now)
         case .medium:
-            let groups = groupByDay(events, now: now)
-            VStack(alignment: .leading, spacing: Tokens.contentSpacing) {
-                ForEach(groups.prefix(2)) { group in
-                    DaySection(group: group, now: now, maxEvents: 3)
-                }
-            }
+            CalendarMedium(events: events, now: now)
         case .large:
-            let groups = groupByDay(events, now: now)
-            VStack(alignment: .leading, spacing: Tokens.contentSpacing) {
-                ForEach(groups) { group in
-                    DaySection(group: group, now: now)
-                }
-            }
+            CalendarLarge(events: events, now: now)
         }
     }
 }
 
-/// Small: single next event (title + time) or "N events today" summary.
+// MARK: - Small: single focused next event or summary count
+
 private struct CalendarCompact: View {
     let events: [CalendarEvent]
     let now: Date
@@ -79,29 +70,187 @@ private struct CalendarCompact: View {
 
     var body: some View {
         if let event = nextEvent {
-            VStack(alignment: .leading, spacing: Tokens.tight) {
-                Text(event.title)
-                    .font(Tokens.Font.bodyRowStrong)
-                    .lineLimit(2)
+            let accent = eventAccent(event.colorId)
+            let isNow = eventIsNow(event, now: now)
+            HStack(spacing: Tokens.snug) {
+                RoundedRectangle(cornerRadius: Tokens.tinyRadius, style: .continuous)
+                    .fill(accent)
+                    .frame(width: Tokens.Size.eventBar, height: Tokens.Size.symbolBox)
 
-                if event.allDay {
-                    Text("All day")
-                        .font(Tokens.Font.caption)
-                        .foregroundStyle(.secondary)
-                } else if let date = ISO8601DateFormatter.parse(event.start) {
-                    Text(date.formatted(date: .omitted, time: .shortened))
-                        .font(Tokens.Font.caption)
-                        .foregroundStyle(.secondary)
-                        .monospacedDigit()
+                VStack(alignment: .leading, spacing: Tokens.tight) {
+                    Text(event.title)
+                        .font(Tokens.Font.bodyRowStrong)
+                        .foregroundStyle(isNow ? Tokens.accent : .primary)
+                        .lineLimit(2)
+
+                    if event.allDay {
+                        Text("All day")
+                            .font(Tokens.Font.rowSubtitle)
+                            .foregroundStyle(.secondary)
+                    } else if let date = ISO8601DateFormatter.parse(event.start) {
+                        Text(date.formatted(date: .omitted, time: .shortened))
+                            .font(Tokens.Font.rowTrailingValue)
+                            .foregroundStyle(.secondary)
+                    }
                 }
             }
             .accessibilityElement(children: .combine)
         } else {
-            Text("\(todayCount) events today")
-                .font(Tokens.Font.bodyRow)
-                .foregroundStyle(.secondary)
-                .accessibilityLabel("\(todayCount) events today")
+            VStack(spacing: Tokens.tight) {
+                Text("\(todayCount)")
+                    .font(Tokens.Font.primaryValue(size: 34))
+                    .foregroundStyle(.primary)
+                Text("events today")
+                    .font(Tokens.Font.rowSubtitle)
+                    .foregroundStyle(.secondary)
+            }
+            .accessibilityLabel("\(todayCount) events today")
         }
+    }
+}
+
+// MARK: - Medium: up to 2 day groups, 3 events each
+
+private struct CalendarMedium: View {
+    let events: [CalendarEvent]
+    let now: Date
+
+    var body: some View {
+        let groups = groupByDay(events, now: now)
+        VStack(alignment: .leading, spacing: Tokens.contentSpacing) {
+            ForEach(groups.prefix(2)) { group in
+                CalendarDaySection(group: group, now: now, maxEvents: 3, showLocation: false, showRelative: false)
+            }
+        }
+    }
+}
+
+// MARK: - Large: all day groups, all events, location + relative time
+
+private struct CalendarLarge: View {
+    let events: [CalendarEvent]
+    let now: Date
+
+    var body: some View {
+        let groups = groupByDay(events, now: now)
+        VStack(alignment: .leading, spacing: Tokens.contentSpacing) {
+            ForEach(groups) { group in
+                CalendarDaySection(group: group, now: now, maxEvents: nil, showLocation: true, showRelative: true)
+            }
+        }
+    }
+}
+
+// MARK: - Day section (shared)
+
+private struct CalendarDaySection: View {
+    let group: DayGroup
+    let now: Date
+    var maxEvents: Int?
+    var showLocation: Bool
+    var showRelative: Bool
+
+    private var visibleEvents: [CalendarEvent] {
+        if let max = maxEvents { return Array(group.events.prefix(max)) }
+        return group.events
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: Tokens.sectionSpacing) {
+            WidgetSectionHeader(title: group.label)
+
+            VStack(spacing: Tokens.zeroSpacing) {
+                ForEach(Array(visibleEvents.enumerated()), id: \.element.id) { index, event in
+                    CalendarEventRow(
+                        event: event,
+                        now: now,
+                        showLocation: showLocation,
+                        showRelative: showRelative,
+                        showsDivider: index < visibleEvents.count - 1
+                    )
+                }
+            }
+        }
+    }
+}
+
+// MARK: - Event row using WidgetRow
+
+private struct CalendarEventRow: View {
+    let event: CalendarEvent
+    let now: Date
+    var showLocation: Bool
+    var showRelative: Bool
+    var showsDivider: Bool
+
+    private var accent: Color { eventAccent(event.colorId) }
+    private var isNow: Bool { eventIsNow(event, now: now) }
+    private var isPast: Bool { eventIsPast(event, now: now) }
+
+    private var subtitle: String? {
+        guard showLocation, let loc = event.location, !loc.isEmpty else { return nil }
+        return loc
+    }
+
+    var body: some View {
+        let row = WidgetRow(
+            title: event.title,
+            subtitle: subtitle,
+            showsDivider: showsDivider,
+            leading: {
+                RoundedRectangle(cornerRadius: Tokens.tinyRadius, style: .continuous)
+                    .fill(accent.opacity(isPast ? 0.35 : 1.0))
+                    .frame(width: Tokens.Size.eventBar, height: Tokens.Size.symbolBox)
+            },
+            trailing: { trailingContent }
+        )
+        .opacity(isPast ? 0.55 : 1.0)
+
+        if let urlString = event.url, let url = URL(string: urlString) {
+            Link(destination: url) { row }
+                .buttonStyle(.plain)
+        } else {
+            row
+        }
+    }
+
+    @ViewBuilder
+    private var trailingContent: some View {
+        if isNow {
+            WidgetBadge(text: "Now", color: Tokens.accent)
+        } else if event.allDay {
+            WidgetBadge(text: "All day")
+        } else if let date = ISO8601DateFormatter.parse(event.start) {
+            VStack(alignment: .trailing, spacing: Tokens.extraTight) {
+                Text(date.formatted(date: .omitted, time: .shortened))
+                    .font(Tokens.Font.rowTrailingValue)
+                    .foregroundStyle(.secondary)
+
+                if showRelative, let rel = relativeLabel {
+                    Text(rel)
+                        .font(Tokens.Font.rowTrailingValue)
+                        .foregroundStyle(.tertiary)
+                }
+            }
+        }
+    }
+
+    private var relativeLabel: String? {
+        if event.allDay { return nil }
+        guard let start = ISO8601DateFormatter.parse(event.start),
+              let end = ISO8601DateFormatter.parse(event.end) else { return nil }
+        let diffMin = Int(start.timeIntervalSince(now) / 60)
+        if diffMin < 0 {
+            if end > now { return nil } // "Now" badge handles this
+            return nil
+        }
+        if diffMin < 60 { return "in \(diffMin)m" }
+        if diffMin < 1440 {
+            let hours = diffMin / 60
+            let mins = diffMin % 60
+            return mins > 0 ? "in \(hours)h \(mins)m" : "in \(hours)h"
+        }
+        return nil
     }
 }
 
@@ -144,163 +293,17 @@ private func groupByDay(_ events: [CalendarEvent], now: Date) -> [DayGroup] {
     return order.compactMap { map[$0] }
 }
 
-// MARK: - Day section
+// MARK: - Event state helpers
 
-private struct DaySection: View {
-    let group: DayGroup
-    let now: Date
-    var maxEvents: Int?
-
-    private var visibleEvents: [CalendarEvent] {
-        if let max = maxEvents { return Array(group.events.prefix(max)) }
-        return group.events
-    }
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: Tokens.sectionSpacing) {
-            Text(group.label)
-                .font(Tokens.Font.sectionHeader)
-                .textCase(.uppercase)
-                .foregroundStyle(.secondary)
-
-            VStack(spacing: Tokens.extraTight) {
-                ForEach(visibleEvents) { event in
-                    EventRow(event: event, now: now)
-                }
-            }
-        }
-    }
+private func eventIsNow(_ event: CalendarEvent, now: Date) -> Bool {
+    if event.allDay { return false }
+    guard let start = ISO8601DateFormatter.parse(event.start),
+          let end = ISO8601DateFormatter.parse(event.end) else { return false }
+    return start <= now && end > now
 }
 
-// MARK: - Event row
-
-private struct EventRow: View {
-    let event: CalendarEvent
-    let now: Date
-
-    var body: some View {
-        let accent = eventAccent(event.colorId)
-        let state = eventState
-        let muted = state == .past
-
-        let rowContent = HStack(alignment: .top, spacing: Tokens.snug) {
-            VStack(alignment: .trailing, spacing: Tokens.extraTight) {
-                if event.allDay {
-                    Text("all day")
-                        .font(.caption2.weight(.medium))
-                        .foregroundStyle(.secondary)
-                        .padding(.horizontal, Tokens.sectionSpacing)
-                        .padding(.vertical, Tokens.extraTight)
-                        .background(.fill.tertiary, in: Capsule())
-                } else if let date = ISO8601DateFormatter.parse(event.start) {
-                    Text(date.formatted(date: .omitted, time: .shortened))
-                        .font(.caption.weight(.semibold))
-                        .monospacedDigit()
-                    if let dur = durationText {
-                        Text(dur)
-                            .font(Tokens.Font.microLabel)
-                            .foregroundStyle(.tertiary)
-                    }
-                }
-            }
-            .frame(width: Tokens.Size.calendarTimeColumn, alignment: .trailing)
-
-            RoundedRectangle(cornerRadius: Tokens.tinyRadius, style: .continuous)
-                .fill(accent.opacity(muted ? 0.35 : 1.0))
-                .frame(width: Tokens.Size.eventBar, height: Tokens.Size.symbolBox)
-                .padding(.top, Tokens.badgePadding)
-
-            VStack(alignment: .leading, spacing: Tokens.extraTight) {
-                HStack(spacing: Tokens.sectionSpacing) {
-                    Text(event.title)
-                        .font(Tokens.Font.bodyRow)
-                        .lineLimit(1)
-                    if state == .now {
-                        Text("Now")
-                            .font(Tokens.Font.microLabel.weight(.semibold))
-                            .textCase(.uppercase)
-                            .tracking(0.5)
-                            .foregroundStyle(Tokens.positive)
-                            .padding(.horizontal, Tokens.tight)
-                            .padding(.vertical, Tokens.microSpacing)
-                            .background(Tokens.positive.opacity(0.12), in: Capsule())
-                    }
-                }
-
-                if let loc = event.location, !loc.isEmpty {
-                    Label(loc, systemImage: "mappin.and.ellipse")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                        .lineLimit(1)
-                }
-            }
-
-            Spacer(minLength: Tokens.tight)
-
-            if let rel = relativeLabel {
-                Text(rel)
-                    .font(.caption2.weight(.medium))
-                    .foregroundStyle(.secondary)
-                    .monospacedDigit()
-                    .padding(.top, Tokens.microSpacing)
-            }
-        }
-        .padding(.vertical, Tokens.compact)
-        .padding(.horizontal, Tokens.tight)
-        .contentShape(Rectangle())
-        .opacity(muted ? 0.55 : 1.0)
-        .accessibilityElement(children: .combine)
-
-        if let urlString = event.url, let url = URL(string: urlString) {
-            Link(destination: url) {
-                rowContent
-            }
-            .buttonStyle(.plain)
-        } else {
-            rowContent
-        }
-    }
-
-    // MARK: Computed helpers
-
-    private enum EventState { case past, now, future }
-
-    private var eventState: EventState {
-        if event.allDay { return .future }
-        guard let start = ISO8601DateFormatter.parse(event.start),
-              let end = ISO8601DateFormatter.parse(event.end) else { return .future }
-        if start <= now && end > now { return .now }
-        if end <= now { return .past }
-        return .future
-    }
-
-    private var relativeLabel: String? {
-        if event.allDay { return "All day" }
-        guard let start = ISO8601DateFormatter.parse(event.start),
-              let end = ISO8601DateFormatter.parse(event.end) else { return nil }
-        let diffMin = Int(start.timeIntervalSince(now) / 60)
-        if diffMin < 0 {
-            if end > now { return "Now" }
-            return "Ended"
-        }
-        if diffMin < 60 { return "in \(diffMin)m" }
-        if diffMin < 1440 {
-            let h = diffMin / 60
-            let m = diffMin % 60
-            return m > 0 ? "in \(h)h \(m)m" : "in \(h)h"
-        }
-        return nil
-    }
-
-    private var durationText: String? {
-        if event.allDay { return nil }
-        guard let start = ISO8601DateFormatter.parse(event.start),
-              let end = ISO8601DateFormatter.parse(event.end) else { return nil }
-        let mins = Int(end.timeIntervalSince(start) / 60)
-        guard mins > 0 else { return nil }
-        if mins < 60 { return "\(mins)m" }
-        let h = mins / 60
-        let m = mins % 60
-        return m > 0 ? "\(h)h \(m)m" : "\(h)h"
-    }
+private func eventIsPast(_ event: CalendarEvent, now: Date) -> Bool {
+    if event.allDay { return false }
+    guard let end = ISO8601DateFormatter.parse(event.end) else { return false }
+    return end <= now
 }

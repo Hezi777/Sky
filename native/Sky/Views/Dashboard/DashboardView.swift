@@ -36,7 +36,6 @@ struct DashboardView: View {
             hour: Calendar.current.component(.hour, from: now),
             githubCommits: signals.commitsToday ?? 0,
             tasksCompleted: signals.completedTaskCount,
-            daysSinceActivity: signals.daysSinceExercise,
             portfolioChangePercent: signals.portfolioDayChangePercent
         ))
     }
@@ -50,7 +49,7 @@ struct DashboardView: View {
                     VStack(spacing: Tokens.sectionGap) {
                         HeroZone(state: cloudState)
 
-                        if !backendRuntime.state.isReady {
+                        if !DemoMode.isEnabled, !backendRuntime.state.isReady {
                             BackendStatusCard(
                                 state: backendRuntime.state,
                                 onRetry: retryBackend,
@@ -116,8 +115,9 @@ struct DashboardView: View {
         }
         .ignoresSafeArea(.container, edges: .top)
         .background(Color("BgBase"))
-        .onAppear { now = Date() }
+        .onAppear { now = DemoMode.adjustedNow }
         .task(id: loadIdentity) {
+            guard !DemoMode.isEnabled else { return }
             guard backendRuntime.state.isReady else { return }
             await dashboardStore.loadVisible(
                 config.visibleWidgets,
@@ -125,6 +125,7 @@ struct DashboardView: View {
             )
         }
         .refreshable {
+            guard !DemoMode.isEnabled else { return }
             guard backendRuntime.state.isReady else { return }
             await dashboardStore.refreshVisible(
                 config.visibleWidgets,
@@ -150,7 +151,8 @@ struct DashboardView: View {
     }
 
     private var unconfiguredVisibleWidgets: [WidgetKind] {
-        config.visibleWidgets.filter { kind in
+        guard !DemoMode.isEnabled else { return [] }
+        return config.visibleWidgets.filter { kind in
             guard let integrationID = kind.integrationID else { return false }
             return !integrationConfig.isConfigured(integrationID)
         }
@@ -174,7 +176,7 @@ struct DashboardView: View {
 
     @ViewBuilder
     private func widget(for kind: WidgetKind) -> some View {
-        if let integrationID = kind.integrationID,
+        if !DemoMode.isEnabled, let integrationID = kind.integrationID,
            !integrationConfig.isConfigured(integrationID) {
             WidgetSetupCard(kind: kind)
         } else {
@@ -190,7 +192,6 @@ struct DashboardView: View {
             case .stocks: StocksWidget()
             case .weather: WeatherWidget()
             case .quote: QuoteWidget()
-            case .strava: StravaWidget()
             }
         }
     }

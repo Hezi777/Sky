@@ -217,33 +217,25 @@ struct FairWidget: View {
 
     private var investedGainRow: some View {
         HStack(spacing: Tokens.rowSpacing) {
-            VStack(alignment: .leading, spacing: Tokens.microSpacing) {
-                Text("Invested")
-                    .font(.caption2)
-                    .foregroundStyle(.secondary)
-                Text(fairStore.invested, format: .currency(code: "ILS").precision(.fractionLength(0)))
-                    .font(Tokens.Font.bodyRowStrong)
-                    .monospacedDigit()
-            }
+            WidgetMetric(
+                label: "INVESTED",
+                value: fairStore.invested.formatted(
+                    .currency(code: "ILS").precision(.fractionLength(0))
+                )
+            )
 
             if let price = effectivePrice, let pct = fairStore.gainPercent(at: price) {
                 let gainVal = fairStore.gain(at: price)
-                VStack(alignment: .leading, spacing: Tokens.microSpacing) {
-                    Text("Gain")
-                        .font(.caption2)
-                        .foregroundStyle(.secondary)
-                    HStack(spacing: Tokens.extraTight) {
-                        Image(systemName: gainVal >= 0 ? "arrow.up.right" : "arrow.down.right")
-                            .font(.caption2.weight(.semibold))
-                        Text(pct / 100, format: .percent.precision(.fractionLength(2)))
-                            .font(Tokens.Font.bodyRowStrong)
-                            .monospacedDigit()
-                    }
-                    .foregroundStyle(gainVal >= 0 ? Tokens.positive : Tokens.negative)
-                    .accessibilityElement(children: .ignore)
-                    .accessibilityLabel("Gain")
-                    .accessibilityValue(changeLabel(gainVal: gainVal, pct: pct))
-                }
+                WidgetMetric(
+                    label: "GAIN",
+                    value: (pct / 100).formatted(
+                        .percent
+                        .sign(strategy: .always())
+                        .precision(.fractionLength(2))
+                    ),
+                    tint: gainVal >= 0 ? Tokens.positive : Tokens.negative
+                )
+                .accessibilityLabel("Gain \(changeLabel(gainVal: gainVal, pct: pct))")
             }
         }
     }
@@ -308,35 +300,33 @@ struct FairWidget: View {
     private var contributionsList: some View {
         let sorted = fairStore.config.contributions.sorted { $0.date > $1.date }
         return VStack(alignment: .leading, spacing: Tokens.compact) {
-            Text("Contributions")
-                .font(.caption2.weight(.semibold))
-                .textCase(.uppercase)
-                .foregroundStyle(.secondary)
+            WidgetSectionHeader(title: "Contributions")
 
             ForEach(sorted) { contrib in
-                HStack(spacing: Tokens.compact) {
-                    Text(contrib.date)
-                        .font(Tokens.Font.caption)
-                        .lineLimit(1)
-                    Spacer(minLength: Tokens.tight)
-                    Text(contrib.amount, format: .currency(code: "ILS").precision(.fractionLength(0)))
-                        .font(Tokens.Font.bodyRow)
-                        .monospacedDigit()
-                    Text("\(contrib.units.formatted(.number.precision(.fractionLength(4)))) u")
-                        .font(.caption2)
-                        .foregroundStyle(.secondary)
-                        .monospacedDigit()
-                    Button {
-                        fairStore.remove(id: contrib.id)
-                    } label: {
-                        Image(systemName: "trash")
-                            .font(.caption2)
-                            .foregroundStyle(.secondary)
+                WidgetRow(
+                    title: contrib.date,
+                    showsDivider: contrib.id != sorted.last?.id,
+                    trailing: {
+                    HStack(spacing: Tokens.snug) {
+                        VStack(alignment: .trailing, spacing: Tokens.extraTight) {
+                            Text(contrib.amount, format: .currency(code: "ILS").precision(.fractionLength(0)))
+                                .font(Tokens.Font.rowTrailingValue)
+                                .foregroundStyle(.primary)
+                            Text("\(contrib.units.formatted(.number.precision(.fractionLength(4)))) u")
+                                .font(Tokens.Font.rowSubtitle)
+                                .foregroundStyle(.secondary)
+                        }
+                        Button {
+                            fairStore.remove(id: contrib.id)
+                        } label: {
+                            Image(systemName: "trash")
+                                .font(.caption2)
+                                .foregroundStyle(.secondary)
+                        }
+                        .buttonStyle(.plain)
+                        .accessibilityLabel("Remove contribution on \(contrib.date)")
                     }
-                    .buttonStyle(.plain)
-                    .accessibilityLabel("Remove contribution on \(contrib.date)")
-                }
-                .accessibilityElement(children: .combine)
+                })
             }
         }
     }

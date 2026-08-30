@@ -170,6 +170,14 @@ final class BackendRuntime {
         await start(environment: environment)
     }
 
+    /// Marks the runtime "ready" without spawning the bundled backend process
+    /// or configuring `APIClient` with a real base URL. Only used by
+    /// `DemoMode`, so the UI renders as if data is available while every
+    /// widget's data actually comes from `DashboardStore.loadDemoFixtures()`.
+    func enableDemo() {
+        state = .ready(URL(string: "http://demo.invalid")!)
+    }
+
     func stop() {
         #if os(macOS)
         launchGeneration += 1

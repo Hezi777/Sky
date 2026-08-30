@@ -36,6 +36,13 @@ final class FairStore {
     )
 
     init() {
+        // Demo mode never reads or writes the real fund file — it renders
+        // fabricated contributions from `DemoFixtures` and every mutation
+        // no-ops (see `save()`).
+        guard !DemoMode.isEnabled else {
+            config = DemoFixtures.fair
+            return
+        }
         let url = Self.fileURL
         if let data = try? Data(contentsOf: url) {
             if let decoded = try? JSONDecoder().decode(FairConfig.self, from: data) {
@@ -52,6 +59,7 @@ final class FairStore {
     }
 
     private func save() {
+        guard !DemoMode.isEnabled else { return }
         let url = Self.fileURL
         let dir = url.deletingLastPathComponent()
         try? FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)

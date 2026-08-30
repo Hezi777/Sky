@@ -16,7 +16,14 @@ final class DashboardConfig {
     private static let legacyV1Key = "sky.dashboard.config.v1"
 
     init() {
-        if let saved = Self.load() {
+        if DemoMode.isEnabled {
+            name = "Hen"
+            order = DashboardSectionSpec.defaultOrder
+            hidden = Set(WidgetKind.allCases.filter { !$0.defaultVisible })
+            sizes = Dictionary(
+                uniqueKeysWithValues: WidgetKind.allCases.map { ($0, $0.defaultSize) }
+            )
+        } else if let saved = Self.load() {
             name = saved.name
             order = saved.order
             hidden = saved.hidden
@@ -115,6 +122,40 @@ final class DashboardConfig {
         var order: [WidgetKind]
         var hidden: Set<WidgetKind>
         var sizes: [WidgetKind: WidgetSize]
+
+        init(name: String, order: [WidgetKind], hidden: Set<WidgetKind>, sizes: [WidgetKind: WidgetSize]) {
+            self.name = name
+            self.order = order
+            self.hidden = hidden
+            self.sizes = sizes
+        }
+
+        /// Decodes leniently: a widget kind that no longer exists is dropped
+        /// rather than failing the whole snapshot.
+        ///
+        /// The synthesized decoder throws on an unknown raw value, and the call
+        /// site swallows that with `try?` — so one retired widget in the stored
+        /// JSON would silently reset the user's entire dashboard (order, sizes,
+        /// and hidden set) back to factory defaults. Retiring a widget must cost
+        /// the user that widget, nothing else.
+        init(from decoder: Decoder) throws {
+            let container = try decoder.container(keyedBy: CodingKeys.self)
+            name = try container.decode(String.self, forKey: .name)
+            order = try container.decode([String].self, forKey: .order).compactMap(WidgetKind.init(rawValue:))
+            hidden = Set(try container.decode([String].self, forKey: .hidden).compactMap(WidgetKind.init(rawValue:)))
+
+            // Encoded as a flat [key, value, key, value…] array, because
+            // WidgetKind is not a CodingKey-representable dictionary key.
+            let flat = try container.decode([String].self, forKey: .sizes)
+            var parsed: [WidgetKind: WidgetSize] = [:]
+            for pair in stride(from: 0, to: flat.count - 1, by: 2) {
+                guard let kind = WidgetKind(rawValue: flat[pair]),
+                      let size = WidgetSize(rawValue: flat[pair + 1])
+                else { continue }
+                parsed[kind] = size
+            }
+            sizes = parsed
+        }
     }
 
     /// Legacy v2 snapshot (footprints) for migration.
@@ -139,6 +180,7 @@ final class DashboardConfig {
     }
 
     private func persist() {
+        guard !DemoMode.isEnabled else { return }
         let snap = Snapshot(name: name, order: order, hidden: hidden, sizes: sizes)
         if let data = try? JSONEncoder().encode(snap) {
             UserDefaults.standard.set(data, forKey: Self.key)

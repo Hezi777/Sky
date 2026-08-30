@@ -25,8 +25,7 @@ final class IntegrationConfigStore {
         "IBKR_GATEWAY_URL", "IBKR_KEEPALIVE_INTERVAL_MS", "NOTION_PROJECTS_DB_ID",
         "NOTION_READING_DATA_SOURCE_ID", "NOTION_RESOURCES_DB_ID", "NOTION_TOKEN",
         "SPOTIFY_CLIENT_ID", "SPOTIFY_CLIENT_SECRET",
-        "SPOTIFY_REFRESH_TOKEN", "STRAVA_CLIENT_ID", "STRAVA_CLIENT_SECRET",
-        "STRAVA_REFRESH_TOKEN", "TICKTICK_ACCESS_TOKEN", "TICKTICK_MCP_TOKEN",
+        "SPOTIFY_REFRESH_TOKEN", "TICKTICK_ACCESS_TOKEN", "TICKTICK_MCP_TOKEN",
         "TICKTICK_PASSWORD", "TICKTICK_USERNAME", "TWELVEDATA_API_KEY",
     ]
 
@@ -36,7 +35,6 @@ final class IntegrationConfigStore {
         ("googleCalendar", "Google Calendar", ["GOOGLE_CLIENT_ID", "GOOGLE_CLIENT_SECRET", "GOOGLE_REFRESH_TOKEN"]),
         ("tickTick", "TickTick", ["TICKTICK_MCP_TOKEN", "TICKTICK_USERNAME", "TICKTICK_PASSWORD", "TICKTICK_ACCESS_TOKEN"]),
         ("spotify", "Spotify", ["SPOTIFY_CLIENT_ID", "SPOTIFY_CLIENT_SECRET", "SPOTIFY_REFRESH_TOKEN"]),
-        ("strava", "Strava", ["STRAVA_CLIENT_ID", "STRAVA_CLIENT_SECRET", "STRAVA_REFRESH_TOKEN"]),
         ("stocks", "Stocks", ["FINNHUB_API_KEY", "TWELVEDATA_API_KEY"]),
         ("github", "GitHub", ["GITHUB_PAT", "GITHUB_USERNAME"]),
         ("notionReading", "Notion Reading", ["NOTION_TOKEN", "NOTION_READING_DATA_SOURCE_ID"]),
@@ -184,8 +182,6 @@ final class IntegrationConfigStore {
                 || has("TICKTICK_ACCESS_TOKEN")
         case "spotify":
             return hasAll(["SPOTIFY_CLIENT_ID", "SPOTIFY_CLIENT_SECRET", "SPOTIFY_REFRESH_TOKEN"])
-        case "strava":
-            return hasAll(["STRAVA_CLIENT_ID", "STRAVA_CLIENT_SECRET", "STRAVA_REFRESH_TOKEN"])
         case "stocks":
             return has("FINNHUB_API_KEY")
         case "github":

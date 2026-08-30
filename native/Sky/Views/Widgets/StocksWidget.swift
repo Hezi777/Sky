@@ -53,14 +53,64 @@ struct StocksWidget: View {
                 StockHero(quote: first)
             }
         case .medium:
-            VStack(spacing: Tokens.contentSpacing) {
-                ForEach(quotes) { StockRow(quote: $0) }
+            VStack(spacing: Tokens.zeroSpacing) {
+                ForEach(Array(quotes.enumerated()), id: \.element.id) { index, quote in
+                    stockRow(quote: quote, showSparkline: false, showsDivider: index < quotes.count - 1)
+                }
             }
         case .large:
-            VStack(spacing: Tokens.contentSpacing) {
-                ForEach(quotes) { StockRow(quote: $0, showSparkline: true) }
+            VStack(spacing: Tokens.zeroSpacing) {
+                ForEach(Array(quotes.enumerated()), id: \.element.id) { index, quote in
+                    stockRow(quote: quote, showSparkline: true, showsDivider: index < quotes.count - 1)
+                }
             }
         }
+    }
+
+    // MARK: - Stock row using WidgetRow
+
+    @ViewBuilder
+    private func stockRow(quote: StockQuote, showSparkline: Bool, showsDivider: Bool) -> some View {
+        let isUp = quote.changePercent >= 0
+        let changeColor = isUp ? Tokens.positive : Tokens.negative
+        let changeText = (quote.changePercent / 100).formatted(
+            .percent.sign(strategy: .always()).precision(.fractionLength(2))
+        )
+
+        Link(destination: URL(string: "https://finance.yahoo.com/quote/\(quote.symbol)") ?? URL(string: "https://finance.yahoo.com")!) {
+            WidgetRow(
+                title: quote.symbol,
+                showsDivider: showsDivider,
+                leading: {
+                    if showSparkline, let spark = quote.spark, spark.count > 1 {
+                        Sparkline(symbol: quote.symbol, values: spark, color: changeColor)
+                            .frame(height: Tokens.Size.stockSparklineHeight)
+                    } else {
+                        EmptyView()
+                    }
+                },
+                trailing: {
+                    VStack(alignment: .trailing, spacing: Tokens.extraTight) {
+                        Text(quote.price, format: .number.precision(.fractionLength(2)))
+                            .font(Tokens.Font.rowTrailingValue)
+                            .foregroundStyle(.primary)
+                            .monospacedDigit()
+                            .contentTransition(.numericText())
+
+                        Text(changeText)
+                            .font(Tokens.Font.rowTrailingValue)
+                            .foregroundStyle(changeColor)
+                            .monospacedDigit()
+                    }
+                }
+            )
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel(quote.symbol)
+        .accessibilityValue(
+            "Price \(quote.price.formatted(.number.precision(.fractionLength(2)))), "
+                + "\(changeText)"
+        )
     }
 }
 
@@ -79,13 +129,11 @@ private struct StockHero: View {
                 .foregroundStyle(.primary)
 
             Text(quote.price, format: .number.precision(.fractionLength(2)))
-                .font(.system(.title, design: .rounded).weight(.semibold))
-                .monospacedDigit()
+                .font(Tokens.Font.primaryValue(size: Tokens.Size.recentArtwork))
                 .contentTransition(.numericText())
 
             Label(changeText, systemImage: arrowSymbol)
-                .font(Tokens.Font.bodyRow)
-                .monospacedDigit()
+                .font(Tokens.Font.metricValue)
                 .foregroundStyle(changeColor)
         }
         .accessibilityElement(children: .combine)
@@ -103,105 +151,22 @@ private struct StockHero: View {
     }
 }
 
-private struct StockRow: View {
-    let quote: StockQuote
-    var showSparkline: Bool = false
-
-    private var isUp: Bool { quote.changePercent >= 0 }
-    private var changeColor: Color { isUp ? Tokens.positive : Tokens.negative }
-    private var arrowSymbol: String { isUp ? "arrow.up.right" : "arrow.down.right" }
-
-    var body: some View {
-        Link(destination: URL(string: "https://finance.yahoo.com/quote/\(quote.symbol)") ?? URL(string: "https://finance.yahoo.com")!) {
-            HStack(spacing: Tokens.rowSpacing) {
-                VStack(alignment: .leading, spacing: Tokens.microSpacing) {
-                    Text(quote.symbol)
-                        .font(Tokens.Font.bodyRowStrong)
-                        .foregroundStyle(.primary)
-                    Text(
-                        quote.change,
-                        format: .number.sign(strategy: .always()).precision(.fractionLength(2))
-                    )
-                        .font(.caption2)
-                        .foregroundStyle(.secondary)
-                        .monospacedDigit()
-                }
-
-                if showSparkline, let spark = quote.spark, spark.count > 1 {
-                    Sparkline(values: spark, color: changeColor)
-                        .frame(maxWidth: Tokens.Size.artwork)
-                        .frame(height: Tokens.Size.stockSparklineHeight)
-                }
-
-                Spacer(minLength: Tokens.snug)
-
-                VStack(alignment: .trailing, spacing: Tokens.extraTight) {
-                    Text(quote.price, format: .number.precision(.fractionLength(2)))
-                        .font(Tokens.Font.bodyRow)
-                        .foregroundStyle(.primary)
-                        .monospacedDigit()
-                        .contentTransition(.numericText())
-
-                    Label(changeText, systemImage: arrowSymbol)
-                        .font(.caption2.weight(.semibold))
-                        .monospacedDigit()
-                        .foregroundStyle(changeColor)
-                }
-            }
-        }
-        .buttonStyle(.plain)
-        .accessibilityLabel(quote.symbol)
-        .accessibilityValue(
-            "Price \(quote.price.formatted(.number.precision(.fractionLength(2)))), "
-                + "change \(quote.change.formatted(.number.precision(.fractionLength(2)))) "
-                + "or \((quote.changePercent / 100).formatted(.percent.precision(.fractionLength(2))))"
-        )
-    }
-
-    private var changeText: String {
-        (quote.changePercent / 100).formatted(
-            .percent.sign(strategy: .always()).precision(.fractionLength(2))
-        )
-    }
-}
-
-// Compact intraday sparkline (Swift Charts), gradient area under a smooth line.
-// Apple HIG: minimal chrome, let the data shape speak. Generous vertical padding
-// prevents the line from touching edges.
+/// Compact intraday sparkline. Rides beside a row that already states the price
+/// and the change, so it carries no axes and no readout of its own — its job is
+/// the shape of the day, not a second copy of the number.
 private struct Sparkline: View {
+    let symbol: String
     let values: [Double]
     let color: Color
 
     var body: some View {
-        let points = Array(values.enumerated())
-        let lo = values.min() ?? 0
-        let hi = values.max() ?? 1
-        let range = hi - lo
-        let padding = max(range * 0.12, 0.001)
-
-        Chart(points, id: \.offset) { index, value in
-            AreaMark(
-                x: .value("t", index),
-                yStart: .value("lo", lo - padding),
-                yEnd: .value("price", value)
-            )
-            .interpolationMethod(.catmullRom)
-            .foregroundStyle(
-                .linearGradient(
-                    colors: [color.opacity(0.2), color.opacity(0.0)],
-                    startPoint: .top, endPoint: .bottom
-                )
-            )
-
-            LineMark(x: .value("t", index), y: .value("price", value))
-                .interpolationMethod(.catmullRom)
-                .foregroundStyle(color)
-                .lineStyle(StrokeStyle(lineWidth: 1.5, lineCap: .round))
-        }
-        .chartXAxis(.hidden)
-        .chartYAxis(.hidden)
-        .chartYScale(domain: (lo - padding)...(hi + padding))
-        .chartLegend(.hidden)
+        SkyChart(
+            points: values.enumerated().map { SkyChartPoint(index: $0.offset, value: $0.element) },
+            tint: color,
+            density: .sparkline,
+            format: { $0.formatted(.number.precision(.fractionLength(2))) },
+            accessibilityDescription: "\(symbol) intraday price"
+        )
     }
 }
 

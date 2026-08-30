@@ -6,7 +6,7 @@
     },
     {
       "appearances" : [ { "appearance" : "luminosity", "value" : "dark" } ],
-      "color" : { "color-space" : "srgb", "components" : { "alpha" : "1.000", "blue" : "0x7e", "green" : "0x6d", "red" : "0xf7" } },
+      "color" : { "color-space" : "srgb", "components" : { "alpha" : "1.000", "blue" : "0x64", "green" : "0x47", "red" : "0xec" } },
       "idiom" : "universal"
     }
   ],

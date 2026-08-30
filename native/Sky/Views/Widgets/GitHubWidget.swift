@@ -50,8 +50,11 @@ private struct GitHubContent: View {
             VStack(alignment: .leading, spacing: Tokens.contentSpacing) {
                 ContributionHeatmap(days: data.contributions, compact: false)
                 if !data.repos.isEmpty {
-                    VStack(spacing: Tokens.snug) {
-                        ForEach(data.repos.prefix(2)) { RepoRow(repo: $0) }
+                    let topRepos = Array(data.repos.prefix(2))
+                    VStack(spacing: Tokens.zeroSpacing) {
+                        ForEach(Array(topRepos.enumerated()), id: \.element.id) { index, repo in
+                            RepoRow(repo: repo, showsDivider: index < topRepos.count - 1)
+                        }
                     }
                 }
             }
@@ -135,8 +138,6 @@ private struct ContributionHeatmap: View {
         return labels
     }
 
-    @State private var availableSize: CGSize = .zero
-
     private let gap: CGFloat = Tokens.microSpacing
     private var labelWidth: CGFloat { compact ? 0 : 24 }
     private var monthRowHeight: CGFloat { compact ? 0 : Tokens.Size.compactControl }
@@ -144,22 +145,40 @@ private struct ContributionHeatmap: View {
     /// Cell edge that fills the available width across all weeks AND fits 7 rows
     /// (plus optional month row) into the available height. min of both, never
     /// overflowing the tile.
-    private func cell(columnCount: Int) -> CGFloat {
-        guard columnCount > 0, availableSize.width > 0, availableSize.height > 0 else {
+    private func cell(columnCount: Int, in available: CGSize) -> CGFloat {
+        guard columnCount > 0, available.width > 0, available.height > 0 else {
             return Tokens.Size.heatmapCell
         }
-        let widthFill = (availableSize.width - labelWidth - CGFloat(columnCount - 1) * gap)
+        let widthFill = (available.width - labelWidth - CGFloat(columnCount - 1) * gap)
             / CGFloat(columnCount)
         // 7 day rows (6 inter-row gaps) + month row + the section spacing above it.
-        let gridHeight = availableSize.height - monthRowHeight
+        let gridHeight = available.height - monthRowHeight
             - (compact ? 0 : Tokens.sectionSpacing)
         let heightFit = (gridHeight - CGFloat(6) * gap) / 7
-        return max(2, min(widthFill, heightFit))
+        return max(1, min(widthFill, heightFit))
     }
 
+    /*
+      The size is read straight from a GeometryReader rather than round-tripped
+      through a preference key into @State.
+
+      The preference version seeded `availableSize` at .zero, so the first pass
+      fell back to the default cell edge — and at 53 columns that default is far
+      wider than the tile. Inside DashboardView's fixed-height `.clipped()`
+      frame the corrected value never forced a re-layout, so the oversized grid
+      stuck and ran out past the card's right edge. Reading geometry in the same
+      pass means the cell is never sized from a stale measurement.
+    */
     var body: some View {
+        GeometryReader { geo in
+            content(in: geo.size)
+        }
+    }
+
+    @ViewBuilder
+    private func content(in available: CGSize) -> some View {
         let cols = weeks
-        let cell = cell(columnCount: cols.count)
+        let cell = cell(columnCount: cols.count, in: available)
         let labels = compact ? [:] : monthLabels(for: cols)
         VStack(alignment: .leading, spacing: Tokens.sectionSpacing) {
             if !compact {
@@ -207,13 +226,7 @@ private struct ContributionHeatmap: View {
             }
             .frame(maxWidth: .infinity, alignment: .leading)
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
-        .background(
-            GeometryReader { geo in
-                Color.clear.preference(key: HeatmapSizeKey.self, value: geo.size)
-            }
-        )
-        .onPreferenceChange(HeatmapSizeKey.self) { availableSize = $0 }
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
         .accessibilityElement(children: .ignore)
         .accessibilityLabel("Contribution history")
         .accessibilityValue("\(days.reduce(0) { $0 + $1.count }) contributions in the past year")
@@ -235,40 +248,43 @@ private struct ContributionHeatmap: View {
 
 private struct RepoRow: View {
     let repo: GithubRepo
+    var showsDivider: Bool = true
 
     var body: some View {
         Link(destination: URL(string: repo.url) ?? URL(string: "https://github.com")!) {
-            VStack(alignment: .leading, spacing: Tokens.extraTight) {
-                HStack(spacing: Tokens.snug) {
-                    Text(repo.name)
-                        .font(Tokens.Font.bodyRow)
-                        .lineLimit(1)
-                        .truncationMode(.tail)
-                    Spacer(minLength: Tokens.snug)
-                    Label("\(repo.stars)", systemImage: "star")
-                        .labelStyle(.titleAndIcon)
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
+            WidgetRow(
+                title: repo.name,
+                subtitle: "\(repo.language ?? "Code") · pushed \(relativeTime(repo.pushedAt))",
+                showsDivider: showsDivider,
+                leading: {
+                    Circle()
+                        .fill(languageColor)
+                        .frame(width: Tokens.Size.legendDot, height: Tokens.Size.legendDot)
+                },
+                trailing: {
+                    Label {
+                        Text("\(repo.stars)")
+                            .font(Tokens.Font.rowTrailingValue)
+                            .foregroundStyle(.secondary)
+                    } icon: {
+                        Image(systemName: "star")
+                            .font(Tokens.Font.rowTrailingValue)
+                            .foregroundStyle(.secondary)
+                    }
                 }
-                Text(secondLine)
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-                    .lineLimit(1)
-            }
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .padding(.horizontal, Tokens.contentSpacing)
-            .padding(.vertical, Tokens.snug)
-            .background(
-                RoundedRectangle(cornerRadius: Tokens.innerRadius, style: .continuous)
-                    .fill(.quaternary.opacity(0.4))
             )
-            .contentShape(RoundedRectangle(cornerRadius: Tokens.innerRadius, style: .continuous))
         }
         .buttonStyle(.plain)
     }
 
-    private var secondLine: String {
-        "\(repo.language ?? "Code") · pushed \(relativeTime(repo.pushedAt))"
+    private var languageColor: Color {
+        switch repo.language {
+        case "Swift": Tokens.warning
+        case "TypeScript", "JavaScript": Tokens.caution
+        case "Python": Tokens.info
+        case "Rust": Tokens.negative
+        default: Tokens.neutral
+        }
     }
 
     private func relativeTime(_ iso: String) -> String {
@@ -287,11 +303,3 @@ private struct RepoRow: View {
     }
 }
 
-// MARK: - Preference key for heatmap width measurement
-
-private struct HeatmapSizeKey: PreferenceKey {
-    static let defaultValue: CGSize = .zero
-    static func reduce(value: inout CGSize, nextValue: () -> CGSize) {
-        value = nextValue()
-    }
-}

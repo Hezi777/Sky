@@ -56,3 +56,8 @@ next-env.d.ts
 
 # source design assets (raw character art, icon sources)
 assets/source/
+
+# build output
+output/
+native/output/
+native/Sky/Debug/
